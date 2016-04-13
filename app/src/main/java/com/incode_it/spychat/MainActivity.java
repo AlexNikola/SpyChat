@@ -1,23 +1,34 @@
 package com.incode_it.spychat;
 
+import android.annotation.SuppressLint;
+import android.app.ActivityManager;
+import android.database.Cursor;
+import android.graphics.Typeface;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
+import android.provider.ContactsContract;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.view.View;
-import android.support.design.widget.NavigationView;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
+import android.util.Log;
 import android.view.MenuItem;
 
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnFragmentInteractionListener
+        implements NavigationView.OnNavigationItemSelectedListener,
+        OnFragmentInteractionListener
+
 {
     public static final String FRAGMENT = "fragment";
     public static final String TITLE = "title";
@@ -29,6 +40,7 @@ public class MainActivity extends AppCompatActivity
     public static String CURRENT_TITLE;
 
     Toolbar toolbar;
+    static Typeface typeface;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -41,7 +53,7 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        typeface = Typeface.createFromAsset(getAssets(), "fonts/OpenSans-Light.ttf");
         CURRENT_TITLE = getResources().getString(R.string.nav_home);
         CURRENT_FRAGMENT = FRAGMENT_HOME;
 
@@ -150,5 +162,6 @@ public class MainActivity extends AppCompatActivity
     public void onFragmentInteraction() {
 
     }
+
 
 }

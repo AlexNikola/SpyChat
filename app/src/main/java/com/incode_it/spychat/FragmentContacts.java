@@ -1,9 +1,14 @@
 package com.incode_it.spychat;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.database.Cursor;
 import android.os.Bundle;
-import android.support.design.widget.Snackbar;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -14,40 +19,24 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.incode_it.spychat.dummy.DummyContent;
-import com.incode_it.spychat.dummy.DummyContent.DummyItem;
-
-
-
-import java.util.List;
 
 
 public class FragmentContacts extends Fragment {
 
-    // TODO: Customize parameters
-    private int mColumnCount = 1;
-
-    // TODO: Customize parameter argument names
-    private static final String ARG_COLUMN_COUNT = "column-count";
-
+    RecyclerView recyclerView;
+    ServiceConnection sConn;
+    boolean bound = false;
     private OnFragmentInteractionListener mListener;
 
-    // TODO: Customize parameter initialization
-    @SuppressWarnings("unused")
+
+
     public static FragmentContacts newInstance() {
         FragmentContacts fragment = new FragmentContacts();
-        Bundle args = new Bundle();
-        args.putInt(ARG_COLUMN_COUNT, 1);
-        fragment.setArguments(args);
         return fragment;
     }
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
     public FragmentContacts() {
     }
 
@@ -56,29 +45,29 @@ public class FragmentContacts extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         setRetainInstance(true);
-        if (getArguments() != null) {
-            mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_contact_list, container, false);
-
+                             Bundle savedInstanceState)
+    {
         Log.d(MainActivity.FRAGMENT_SETTINGS, "Contacts "+this.hashCode());
-        // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
-            if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
-            } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+        recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        recyclerView.setAdapter(new MyContactRecyclerViewAdapter(MyContacts.getContactsList(getContext()), mListener));
+
+        sConn = new ServiceConnection() {
+            public void onServiceConnected(ComponentName name, IBinder binder) {
+                Log.d(MyService.LOG_TAG, "onServiceConnected");
+                bound = true;
             }
-            recyclerView.setAdapter(new MyContactRecyclerViewAdapter(DummyContent.ITEMS, mListener));
-        }
-        return view;
+
+            public void onServiceDisconnected(ComponentName name) {
+                Log.d(MyService.LOG_TAG, "onServiceDisconnected");
+                bound = false;
+            }
+        };
+        return recyclerView;
     }
 
     @Override
@@ -89,24 +78,23 @@ public class FragmentContacts extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_search) {
-            Toast.makeText(getContext(), "Search", Toast.LENGTH_SHORT).show();
-            return true;
-        }
-        else if (id == R.id.action_new_contact)
+        switch (item.getItemId())
         {
-            Toast.makeText(getContext(), "New contact", Toast.LENGTH_SHORT).show();
-            return true;
+            case R.id.action_search:
+                //getContext().stopService(new Intent(getContext(), MyService.class));
+                getContext().unbindService(sConn);
+                break;
+
+            case R.id.action_new_contact:
+                //getContext().startService(new Intent(getContext(), MyService.class));
+                getContext().bindService(new Intent(getContext(), MyService.class), sConn, Context.BIND_AUTO_CREATE);
+                break;
         }
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
+
+
 
 
     @Override
