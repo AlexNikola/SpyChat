@@ -1,6 +1,7 @@
 package com.incode_it.spychat;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,26 +10,25 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageSwitcher;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.incode_it.spychat.dummy.DummyContent.DummyItem;
-
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.List;
 
 
 public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContactRecyclerViewAdapter.ViewHolder> {
 
-    private final List<MyContacts.Contact> mContacts;
+    static final String LOG_TAG = "mloader";
+    private List<MyContacts.Contact> mContacts;
     private final OnFragmentInteractionListener mListener;
     private Context context;
     private Bitmap noPhotoBitmap;
@@ -38,7 +38,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         mContacts = contacts;
         mListener = listener;
         context = (Context) listener;
-        noPhotoBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_person_black_24dp);
+        noPhotoBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.person);
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;
         mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
@@ -47,7 +47,12 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                 return bitmap.getByteCount() / 1024;
             }
         };
+    }
 
+    public void setContacts(List<MyContacts.Contact> mContacts)
+    {
+        this.mContacts = mContacts;
+        notifyDataSetChanged();
     }
 
     @Override
@@ -108,6 +113,16 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             mNameView.setTypeface(MainActivity.typeface, Typeface.BOLD);
 
             mNumberView.setTypeface(MainActivity.typeface);
+
+            mImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Log.d(LOG_TAG, "onClick "+getAdapterPosition());
+                    Intent intent = new Intent(context, ActivityChat.class);
+                    intent.putExtra("position", getAdapterPosition());
+                    context.startActivity(intent);
+                }
+            });
         }
 
         @Override
@@ -122,13 +137,14 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             final Bitmap bitmap = getBitmapFromMemCache(uri.toString());
             if (bitmap != null)
             {
+                //Log.d(LOG_TAG, "getBitmapFromMemCache");
                 imageView.setImageBitmap(bitmap);
             }
             else
             {
                 final BitmapWorkerTask task = new BitmapWorkerTask(imageView);
                 final AsyncDrawable asyncDrawable =
-                        new AsyncDrawable(context.getResources(), null, task);
+                        new AsyncDrawable(context.getResources(), noPhotoBitmap, task);
                 imageView.setImageDrawable(asyncDrawable);
                 task.execute(uri);
             }
@@ -177,10 +193,21 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         // Decode image in background.
         @Override
         protected Bitmap doInBackground(Uri... resIds) {
+            //Log.d(LOG_TAG, "doInBackground");
             imageUri = resIds[0];
             Bitmap bitmap = null;
             try {
-                bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), imageUri);
+                InputStream image_stream = context.getContentResolver().openInputStream(imageUri);
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeStream(image_stream, null, options);
+                if (image_stream != null) image_stream.close();
+
+                image_stream = context.getContentResolver().openInputStream(imageUri);
+                options.inJustDecodeBounds = false;
+                options.inSampleSize = calculateInSampleSize(options, 100, 100);
+                bitmap= BitmapFactory.decodeStream(image_stream, null, options);
+                if (image_stream != null) image_stream.close();
                 if (bitmap != null) addBitmapToMemoryCache(imageUri.toString(), bitmap);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -230,5 +257,28 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
 
     public Bitmap getBitmapFromMemCache(String key) {
         return mMemoryCache.get(key);
+    }
+
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
     }
 }

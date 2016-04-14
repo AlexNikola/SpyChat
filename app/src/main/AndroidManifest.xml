@@ -16,7 +16,7 @@
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="stateUnchanged|adjustPan">
+            android:windowSoftInputMode="stateUnchanged">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,13 +28,18 @@
             android:name=".MyService"
             android:enabled="true"
             android:exported="true"
-            android:stopWithTask="false"/>
+            android:stopWithTask="false" />
 
         <receiver android:name=".BootBroadcast">
-            <intent-filter >
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
+
+        <activity
+            android:name=".ActivityChat"
+            android:label="@string/title_activity_activity_chat"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

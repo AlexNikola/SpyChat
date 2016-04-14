@@ -1,29 +1,24 @@
 package com.incode_it.spychat;
 
-import android.annotation.SuppressLint;
-import android.app.ActivityManager;
-import android.database.Cursor;
 import android.graphics.Typeface;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SimpleCursorAdapter;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener,
@@ -40,7 +35,9 @@ public class MainActivity extends AppCompatActivity
     public static String CURRENT_TITLE;
 
     Toolbar toolbar;
+    private TabLayout tabLayout;
     static Typeface typeface;
+    ViewPager viewPager;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -65,7 +62,7 @@ public class MainActivity extends AppCompatActivity
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         assert toolbar != null;
-        toolbar.setTitle(CURRENT_TITLE);
+        toolbar.setTitle("SPYchat");
         setSupportActionBar(toolbar);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -79,8 +76,25 @@ public class MainActivity extends AppCompatActivity
         assert navigationView != null;
         navigationView.setNavigationItemSelectedListener(this);
 
-        setupFragment(CURRENT_FRAGMENT);
+        //setupFragment(CURRENT_FRAGMENT);
+        viewPager = (ViewPager) findViewById(R.id.viewPager);
+        MyFragmentPagerAdapter adapter = new MyFragmentPagerAdapter(getSupportFragmentManager());
+        viewPager.setAdapter(adapter);
 
+        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
+        tabLayout.getTabAt(0).setIcon(R.drawable.home_24dp);
+        tabLayout.getTabAt(1).setIcon(R.drawable.person_24dp);
+        tabLayout.getTabAt(2).setIcon(R.drawable.security_24dp);
+        tabLayout.getTabAt(3).setIcon(R.drawable.settings_24dp);
+
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.main, menu);
+        return true;
     }
 
     @Override
@@ -99,7 +113,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
 
-        CURRENT_TITLE = (String) item.getTitle();
+        /*CURRENT_TITLE = (String) item.getTitle();
         toolbar.setTitle(CURRENT_TITLE);
         switch (item.getItemId())
         {
@@ -115,7 +129,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_home:
                 setupFragment(FRAGMENT_HOME);
                 break;
-        }
+        }*/
 
         return true;
     }
@@ -154,6 +168,35 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         assert drawer != null;
         drawer.closeDrawer(GravityCompat.START);
+    }
+
+    public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
+        ArrayList<Fragment> fragmentArrayList;
+
+        public MyFragmentPagerAdapter(FragmentManager fm) {
+            super(fm);
+            fragmentArrayList = new ArrayList<>();
+            fragmentArrayList.add(FragmentHome.newInstance());
+            fragmentArrayList.add(FragmentContacts.newInstance());
+            fragmentArrayList.add(FragmentSecurity.newInstance());
+            fragmentArrayList.add(FragmentSettings.newInstance());
+        }
+
+        @Override
+        public Fragment getItem(int i) {
+            return fragmentArrayList.get(i);
+        }
+
+        @Override
+        public int getCount() {
+            return fragmentArrayList.size();
+        }
+
+        /*@Override
+        public CharSequence getPageTitle(int position) {
+            return "OBJECT " + (position + 1);
+        }    */
+
     }
 
 

@@ -2,16 +2,13 @@ package com.incode_it.spychat;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.ServiceConnection;
-import android.database.Cursor;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,7 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.incode_it.spychat.dummy.DummyContent;
+import java.util.ArrayList;
 
 
 public class FragmentContacts extends Fragment {
@@ -29,6 +26,7 @@ public class FragmentContacts extends Fragment {
     ServiceConnection sConn;
     boolean bound = false;
     private OnFragmentInteractionListener mListener;
+    MyContactRecyclerViewAdapter adapter;
 
 
 
@@ -54,7 +52,8 @@ public class FragmentContacts extends Fragment {
         Log.d(MainActivity.FRAGMENT_SETTINGS, "Contacts "+this.hashCode());
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        recyclerView.setAdapter(new MyContactRecyclerViewAdapter(MyContacts.getContactsList(getContext()), mListener));
+        adapter = new MyContactRecyclerViewAdapter(MyContacts.getContactsList(getContext()), mListener);
+        recyclerView.setAdapter(adapter);
 
         sConn = new ServiceConnection() {
             public void onServiceConnected(ComponentName name, IBinder binder) {
@@ -74,6 +73,37 @@ public class FragmentContacts extends Fragment {
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.contacts, menu);
+
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                callSearch(query);
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+//              if (searchView.isExpanded() && TextUtils.isEmpty(newText)) {
+                callSearch(newText);
+//              }
+                return true;
+            }
+
+            public void callSearch(String query)
+            {
+                ArrayList<MyContacts.Contact> arrayList = MyContacts.getContactsList(getContext());
+                ArrayList<MyContacts.Contact> newArrayList = new ArrayList<>();
+                for (MyContacts.Contact contact: arrayList)
+                {
+                    if (contact.name.toLowerCase().contains(query.toLowerCase()))
+                    {
+                        newArrayList.add(contact);
+                    }
+                }
+                adapter.setContacts(newArrayList);
+            }
+        });
     }
 
     @Override
@@ -82,13 +112,9 @@ public class FragmentContacts extends Fragment {
         {
             case R.id.action_search:
                 //getContext().stopService(new Intent(getContext(), MyService.class));
-                getContext().unbindService(sConn);
+                //getContext().unbindService(sConn);
                 break;
 
-            case R.id.action_new_contact:
-                //getContext().startService(new Intent(getContext(), MyService.class));
-                getContext().bindService(new Intent(getContext(), MyService.class), sConn, Context.BIND_AUTO_CREATE);
-                break;
         }
 
         return true;
