@@ -1,25 +1,28 @@
 package com.incode_it.spychat;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.TextView;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 public class ActivityChat extends AppCompatActivity {
     MyContacts.Contact contact;
     RecyclerView recyclerView;
-    ArrayList<String> arrayList;
+    ArrayList<Message> messageArrayList;
     public View sendMessageView;
     private EditText editText;
     MyChatRecyclerViewAdapter adapter;
+    Bitmap contactBitmap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,32 +46,59 @@ public class ActivityChat extends AppCompatActivity {
             }
         });
 
+        if (contact.photoURI != null)
+        {
+            InputStream image_stream = null;
+            try {
+                image_stream = getContentResolver().openInputStream(contact.photoURI);
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = 4;
+                contactBitmap= BitmapFactory.decodeStream(image_stream, null, options);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            finally {
+                if (image_stream != null) try {
+                    image_stream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
 
 
-        arrayList = new ArrayList<>();
-        arrayList.add("Message 1");
-        arrayList.add("Message 2");
-        arrayList.add("Message 3");
-        arrayList.add("Message 4");
-        arrayList.add("Message 5");
-        arrayList.add("Message 6");
-        arrayList.add("Message 7");
-        arrayList.add("Message 8");
-        arrayList.add("Message 9");
-        arrayList.add("Message 10");
-        arrayList.add("Message 11");
-        arrayList.add("Message 12");
-        arrayList.add("Message 13");
-        arrayList.add("Message 14");
-        arrayList.add("Message 15");
-        arrayList.add("Message 16");
-        arrayList.add("Message 17 Message 17 Message 17 Message 17 Message 17 Message 17 Message 17 Message 17 Message 17 Message 17 Message 17");
-        arrayList.add("Message 18");
-        arrayList.add("Message 19");
-        arrayList.add("Message 20 Message 20 Message 20 Message 20 Message 20 Message 20 Message 20 Message 20 Message 20 Message 20 Message 20 Message 20 Message 20 Message 20 Message 20");
+
+        messageArrayList = new ArrayList<>();
+        messageArrayList.add(new Message("Message 1", "+380639461005"));
+        messageArrayList.add(new Message("Message 2", MainActivity.myPhoneNumber));
+        messageArrayList.add(new Message("Message 3 Message 3 Message 3 Message 3 Message 3 Message 3 ", "+380639461005"));
+        messageArrayList.add(new Message("Message 4 Message 4 Message 4", MainActivity.myPhoneNumber));
+        messageArrayList.add(new Message("Message 5", "+380639461005"));
+        messageArrayList.add(new Message("Message 6 Message 6 Message 6 Message 6 Message 6 Message 6 Message 6 Message 6 Message 6 Message 6 Message 6", "+380639461005"));
+        messageArrayList.add(new Message("Message 7", "+380639461005"));
+        messageArrayList.add(new Message("Message 8 Message 8", MainActivity.myPhoneNumber));
+        messageArrayList.add(new Message("Message 9 Message 9 Message 9 Message 9 Message 9 Message 9", MainActivity.myPhoneNumber));
+        messageArrayList.add(new Message("Message 10 Message 10 Message 10", "+380639461005"));
+        messageArrayList.add(new Message("Message 11", "+380639461005"));
+        messageArrayList.add(new Message("Message 12", "+380639461005"));
+        messageArrayList.add(new Message("Message 13", MainActivity.myPhoneNumber));
+        messageArrayList.add(new Message("Message 14", "+380639461005"));
+        messageArrayList.add(new Message("Message 15", MainActivity.myPhoneNumber));
+        messageArrayList.add(new Message("Message 16 Message 16", "+380639461005"));
+        messageArrayList.add(new Message("Message 17", MainActivity.myPhoneNumber));
+        messageArrayList.add(new Message("Message 18 Message 18", "+380639461005"));
+        messageArrayList.add(new Message("Message 19", "+380639461005"));
+        messageArrayList.add(new Message("Message 20", "+380639461005"));
+        messageArrayList.add(new Message("Message 21 Message 21 Message 21 Message 21", MainActivity.myPhoneNumber));
+        messageArrayList.add(new Message("Message 22 Message 22 Message 22", MainActivity.myPhoneNumber));
+        messageArrayList.add(new Message("Message 23", "+380639461005"));
+        messageArrayList.add(new Message("Message 24 Message 24 Message 24 Message 24 Message 24 Message 24", "+380639461005"));
+        messageArrayList.add(new Message("Message 25", "+380639461005"));
+        messageArrayList.add(new Message("Message 26 Message 26 Message 26 Message 26 Message 26 Message 26 Message 26 Message 26", MainActivity.myPhoneNumber));
+
 
         recyclerView = (RecyclerView) findViewById(R.id.list);
-        adapter = new MyChatRecyclerViewAdapter(arrayList);
+        adapter = new MyChatRecyclerViewAdapter(messageArrayList, contact, contactBitmap, this);
         recyclerView.setAdapter(adapter);
         LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
         layoutManager.setStackFromEnd(true);
@@ -83,9 +113,9 @@ public class ActivityChat extends AppCompatActivity {
                 editText.setText("");
                 if (message.length() > 0)
                 {
-                    arrayList.add(message);
-                    adapter.notifyItemInserted(arrayList.size() - 1);
-                    recyclerView.scrollToPosition(arrayList.size() - 1);
+                    messageArrayList.add(new Message(message, MainActivity.myPhoneNumber));
+                    adapter.notifyItemInserted(messageArrayList.size() - 1);
+                    recyclerView.scrollToPosition(messageArrayList.size() - 1);
                 }
             }
         });

@@ -14,9 +14,12 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -38,6 +41,7 @@ public class MainActivity extends AppCompatActivity
     private TabLayout tabLayout;
     static Typeface typeface;
     ViewPager viewPager;
+    public static String myPhoneNumber;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -59,6 +63,16 @@ public class MainActivity extends AppCompatActivity
             CURRENT_FRAGMENT = savedInstanceState.getString(FRAGMENT, FRAGMENT_HOME);
             CURRENT_TITLE = savedInstanceState.getString(TITLE, CURRENT_TITLE);
         }
+
+        TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
+        myPhoneNumber = tm.getLine1Number();
+        if (myPhoneNumber == null)
+        {
+            Toast.makeText(this, "phone number is unavailable", Toast.LENGTH_SHORT).show();
+        }
+
+
+
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         assert toolbar != null;

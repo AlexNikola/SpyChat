@@ -39,14 +39,21 @@ public class MyContacts
 
     public static class Contact
     {
+        String subString = "";
         String name;
         String phoneNumber;
         Uri photoURI;
+
 
         public Contact(String name, String phoneNumber, Uri photoURI) {
             this.name = name;
             this.phoneNumber = phoneNumber;
             this.photoURI = photoURI;
+        }
+
+        public void setSubString(String subString)
+        {
+            this.subString = subString;
         }
     }
 }

@@ -5,12 +5,17 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
@@ -31,14 +36,14 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
     private List<MyContacts.Contact> mContacts;
     private final OnFragmentInteractionListener mListener;
     private Context context;
-    private Bitmap noPhotoBitmap;
+    public static Bitmap noPhotoBitmap;
     private LruCache<String, Bitmap> mMemoryCache;
 
     public MyContactRecyclerViewAdapter(List<MyContacts.Contact> contacts, OnFragmentInteractionListener listener) {
         mContacts = contacts;
         mListener = listener;
         context = (Context) listener;
-        noPhotoBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.person);
+        noPhotoBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.profile);
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;
         mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
@@ -65,8 +70,25 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mContact = mContacts.get(position);
-        holder.mNameView.setText(mContacts.get(position).name);
+
+        String name = mContacts.get(position).name;
+        final SpannableStringBuilder sb = new SpannableStringBuilder(name);
+        int start, end;
+        start = name.toLowerCase().indexOf(holder.mContact.subString.toLowerCase());
+        end = start + holder.mContact.subString.length();
+        if (start != -1)
+        {
+
+            final ForegroundColorSpan fcs = new ForegroundColorSpan(context.getResources().getColor(R.color.colorPrimary));
+            sb.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            //holder.mNameView.setTextColor(Color.rgb(158, 158, 158));
+            holder.mNameView.setText(sb);
+        }
+        else holder.mNameView.setText(name);
+
+
         holder.mNumberView.setText(mContacts.get(position).phoneNumber);
+
 
         Uri uri = mContacts.get(position).photoURI;
         if (uri != null)
@@ -77,6 +99,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         else
         {
             holder.mImage.setImageBitmap(noPhotoBitmap);
+            //holder.mImage.setImageResource(R.drawable.profle);
         }
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
