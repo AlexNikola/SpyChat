@@ -10,11 +10,9 @@ import java.util.ArrayList;
 
 public class MyContacts
 {
-    public static ArrayList<Contact> contactArrayList;
-
     public static ArrayList<Contact> getContactsList(Context context)
     {
-        contactArrayList = new ArrayList<>();
+        ArrayList<Contact> contactArrayList = new ArrayList<>();
         Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
         if (phones != null) {
             while (phones.moveToNext())
@@ -28,7 +26,15 @@ public class MyContacts
                 {
                     uri = Uri.parse(photoURI);
                 }
-                contactArrayList.add(new Contact(name, phoneNumber, uri));
+                boolean isAdded = false;
+                for (Contact contact: contactArrayList)
+                {
+                    if (contact.phoneNumber.equalsIgnoreCase(phoneNumber) || ActivityMain.myPhoneNumber.equalsIgnoreCase(phoneNumber))
+                    {
+                        isAdded = true;
+                    }
+                }
+                if (!isAdded) contactArrayList.add(new Contact(name, phoneNumber, uri));
             }
         }
         if (phones != null) {

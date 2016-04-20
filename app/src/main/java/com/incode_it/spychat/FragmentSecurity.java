@@ -1,6 +1,9 @@
 package com.incode_it.spychat;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -8,6 +11,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import java.util.Calendar;
 
 public class FragmentSecurity extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
@@ -47,7 +52,9 @@ public class FragmentSecurity extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d(MainActivity.FRAGMENT_SETTINGS, "Security "+this.hashCode());
+        Log.d(ActivityMain.FRAGMENT_SETTINGS, "Security "+this.hashCode());
+
+
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_security, container, false);
     }

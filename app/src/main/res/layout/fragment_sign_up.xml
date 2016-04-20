@@ -1,0 +1,146 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimaryAuth"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp">
+
+        <android.support.design.widget.TextInputLayout
+            android:textColorHint="@color/colorHintAuth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <android.support.design.widget.TextInputEditText
+                android:padding="@dimen/activity_horizontal_margin"
+                android:background="@drawable/bg_phone_input"
+                android:textCursorDrawable="@drawable/color_cursor"
+                android:hint="@string/phone_number_hint"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:inputType="phone"
+                android:ems="10"
+                android:id="@+id/phone_number_et"
+                android:layout_gravity="center_horizontal" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <FrameLayout
+            android:id="@+id/phone_number_et_clear"
+            android:layout_gravity="end|bottom"
+            android:layout_width="60dp"
+            android:layout_height="60dp">
+
+            <ImageView
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/cancel_24dp"/>
+
+        </FrameLayout>
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp">
+
+        <android.support.design.widget.TextInputLayout
+            android:textColorHint="@color/colorHintAuth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <android.support.design.widget.TextInputEditText
+                android:background="@drawable/bg_phone_input"
+                android:padding="@dimen/activity_horizontal_margin"
+                android:textCursorDrawable="@drawable/color_cursor"
+                android:hint="@string/pass_hint"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:inputType="textPassword"
+                android:ems="10"
+                android:id="@+id/password_et"
+                android:layout_gravity="center_horizontal" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <FrameLayout
+            android:id="@+id/password_et_clear"
+            android:layout_gravity="end|bottom"
+            android:layout_width="60dp"
+            android:layout_height="60dp">
+
+            <ImageView
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/cancel_24dp"/>
+
+        </FrameLayout>
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp">
+
+        <android.support.design.widget.TextInputLayout
+            android:textColorHint="@color/colorHintAuth"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <android.support.design.widget.TextInputEditText
+                android:background="@drawable/bg_phone_input"
+                android:padding="@dimen/activity_horizontal_margin"
+                android:textCursorDrawable="@drawable/color_cursor"
+                android:hint="@string/conf_pass_hint"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:inputType="textPassword"
+                android:ems="10"
+                android:id="@+id/conf_password_et"
+                android:layout_gravity="center_horizontal" />
+
+        </android.support.design.widget.TextInputLayout>
+
+        <FrameLayout
+            android:id="@+id/conf_password_et_clear"
+            android:layout_gravity="end|bottom"
+            android:layout_width="60dp"
+            android:layout_height="60dp">
+
+            <ImageView
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/cancel_24dp"/>
+
+        </FrameLayout>
+
+    </FrameLayout>
+
+
+
+
+
+
+
+    <Button
+        android:textColor="#ffffff"
+        android:background="@drawable/bg_auth_btn"
+        android:layout_marginTop="@dimen/auth_padding"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sign_up"
+        android:id="@+id/sign_up_button"
+        android:layout_gravity="center_horizontal" />
+
+</LinearLayout>

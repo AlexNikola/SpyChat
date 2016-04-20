@@ -1,8 +1,11 @@
 package com.incode_it.spychat;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -18,7 +21,6 @@ import java.util.ArrayList;
 public class ActivityChat extends AppCompatActivity {
     MyContacts.Contact contact;
     RecyclerView recyclerView;
-    ArrayList<Message> messageArrayList;
     public View sendMessageView;
     private EditText editText;
     MyChatRecyclerViewAdapter adapter;
@@ -35,6 +37,21 @@ public class ActivityChat extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         toolbar.setTitle(contact.name);
         setSupportActionBar(toolbar);
+
+        final SwipeRefreshLayout refreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipeRefreshLayout);
+        refreshLayout.setColorSchemeResources(R.color.colorPrimary);
+        refreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        refreshLayout.setRefreshing(false);
+                    }
+                }, 2000);
+            }
+        });
+
 
         /*getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);*/
@@ -66,36 +83,9 @@ public class ActivityChat extends AppCompatActivity {
             }
         }
 
-
-
-        messageArrayList = new ArrayList<>();
-        messageArrayList.add(new Message("Message 1", "+380639461005"));
-        messageArrayList.add(new Message("Message 2", MainActivity.myPhoneNumber));
-        messageArrayList.add(new Message("Message 3 Message 3 Message 3 Message 3 Message 3 Message 3 ", "+380639461005"));
-        messageArrayList.add(new Message("Message 4 Message 4 Message 4", MainActivity.myPhoneNumber));
-        messageArrayList.add(new Message("Message 5", "+380639461005"));
-        messageArrayList.add(new Message("Message 6 Message 6 Message 6 Message 6 Message 6 Message 6 Message 6 Message 6 Message 6 Message 6 Message 6", "+380639461005"));
-        messageArrayList.add(new Message("Message 7", "+380639461005"));
-        messageArrayList.add(new Message("Message 8 Message 8", MainActivity.myPhoneNumber));
-        messageArrayList.add(new Message("Message 9 Message 9 Message 9 Message 9 Message 9 Message 9", MainActivity.myPhoneNumber));
-        messageArrayList.add(new Message("Message 10 Message 10 Message 10", "+380639461005"));
-        messageArrayList.add(new Message("Message 11", "+380639461005"));
-        messageArrayList.add(new Message("Message 12", "+380639461005"));
-        messageArrayList.add(new Message("Message 13", MainActivity.myPhoneNumber));
-        messageArrayList.add(new Message("Message 14", "+380639461005"));
-        messageArrayList.add(new Message("Message 15", MainActivity.myPhoneNumber));
-        messageArrayList.add(new Message("Message 16 Message 16", "+380639461005"));
-        messageArrayList.add(new Message("Message 17", MainActivity.myPhoneNumber));
-        messageArrayList.add(new Message("Message 18 Message 18", "+380639461005"));
-        messageArrayList.add(new Message("Message 19", "+380639461005"));
-        messageArrayList.add(new Message("Message 20", "+380639461005"));
-        messageArrayList.add(new Message("Message 21 Message 21 Message 21 Message 21", MainActivity.myPhoneNumber));
-        messageArrayList.add(new Message("Message 22 Message 22 Message 22", MainActivity.myPhoneNumber));
-        messageArrayList.add(new Message("Message 23", "+380639461005"));
-        messageArrayList.add(new Message("Message 24 Message 24 Message 24 Message 24 Message 24 Message 24", "+380639461005"));
-        messageArrayList.add(new Message("Message 25", "+380639461005"));
-        messageArrayList.add(new Message("Message 26 Message 26 Message 26 Message 26 Message 26 Message 26 Message 26 Message 26", MainActivity.myPhoneNumber));
-
+        MyDbHelper myDbHelper = new MyDbHelper(this);
+        SQLiteDatabase db = myDbHelper.getReadableDatabase();
+        final ArrayList<Message> messageArrayList = MyDbHelper.readContactMessages(db, contact);
 
         recyclerView = (RecyclerView) findViewById(R.id.list);
         adapter = new MyChatRecyclerViewAdapter(messageArrayList, contact, contactBitmap, this);
@@ -109,13 +99,15 @@ public class ActivityChat extends AppCompatActivity {
         sendMessageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String message = editText.getText().toString();
+                String textMessage = editText.getText().toString();
                 editText.setText("");
-                if (message.length() > 0)
+                if (textMessage.length() > 0)
                 {
-                    messageArrayList.add(new Message(message, MainActivity.myPhoneNumber));
+                    Message message = new Message(textMessage, ActivityMain.myPhoneNumber, contact.phoneNumber);
+                    messageArrayList.add(message);
                     adapter.notifyItemInserted(messageArrayList.size() - 1);
                     recyclerView.scrollToPosition(messageArrayList.size() - 1);
+                    MyDbHelper.insertMessage(new MyDbHelper(ActivityChat.this).getWritableDatabase(), message);
                 }
             }
         });

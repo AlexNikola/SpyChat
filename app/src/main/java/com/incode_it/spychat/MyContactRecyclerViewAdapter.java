@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -15,7 +14,6 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
@@ -133,9 +131,9 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             mNumberView = (TextView) view.findViewById(R.id.number);
             mImage = (ImageView) view.findViewById(R.id.image);
 
-            mNameView.setTypeface(MainActivity.typeface, Typeface.BOLD);
+            mNameView.setTypeface(ActivityMain.typeface, Typeface.BOLD);
 
-            mNumberView.setTypeface(MainActivity.typeface);
+            mNumberView.setTypeface(ActivityMain.typeface);
 
             mImage.setOnClickListener(new View.OnClickListener() {
                 @Override

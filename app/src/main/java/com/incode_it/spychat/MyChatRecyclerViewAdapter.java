@@ -1,12 +1,15 @@
 package com.incode_it.spychat;
 
-import android.app.Activity;
+import android.app.AlarmManager;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
+import android.app.PendingIntent;
 import android.app.TimePickerDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
@@ -55,7 +58,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     @Override
     public void onBindViewHolder(MessageViewHolder messageHolder, int position) {
         messageHolder.text.setText(messages.get(position).getMessage());
-        if (!messages.get(position).getPhoneNumber().equals(MainActivity.myPhoneNumber))
+        if (!messages.get(position).getSenderPhoneNumber().equals(ActivityMain.myPhoneNumber))
         {
             if (contactBitmap == null) messageHolder.imageView.setImageBitmap(MyContactRecyclerViewAdapter.noPhotoBitmap);
             else messageHolder.imageView.setImageBitmap(contactBitmap);
@@ -84,30 +87,18 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             textContainer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    /*Dialog dialog = new Dialog(activity);
-                    dialog.setContentView(R.layout.date_picker_dialog);
-                    dialog.setTitle("Custom Dialog");
-                    dialog.show();*/
-                    DialogFragment newFragment = new DatePickerFragment();
-                    newFragment.show(activity.getSupportFragmentManager(), "datePicker");
-
-                }
-            });
-            /*imageView.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
+                    /*DialogFragment newFragment = new DatePickerFragment();
+                    newFragment.show(activity.getSupportFragmentManager(), "datePicker");*/
                     DialogFragment newFragment = new TimePickerFragment();
                     newFragment.show(activity.getSupportFragmentManager(), "timePicker");
-
                 }
-            });*/
-
+            });
         }
     }
 
     @Override
     public int getItemViewType(int position) {
-        if (messages.get(position).getPhoneNumber().equals(MainActivity.myPhoneNumber))
+        if (messages.get(position).getSenderPhoneNumber().equals(ActivityMain.myPhoneNumber))
         {
             return Message.MY_MESSAGE;
         }
@@ -117,6 +108,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     public static class TimePickerFragment extends DialogFragment
             implements TimePickerDialog.OnTimeSetListener {
 
+        @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             // Use the current time as the default values for the picker
@@ -125,18 +117,33 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             int minute = c.get(Calendar.MINUTE);
 
             // Create a new instance of TimePickerDialog and return it
-            return new TimePickerDialog(getActivity(), this, hour, minute,
+            return new TimePickerDialog(getActivity(), this, 0, 0,
                     DateFormat.is24HourFormat(getActivity()));
         }
 
-        public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+        public void onTimeSet(TimePicker view, int hourOfDay, int minute)
+        {
             // Do something with the time chosen by the user
+            AlarmManager alarmMgr;
+            PendingIntent pendingIntent;
+
+            alarmMgr = (AlarmManager)getContext().getSystemService(Context.ALARM_SERVICE);
+            Intent intent = new Intent(getContext(), AlarmReceiver.class);
+            pendingIntent = PendingIntent.getBroadcast(getContext(), 0, intent, 0);
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(System.currentTimeMillis());
+            calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+            calendar.set(Calendar.MINUTE, minute);
+
+            alarmMgr.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
         }
     }
 
     public static class DatePickerFragment extends DialogFragment
             implements DatePickerDialog.OnDateSetListener {
 
+        @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             // Use the current date as the default date in the picker
@@ -155,5 +162,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             newFragment.show(getActivity().getSupportFragmentManager(), "timePicker");
         }
     }
+
 }
 

@@ -105,4 +105,11 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_activity_chat">ActivityChat</string>
 
+
+    <string name="sign_up">Sign Up</string>
+    <string name="log_in">Log In</string>
+    <string name="conf_pass_hint">Confirm Password</string>
+    <string name="pass_hint">Password</string>
+    <string name="phone_number_hint">Phone Number</string>
+
 </resources>

@@ -49,7 +49,7 @@ public class FragmentHome extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d(MainActivity.FRAGMENT_SETTINGS, "Home "+this.hashCode());
+        Log.d(ActivityMain.FRAGMENT_SETTINGS, "Home "+this.hashCode());
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_home, container, false);
     }

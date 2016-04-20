@@ -4,5 +4,11 @@
     <color name="colorPrimaryDark">#0D47A1</color>
     <color name="colorAccent">#ffffff</color>
 
+    <color name="colorPrimaryAuth">#292929</color>
+    <color name="colorPrimaryDarkAuth">#212121</color>
+    <color name="colorAccentAuth">#ffffff</color>
+
     <color name="colorPrimaryT">#003f51b5</color>
+
+    <color name="colorHintAuth">#9b9b9b</color>
 </resources>

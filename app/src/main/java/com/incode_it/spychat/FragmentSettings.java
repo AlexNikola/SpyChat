@@ -47,7 +47,7 @@ public class FragmentSettings extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d(MainActivity.FRAGMENT_SETTINGS, "Settings "+this.hashCode());
+        Log.d(ActivityMain.FRAGMENT_SETTINGS, "Settings "+this.hashCode());
         // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_settings, container, false);
     }

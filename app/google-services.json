@@ -1,0 +1,43 @@
+{
+  "project_info": {
+    "project_id": "spychat-2b6cc",
+    "project_number": "295409766589",
+    "name": "SpyChat"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:295409766589:android:ab95367b000defa8",
+        "client_id": "android:com.incode_it.spychat",
+        "client_type": 1,
+        "android_client_info": {
+          "package_name": "com.incode_it.spychat",
+          "certificate_hash": []
+        }
+      },
+      "oauth_client": [],
+      "api_key": [],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "cloud_messaging_service": {
+          "status": 2,
+          "apns_config": []
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "google_signin_service": {
+          "status": 1
+        },
+        "ads_service": {
+          "status": 1
+        }
+      }
+    }
+  ],
+  "client_info": [],
+  "ARTIFACT_VERSION": "1"
+}
