@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.design.widget.TextInputEditText;
+import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -33,11 +34,13 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 
+import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
@@ -49,7 +52,7 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
 {
     private View progressBarContainer;
     private ViewPager viewPager;
-    private static final String TAG = "ActivityAuth";
+    private static final String TAG = "myhttp";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     @Override
@@ -154,26 +157,31 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
                 outputWriter.close();
 
                 int httpResponse = httpURLConnection.getResponseCode();
-                BufferedReader bufferedReader;
+                //BufferedReader bufferedReader;
+                InputStream inputStream;
                 if (httpResponse == HttpURLConnection.HTTP_OK) {
                     Log.d(TAG, "HTTP_OK");
-                    bufferedReader = new BufferedReader(
-                            new InputStreamReader(httpURLConnection.getInputStream()));
+                    /*bufferedReader = new BufferedReader(
+                            new InputStreamReader(httpURLConnection.getInputStream()));*/
+                    inputStream = httpURLConnection.getInputStream();
                 } else {
                     Log.d(TAG, "HTTP_ERROR");
-                    bufferedReader = new BufferedReader(
-                            new InputStreamReader(httpURLConnection.getErrorStream()));
+                    /*bufferedReader = new BufferedReader(
+                            new InputStreamReader(httpURLConnection.getErrorStream()));*/
+                    inputStream = httpURLConnection.getErrorStream();
                 }
 
-                StringBuilder result = new StringBuilder();
+                /*StringBuilder result = new StringBuilder();
                 String line = null;
                 while ((line = bufferedReader.readLine()) != null)
                 {
                     result.append(line).append("\n");
                 }
-                bufferedReader.close();
-                Log.d(TAG, "resp: " + result.toString());
-                return result.toString();
+                bufferedReader.close();*/
+                String response = IOUtils.toString(inputStream);
+                inputStream.close();
+                Log.d(TAG, "resp: " + response);
+                return response;
             }
             catch (IOException e)
             {
@@ -272,26 +280,19 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
                 outputWriter.close();
 
                 int httpResponse = httpURLConnection.getResponseCode();
-                BufferedReader bufferedReader;
+                InputStream inputStream;
                 if (httpResponse == HttpURLConnection.HTTP_OK) {
                     Log.d(TAG, "HTTP_OK");
-                    bufferedReader = new BufferedReader(
-                            new InputStreamReader(httpURLConnection.getInputStream()));
+                    inputStream = httpURLConnection.getInputStream();
                 } else {
                     Log.d(TAG, "HTTP_ERROR");
-                    bufferedReader = new BufferedReader(
-                            new InputStreamReader(httpURLConnection.getErrorStream()));
+                    inputStream = httpURLConnection.getErrorStream();
                 }
 
-                StringBuilder result = new StringBuilder();
-                String line = null;
-                while ((line = bufferedReader.readLine()) != null)
-                {
-                    result.append(line).append("\n");
-                }
-                bufferedReader.close();
-                Log.d(TAG, "resp: " + result.toString());
-                return result.toString();
+                String response = IOUtils.toString(inputStream);
+                inputStream.close();
+                Log.d(TAG, "resp: " + response);
+                return response;
             }
             catch (IOException e)
             {
@@ -390,9 +391,31 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View view = inflater.inflate(R.layout.fragment_log_in, container, false);
-            final TextInputEditText phoneET = (TextInputEditText) view.findViewById(R.id.phone_number_et);
+
+            View inputPhoneLayout = view.findViewById(R.id.input_phone_layout);
+            final TextInputEditText phoneET = (TextInputEditText) inputPhoneLayout.findViewById(R.id.edit_text);
             phoneET.setText(getPhoneNumber(getContext()));
-            final TextInputEditText passET = (TextInputEditText) view.findViewById(R.id.password_et);
+            final TextInputLayout tilPhone = (TextInputLayout) inputPhoneLayout.findViewById(R.id.text_input_layout);
+            tilPhone.setHint(getString(R.string.phone_number_hint));
+            inputPhoneLayout.findViewById(R.id.edit_text_clear).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    phoneET.setText("");
+                }
+            });
+
+            View inputPassLayout = view.findViewById(R.id.input_pass_layout);
+            final TextInputEditText passET = (TextInputEditText) inputPassLayout.findViewById(R.id.edit_text);
+            final TextInputLayout tilPass = (TextInputLayout) inputPassLayout.findViewById(R.id.text_input_layout);
+            tilPass.setHint(getString(R.string.pass_hint));
+            inputPassLayout.findViewById(R.id.edit_text_clear).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    passET.setText("");
+                }
+            });
+
+
             Button logInBtn = (Button) view.findViewById(R.id.log_in_button);
             logInBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -403,18 +426,8 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
                 }
             });
 
-            view.findViewById(R.id.phone_number_et_clear).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    phoneET.setText("");
-                }
-            });
-            view.findViewById(R.id.password_et_clear).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    passET.setText("");
-                }
-            });
+
+
             return view;
         }
 
@@ -428,9 +441,9 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
         {
             Toast.makeText(context, "phone number is unavailable", Toast.LENGTH_SHORT).show();
         }
-        myPhoneNumber = "+38066751470";
-        boolean isValid = Patterns.PHONE.matcher(myPhoneNumber).matches();
-        Log.i(TAG, "isValid: "+ myPhoneNumber + " " + isValid);
+        //myPhoneNumber = "+38066751470";
+        //boolean isValid = Patterns.PHONE.matcher(myPhoneNumber).matches();
+        //Log.i(TAG, "isValid: "+ myPhoneNumber + " " + isValid);
         return myPhoneNumber;
     }
 
@@ -454,13 +467,6 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
             View view = inflater.inflate(R.layout.fragment_sign_up, container, false);
             final TextInputEditText phoneET = (TextInputEditText) view.findViewById(R.id.phone_number_et);
             phoneET.setText(getPhoneNumber(getContext()));
-            /*if (phoneET.getText().toString().equals(""))
-            {
-                phoneET.setBackgroundColor(Color.GREEN);
-            }
-            else {
-                phoneET.setBackgroundColor(Color.RED);
-            }*/
             final TextInputEditText passET = (TextInputEditText) view.findViewById(R.id.password_et);
             final TextInputEditText confPassET = (TextInputEditText) view.findViewById(R.id.conf_password_et);
             Button singUpBtn = (Button) view.findViewById(R.id.sign_up_button);

@@ -136,7 +136,7 @@
     <Button
         android:textColor="#ffffff"
         android:background="@drawable/bg_auth_btn"
-        android:layout_marginTop="@dimen/auth_padding"
+        android:layout_marginTop="@dimen/auth_btn_padding_top"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/sign_up"

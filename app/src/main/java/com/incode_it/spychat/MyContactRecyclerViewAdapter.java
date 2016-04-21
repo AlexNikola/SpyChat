@@ -2,14 +2,17 @@ package com.incode_it.spychat;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -21,26 +24,42 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.android.gms.iid.InstanceID;
+
+import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 
 
 public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContactRecyclerViewAdapter.ViewHolder> {
 
-    static final String LOG_TAG = "mloader";
+    private static final String TAG = "updateContacts";
     private List<MyContacts.Contact> mContacts;
     private final OnFragmentInteractionListener mListener;
     private Context context;
     public static Bitmap noPhotoBitmap;
     private LruCache<String, Bitmap> mMemoryCache;
 
-    public MyContactRecyclerViewAdapter(List<MyContacts.Contact> contacts, OnFragmentInteractionListener listener) {
-        mContacts = contacts;
-        mListener = listener;
+    public MyContactRecyclerViewAdapter(OnFragmentInteractionListener listener) {
         context = (Context) listener;
+        mContacts = MyContacts.getContactsList(context);
+        updateContacts();
+        mListener = listener;
         noPhotoBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.profile);
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;
@@ -50,6 +69,132 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                 return bitmap.getByteCount() / 1024;
             }
         };
+    }
+
+
+    private void updateContacts()
+    {
+        ArrayList<String> contactsNumbers = new ArrayList<>();
+        for (MyContacts.Contact contact: mContacts)
+        {
+            contactsNumbers.add(contact.phoneNumber);
+        }
+        new UpdateContactsTask(contactsNumbers).execute();
+    }
+
+    private class UpdateContactsTask extends AsyncTask<Void, Void, JSONArray>
+    {
+        ArrayList<String> contactsNumbers;
+
+        public UpdateContactsTask(ArrayList<String> contactsNumbers) {
+            this.contactsNumbers = contactsNumbers;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected JSONArray doInBackground(Void... params) {
+            JSONArray jsonArray = null;
+            try
+            {
+                jsonArray = tryUpdateContacts(contactsNumbers);
+
+            }
+            catch (IOException | JSONException e)
+            {
+                e.printStackTrace();
+            }
+
+            return jsonArray;
+        }
+
+        @Override
+        protected void onPostExecute(JSONArray jsonArray) {
+            try
+            {
+                if (jsonArray == null)
+                {
+                    Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    for (int i = 0; i < jsonArray.length(); i++)
+                    {
+                        JSONObject contact = (JSONObject) jsonArray.get(i);
+                        String phoneNumber = contact.getString("phone");
+                        phoneNumber = phoneNumber.replaceFirst(" ", "+");
+                        boolean isRegistered = contact.getBoolean("isRegistered");
+                        mContacts.get(i).isRegistrated = isRegistered;
+                        //Log.d(TAG, "jsonArray: " + phoneNumber + " " + isRegistered);
+                    }
+                    notifyDataSetChanged();
+                }
+            }
+            catch (JSONException e)
+            {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private JSONArray tryUpdateContacts(ArrayList<String> contactsNumbers) throws IOException, JSONException {
+        StringBuilder sbParams = new StringBuilder();
+        for (String number: contactsNumbers)
+        {
+            //Log.d(TAG, "number: " + number);
+            sbParams.append("contacts=").append(number).append("&");
+        }
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
+
+        URL url = new URL(C.BASE_URL + "api/v1/usersJob/inSystem/");
+        Log.i(TAG, "URL: " + url.toString() + sbParams.toString());
+        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+        httpURLConnection.setDoInput(true);
+        httpURLConnection.setDoOutput(true);
+        httpURLConnection.setConnectTimeout(20000);
+        httpURLConnection.setRequestMethod("POST");
+        httpURLConnection.addRequestProperty("Authorization", "Bearer "+accessToken);
+        httpURLConnection.connect();
+
+        OutputStreamWriter outputWriter = new OutputStreamWriter(httpURLConnection.getOutputStream());
+        outputWriter.write(sbParams.toString());
+        outputWriter.flush();
+        outputWriter.close();
+
+        int httpResponse = httpURLConnection.getResponseCode();
+        Log.d(TAG, "HTTP RESP CODE "+httpResponse);
+        InputStream inputStream;
+
+        if (httpResponse == HttpURLConnection.HTTP_OK) inputStream = httpURLConnection.getInputStream();
+        else inputStream = httpURLConnection.getErrorStream();
+
+        String response = IOUtils.toString(inputStream);
+        inputStream.close();
+        Log.d(TAG, "resp: " + response);
+
+
+        JSONArray jsonArray = null;
+        if (response.equals("Access token is expired"))
+        {
+            if (MyConnection.sendRefreshToken(context, TAG))
+                jsonArray = tryUpdateContacts(contactsNumbers);
+        }
+        else
+        {
+            JSONObject jsonResponse = new JSONObject(response);
+            String res = jsonResponse.getString("result");
+            if (res.equals("success"))
+            jsonArray = jsonResponse.getJSONArray("contacts");
+
+        }
+
+
+        return jsonArray;
     }
 
     public void setContacts(List<MyContacts.Contact> mContacts)
@@ -68,6 +213,12 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mContact = mContacts.get(position);
+
+        if (holder.mContact.isRegistrated)
+        {
+            holder.mNumberView.setTextColor(Color.GREEN);
+        }
+        else holder.mNumberView.setTextColor(Color.BLACK);
 
         String name = mContacts.get(position).name;
         final SpannableStringBuilder sb = new SpannableStringBuilder(name);
@@ -138,7 +289,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             mImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d(LOG_TAG, "onClick "+getAdapterPosition());
                     Intent intent = new Intent(context, ActivityChat.class);
                     intent.putExtra("position", getAdapterPosition());
                     context.startActivity(intent);

@@ -1,21 +1,30 @@
 package com.incode_it.spychat;
 
 import android.app.IntentService;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.google.android.gms.gcm.GcmPubSub;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 
+import org.apache.commons.io.IOUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 public class RegistrationIntentService extends IntentService {
 
-    private static final String TAG = "RegIntentService";
+    private static final String TAG = "myhttp";
     private static final String[] TOPICS = {"global"};
 
     public RegistrationIntentService() {
@@ -60,16 +69,71 @@ public class RegistrationIntentService extends IntentService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(registrationComplete);
     }
 
-    /**
-     * Persist registration to third-party servers.
-     *
-     * Modify this method to associate the user's GCM registration token with any server-side account
-     * maintained by your application.
-     *
-     * @param token The new token.
-     */
-    private void sendRegistrationToServer(String token) {
-        // Add custom implementation, as needed.
+    private void sendRegistrationToServer(String regToken) {
+        try {
+            sendRegToken(regToken);
+        }
+        catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
     }
+
+    private void sendRegToken(String regToken) throws IOException, JSONException
+    {
+        Log.i(TAG, "sendRegistrationToServer: " + regToken);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
+        String urlParameters = "regToken=" + regToken;
+        URL url = new URL(C.BASE_URL + "api/v1/usersJob/regTokenChange/");
+        Log.i(TAG, "URL: " + url.toString() + urlParameters);
+        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+        httpURLConnection.setDoInput(true);
+        httpURLConnection.setDoOutput(true);
+        httpURLConnection.setConnectTimeout(20000);
+        httpURLConnection.setRequestMethod("POST");
+        httpURLConnection.addRequestProperty("Authorization", "Bearer "+accessToken);
+        httpURLConnection.connect();
+
+        OutputStreamWriter outputWriter = new OutputStreamWriter(httpURLConnection.getOutputStream());
+        outputWriter.write(urlParameters);
+        outputWriter.flush();
+        outputWriter.close();
+
+        int httpResponse = httpURLConnection.getResponseCode();
+        InputStream inputStream;
+        if (httpResponse == HttpURLConnection.HTTP_OK) {
+            Log.d(TAG, "HTTP_OK");
+            inputStream = httpURLConnection.getInputStream();
+        } else {
+            Log.d(TAG, "HTTP_ERROR");
+            inputStream = httpURLConnection.getErrorStream();
+        }
+
+        String response = IOUtils.toString(inputStream);
+        inputStream.close();
+        Log.d(TAG, "resp: " + response);
+
+        /*
+        resp: Access regToken is expired
+        resp: {"result":"error","param":"refreshToken","message":"Refresh regToken is expired"}
+        */
+        if (response.equals("Access token is expired"))
+        {
+            if (MyConnection.sendRefreshToken(this, TAG))
+            sendRegToken(regToken);
+        }
+    }
+
+    /*
+    * curl 'http://localhost:7777/api/v1/usersJob/regTokenChange' -H "Authorization: Bearer
+    * eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjU3MTVlMGE2ZDVjZWFjMzQxNTk2MGY5YSIsInRpb
+    * WVzdGFtcCI6MTQ2MTA1ODk5ODA0M30.vyFswXyNqZuns6EUNyqvv9ZqQjc7U-ZbJvFYuLPQ
+    * xRo"  -X POST -d "regToken=2222222222222222222222222"*/
+
+    /*
+    * curl 'http://localhost:7777/api/v1/auth/refreshAccessToke'
+    * -X POST -d "refreshToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1N
+    * iJ9.eyJwaG9uZSI6IjA2MzU0OTE5MjEiLCJ0aW1lc3RhbXAiOjE0NjEwN
+    * TM3MzU3NjR9.4BHDzyJbz-QnLd6GXc0rmG0Zrwk8zmNvgI01V3gd_YQ"*/
 
 }

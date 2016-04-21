@@ -41,7 +41,7 @@ public class ActivityMain extends AppCompatActivity
 
 {
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private static final String TAG = "MainActivity";
+    private static final String TAG = "myhttp";
 
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private boolean isReceiverRegistered;
@@ -248,9 +248,9 @@ public class ActivityMain extends AppCompatActivity
                 boolean sentToken = sharedPreferences
                         .getBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, false);
                 if (sentToken) {
-                    //mInformationTextView.setText(getString(R.string.gcm_send_message));
+                    Log.d(TAG, "RegBroadcastReceiver sentToken: " + sentToken);
                 } else {
-                    //mInformationTextView.setText(getString(R.string.token_error_message));
+                    Log.d(TAG, "RegBroadcastReceiver sentToken: " + sentToken);
                 }
             }
         };
@@ -258,11 +258,9 @@ public class ActivityMain extends AppCompatActivity
         // Registering BroadcastReceiver
         registerReceiver();
 
-        /*if (checkPlayServices()) {
-            // Start IntentService to register this application with GCM.
-            Intent intent = new Intent(this, RegistrationIntentService.class);
-            startService(intent);
-        }*/
+        // Start IntentService to register this application with GCM.
+        Intent intent = new Intent(this, RegistrationIntentService.class);
+        startService(intent);
     }
 
     private void registerReceiver(){
@@ -273,26 +271,17 @@ public class ActivityMain extends AppCompatActivity
         }
     }
 
-    /**
-     * Check the device to make sure it has the Google Play Services APK. If
-     * it doesn't, display a dialog that allows users to download the APK from
-     * the Google Play Store or enable it in the device's system settings.
-     */
-    /*private boolean checkPlayServices() {
-        GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-        int resultCode = apiAvailability.isGooglePlayServicesAvailable(this);
-        if (resultCode != ConnectionResult.SUCCESS) {
-            if (apiAvailability.isUserResolvableError(resultCode)) {
-                apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
-                        .show();
-            } else {
-                Toast.makeText(this, "This device is not supported", Toast.LENGTH_SHORT).show();
-                Log.i(TAG, "This device is not supported.");
-                finish();
-            }
-            return false;
-        }
-        return true;
-    }*/
+    @Override
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
+        isReceiverRegistered = false;
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver();
+    }
 
 }

@@ -73,7 +73,7 @@ public class FragmentContacts extends Fragment {
         Log.d("qwew", "onCreateView isExpanded = "+isExpanded);
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new MyContactRecyclerViewAdapter(MyContacts.getContactsList(getContext()), mListener);
+        adapter = new MyContactRecyclerViewAdapter(mListener);
         recyclerView.setAdapter(adapter);
 
         sConn = new ServiceConnection() {

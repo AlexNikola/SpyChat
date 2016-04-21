@@ -41,6 +41,22 @@
             </intent-filter>
         </activity>
 
+        <!--gcm start-->
+        <service
+            android:name=".RegistrationIntentService"
+            android:exported="false">
+        </service>
+
+        <service
+            android:name=".MyInstanceIDListenerService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.android.gms.iid.InstanceID"/>
+            </intent-filter>
+        </service>
+
+        <!--gcm end-->
+
         <service
             android:name=".MyService"
             android:enabled="true"

@@ -49,6 +49,7 @@ public class MyContacts
         String name;
         String phoneNumber;
         Uri photoURI;
+        boolean isRegistrated;
 
 
         public Contact(String name, String phoneNumber, Uri photoURI) {
