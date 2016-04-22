@@ -8,12 +8,17 @@ import java.util.Locale;
 
 public class Message
 {
+    public static final int STATE_ADDED = 0;
+    public static final int STATE_SUCCESS = 1;
+    public static final int STATE_ERROR = 2;
+
     public static final int NOT_MY_MESSAGE = 0;
     public static final int MY_MESSAGE = 1;
     private String message;
     private String senderPhoneNumber;
     private String receiverPhoneNumber;
     private String date;
+    public int state;
 
     public Message(String message, String senderPhoneNumber, String receiverPhoneNumber)
     {
@@ -21,7 +26,7 @@ public class Message
         this.senderPhoneNumber = senderPhoneNumber;
         this.receiverPhoneNumber = receiverPhoneNumber;
         date = getDateTime();
-
+        state = STATE_ADDED;
     }
 
     public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, String date)
@@ -30,6 +35,7 @@ public class Message
         this.senderPhoneNumber = senderPhoneNumber;
         this.receiverPhoneNumber = receiverPhoneNumber;
         this.date = date;
+        state = STATE_SUCCESS;
     }
 
     public String getMessage() {

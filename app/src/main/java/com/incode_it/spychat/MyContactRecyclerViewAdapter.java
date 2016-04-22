@@ -48,19 +48,20 @@ import java.util.List;
 
 public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContactRecyclerViewAdapter.ViewHolder> {
 
-    private static final String TAG = "updateContacts";
-    private List<MyContacts.Contact> mContacts;
-    private final OnFragmentInteractionListener mListener;
+    private static final String TAG = "myhttp";
+    public ArrayList<MyContacts.Contact> mContacts;
+    private ArrayList<MyContacts.Contact> tempContacts;
     private Context context;
     public static Bitmap noPhotoBitmap;
     private LruCache<String, Bitmap> mMemoryCache;
+    UpdateContactsTask updateContactsTask;
 
-    public MyContactRecyclerViewAdapter(OnFragmentInteractionListener listener) {
-        context = (Context) listener;
-        mContacts = MyContacts.getContactsList(context);
+    public MyContactRecyclerViewAdapter(Context context) {
+        this.context = context;
+        mContacts = MyContacts.getContactsList(this.context);
+        tempContacts = mContacts;
         updateContacts();
-        mListener = listener;
-        noPhotoBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.profile);
+        noPhotoBitmap = BitmapFactory.decodeResource(this.context.getResources(), R.drawable.profile);
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;
         mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
@@ -71,7 +72,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         };
     }
 
-
     private void updateContacts()
     {
         ArrayList<String> contactsNumbers = new ArrayList<>();
@@ -79,7 +79,14 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         {
             contactsNumbers.add(contact.phoneNumber);
         }
-        new UpdateContactsTask(contactsNumbers).execute();
+        //new UpdateContactsTask(contactsNumbers).execute();
+        //new UpdateContactsTask(contactsNumbers).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        if (updateContactsTask == null)
+        {
+            updateContactsTask = new UpdateContactsTask(contactsNumbers);
+            updateContactsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+        }
+
     }
 
     private class UpdateContactsTask extends AsyncTask<Void, Void, JSONArray>
@@ -128,7 +135,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                         phoneNumber = phoneNumber.replaceFirst(" ", "+");
                         boolean isRegistered = contact.getBoolean("isRegistered");
                         mContacts.get(i).isRegistrated = isRegistered;
-                        //Log.d(TAG, "jsonArray: " + phoneNumber + " " + isRegistered);
                     }
                     notifyDataSetChanged();
                 }
@@ -144,7 +150,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         StringBuilder sbParams = new StringBuilder();
         for (String number: contactsNumbers)
         {
-            //Log.d(TAG, "number: " + number);
             sbParams.append("contacts=").append(number).append("&");
         }
 
@@ -152,7 +157,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
 
         URL url = new URL(C.BASE_URL + "api/v1/usersJob/inSystem/");
-        Log.i(TAG, "URL: " + url.toString() + sbParams.toString());
+        Log.e(TAG, "URL: " + url.toString() + sbParams.toString());
         HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
         httpURLConnection.setDoInput(true);
         httpURLConnection.setDoOutput(true);
@@ -167,7 +172,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         outputWriter.close();
 
         int httpResponse = httpURLConnection.getResponseCode();
-        Log.d(TAG, "HTTP RESP CODE "+httpResponse);
+        Log.e(TAG, "HTTP RESP CODE "+httpResponse);
         InputStream inputStream;
 
         if (httpResponse == HttpURLConnection.HTTP_OK) inputStream = httpURLConnection.getInputStream();
@@ -175,7 +180,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
 
         String response = IOUtils.toString(inputStream);
         inputStream.close();
-        Log.d(TAG, "resp: " + response);
+        Log.e(TAG, "resp: " + response);
 
 
         JSONArray jsonArray = null;
@@ -197,9 +202,16 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         return jsonArray;
     }
 
-    public void setContacts(List<MyContacts.Contact> mContacts)
+    public void setContacts(ArrayList<MyContacts.Contact> mContacts)
     {
+        tempContacts = mContacts;
         this.mContacts = mContacts;
+        notifyDataSetChanged();
+    }
+
+    public void restoreContacts()
+    {
+        this.mContacts = tempContacts;
         notifyDataSetChanged();
     }
 
@@ -216,9 +228,9 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
 
         if (holder.mContact.isRegistrated)
         {
-            holder.mNumberView.setTextColor(Color.GREEN);
+            holder.verifyView.setVisibility(View.VISIBLE);
         }
-        else holder.mNumberView.setTextColor(Color.BLACK);
+        else holder.verifyView.setVisibility(View.INVISIBLE);
 
         String name = mContacts.get(position).name;
         final SpannableStringBuilder sb = new SpannableStringBuilder(name);
@@ -251,16 +263,16 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             //holder.mImage.setImageResource(R.drawable.profle);
         }
 
-        holder.mView.setOnClickListener(new View.OnClickListener() {
+        /*holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (null != mListener) {
-                    // Notify the active callbacks interface (the activity, if the
+                    // Notify the active callbacks interface (the context, if the
                     // fragment is attached to one) that an item has been selected.
                     mListener.onFragmentInteraction();
                 }
             }
-        });
+        });*/
     }
 
     @Override
@@ -274,6 +286,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         public final TextView mNumberView;
         public final ImageView mImage;
         public MyContacts.Contact mContact;
+        public View verifyView;
 
         public ViewHolder(View view) {
             super(view);
@@ -281,17 +294,30 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             mNameView = (TextView) view.findViewById(R.id.name);
             mNumberView = (TextView) view.findViewById(R.id.number);
             mImage = (ImageView) view.findViewById(R.id.image);
+            verifyView = view.findViewById(R.id.verify);
 
             mNameView.setTypeface(ActivityMain.typeface, Typeface.BOLD);
 
             mNumberView.setTypeface(ActivityMain.typeface);
 
-            mImage.setOnClickListener(new View.OnClickListener() {
+            mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(context, ActivityChat.class);
-                    intent.putExtra("position", getAdapterPosition());
-                    context.startActivity(intent);
+                    if (mContact.isRegistrated)
+                    {
+                        Intent intent = new Intent(context, ActivityChat.class);
+                        intent.putExtra("position", getAdapterPosition());
+                        context.startActivity(intent);
+                    }
+                    else
+                    {
+                        Intent smsIntent = new Intent(Intent.ACTION_VIEW);
+                        smsIntent.setData(Uri.parse("sms:"));
+                        smsIntent.setType("vnd.android-dir/mms-sms");
+                        smsIntent.putExtra("sms_body", "my sms");
+                        smsIntent.putExtra("address", mContact.phoneNumber);
+                        context.startActivity(smsIntent);
+                    }
                 }
             });
         }
@@ -318,6 +344,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                         new AsyncDrawable(context.getResources(), noPhotoBitmap, task);
                 imageView.setImageDrawable(asyncDrawable);
                 task.execute(uri);
+                //task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, uri);
             }
         }
     }
@@ -364,7 +391,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         // Decode image in background.
         @Override
         protected Bitmap doInBackground(Uri... resIds) {
-            //Log.d(LOG_TAG, "doInBackground");
+            //Log.d(TAG, "doInBackground");
             imageUri = resIds[0];
             Bitmap bitmap = null;
             try {

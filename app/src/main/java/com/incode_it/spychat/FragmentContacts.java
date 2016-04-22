@@ -1,10 +1,7 @@
 package com.incode_it.spychat;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.MenuItemCompat;
@@ -21,16 +18,15 @@ import android.view.ViewGroup;
 
 import java.util.ArrayList;
 
-
 public class FragmentContacts extends Fragment {
 
     RecyclerView recyclerView;
-    ServiceConnection sConn;
+    //ServiceConnection sConn;
     boolean bound = false;
-    private OnFragmentInteractionListener mListener;
+    private Context context;
     MyContactRecyclerViewAdapter adapter;
 
-    boolean isExpanded;
+    //boolean isExpanded;
 
     public static FragmentContacts newInstance() {
         FragmentContacts fragment = new FragmentContacts();
@@ -49,8 +45,15 @@ public class FragmentContacts extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean("isExpanded", isExpanded);
-        Log.d("qwew", "onSaveInstanceState isExpanded "+isExpanded);
+        /*outState.putBoolean("isExpanded", isExpanded);
+        Log.d("qwew", "onSaveInstanceState isExpanded "+isExpanded);*/
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        this.context = context;
+        Log.d("qwew", "onAttach");
     }
 
     @Override
@@ -58,25 +61,25 @@ public class FragmentContacts extends Fragment {
         super.onCreate(savedInstanceState);
         Log.d("qwew", "onCreate ");
         setHasOptionsMenu(true);
-        //setRetainInstance(true);
+        setRetainInstance(true);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-        if (savedInstanceState != null)
+        /*if (savedInstanceState != null)
         isExpanded = savedInstanceState.getBoolean("isExpanded");
-
         else isExpanded = false;
+        Log.d("qwew", "onCreateView isExpanded = "+isExpanded);*/
 
-        Log.d("qwew", "onCreateView isExpanded = "+isExpanded);
+        if (recyclerView != null) return recyclerView;
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new MyContactRecyclerViewAdapter(mListener);
+        adapter = new MyContactRecyclerViewAdapter(context);
         recyclerView.setAdapter(adapter);
 
-        sConn = new ServiceConnection() {
+        /*sConn = new ServiceConnection() {
             public void onServiceConnected(ComponentName name, IBinder binder) {
                 Log.d(MyService.LOG_TAG, "onServiceConnected");
                 bound = true;
@@ -86,7 +89,7 @@ public class FragmentContacts extends Fragment {
                 Log.d(MyService.LOG_TAG, "onServiceDisconnected");
                 bound = false;
             }
-        };
+        };*/
         return recyclerView;
     }
 
@@ -96,8 +99,8 @@ public class FragmentContacts extends Fragment {
         Log.d("qwew", "onCreateOptionsMenu");
         inflater.inflate(R.menu.contacts, menu);
         MenuItem actionMenuItem = menu.findItem(R.id.action_search);
-        if (isExpanded) actionMenuItem.expandActionView();
-        MenuItemCompat.setOnActionExpandListener(actionMenuItem, new MenuItemCompat.OnActionExpandListener() {
+        //if (isExpanded) actionMenuItem.expandActionView();
+        /*MenuItemCompat.setOnActionExpandListener(actionMenuItem, new MenuItemCompat.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
                 isExpanded = true;
@@ -110,7 +113,7 @@ public class FragmentContacts extends Fragment {
                 return true;
             }
         });
-
+*/
         SearchView searchView = (SearchView) actionMenuItem.getActionView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -122,29 +125,29 @@ public class FragmentContacts extends Fragment {
             @Override
             public boolean onQueryTextChange(String newText) {
 //              if (searchView.isExpanded() && TextUtils.isEmpty(newText)) {
-                callSearch(newText);
+                //callSearch(newText);
 //              }
                 return true;
             }
 
             public void callSearch(String query)
             {
-                ArrayList<MyContacts.Contact> arrayList = MyContacts.getContactsList(getContext());
+                ArrayList<MyContacts.Contact> arrayList = adapter.mContacts;
                 ArrayList<MyContacts.Contact> newArrayList = new ArrayList<>();
-                for (MyContacts.Contact contact: arrayList)
+                if (query.length() > 0)
                 {
-                    if (contact.name.toLowerCase().contains(query.toLowerCase()))
+                    for (MyContacts.Contact contact: arrayList)
                     {
-                        if (query.length()>0)
+                        if (contact.name.toLowerCase().contains(query.toLowerCase()))
                         {
                             contact.setSubString(query);
+                            newArrayList.add(contact);
                         }
-                        else contact.setSubString("");
-
-                        newArrayList.add(contact);
                     }
+                    adapter.setContacts(newArrayList);
                 }
-                adapter.setContacts(newArrayList);
+                else adapter.restoreContacts();
+
             }
         });
     }
@@ -166,18 +169,7 @@ public class FragmentContacts extends Fragment {
 
 
 
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        Log.d("qwew", "onAttach");
 
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnListFragmentInteractionListener");
-        }
-    }
 
     @Override
     public void onStop() {
@@ -188,7 +180,7 @@ public class FragmentContacts extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        context = null;
         Log.d("qwew", "onDetach");
 
     }

@@ -36,8 +36,7 @@ import com.google.android.gms.gcm.GoogleCloudMessaging;
 import java.util.ArrayList;
 
 public class ActivityMain extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener,
-        OnFragmentInteractionListener
+        implements NavigationView.OnNavigationItemSelectedListener
 
 {
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -231,11 +230,6 @@ public class ActivityMain extends AppCompatActivity
 
     }
 
-    @Override
-    public void onFragmentInteraction() {
-
-    }
-
     private void initRegBroadcastReceiver()
     {
         mRegistrationBroadcastReceiver = new BroadcastReceiver()
@@ -248,9 +242,9 @@ public class ActivityMain extends AppCompatActivity
                 boolean sentToken = sharedPreferences
                         .getBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, false);
                 if (sentToken) {
-                    Log.d(TAG, "RegBroadcastReceiver sentToken: " + sentToken);
+                    //Log.d(TAG, "RegBroadcastReceiver sentToken: " + sentToken);
                 } else {
-                    Log.d(TAG, "RegBroadcastReceiver sentToken: " + sentToken);
+                    //Log.d(TAG, "RegBroadcastReceiver sentToken: " + sentToken);
                 }
             }
         };

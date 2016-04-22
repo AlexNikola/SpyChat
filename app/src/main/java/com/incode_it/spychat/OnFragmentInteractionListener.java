@@ -2,5 +2,9 @@ package com.incode_it.spychat;
 
 public interface OnFragmentInteractionListener {
 
-    void onFragmentInteraction();
+    void onLogIn();
+
+    void onSignUp();
+
+    void onError(String error);
 }

@@ -11,7 +11,6 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
 import android.view.LayoutInflater;
@@ -30,13 +29,13 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     ArrayList<Message> messages;
     MyContacts.Contact contact;
     Bitmap contactBitmap;
-    AppCompatActivity activity;
+    Context context;
 
-    public MyChatRecyclerViewAdapter(ArrayList<Message> messages, MyContacts.Contact contact, Bitmap contactBitmap, AppCompatActivity activity) {
+    public MyChatRecyclerViewAdapter(ArrayList<Message> messages, MyContacts.Contact contact, Bitmap contactBitmap, Context context) {
         this.messages = messages;
         this.contact = contact;
         this.contactBitmap = contactBitmap;
-        this.activity = activity;
+        this.context = context;
     }
 
     @Override
@@ -65,6 +64,10 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
         }
         else messageHolder.imageView.setImageBitmap(MyContactRecyclerViewAdapter.noPhotoBitmap);
+
+        if (messages.get(position).state == Message.STATE_ADDED) messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_added);
+        else if (messages.get(position).state == Message.STATE_SUCCESS) messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_success);
+        else if (messages.get(position).state == Message.STATE_ERROR) messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_error);
     }
 
     @Override
@@ -88,9 +91,9 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 @Override
                 public void onClick(View v) {
                     /*DialogFragment newFragment = new DatePickerFragment();
-                    newFragment.show(activity.getSupportFragmentManager(), "datePicker");*/
-                    DialogFragment newFragment = new TimePickerFragment();
-                    newFragment.show(activity.getSupportFragmentManager(), "timePicker");
+                    newFragment.show(context.getSupportFragmentManager(), "datePicker");*/
+                    /*DialogFragment newFragment = new TimePickerFragment();
+                    newFragment.show(context.getSupportFragmentManager(), "timePicker");*/
                 }
             });
         }

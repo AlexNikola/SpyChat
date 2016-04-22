@@ -1,3 +1,211 @@
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/colorPrimaryAuth"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin">
+
+        <FrameLayout
+            android:layout_marginTop="@dimen/auth_edit_text_margin_top"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <View
+                android:background="@drawable/bg_phone_input"
+                android:layout_gravity="bottom"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/auth_bg_edit_text_height"
+                android:layout_marginBottom="@dimen/auth_bg_edit_text_margin_bottom"/>
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/text_input_layout_phone"
+                android:textColorHint="@color/colorHintAuth"
+                android:hint="@string/phone_number_hint"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/edit_text_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/auth_edit_text_height"
+                    android:background="#00000000"
+                    android:textCursorDrawable="@drawable/color_cursor"
+                    android:padding="@dimen/auth_edit_text_padding"
+                    android:inputType="phone"
+                    android:ems="10"/>
+
+            </android.support.design.widget.TextInputLayout>
+
+            <FrameLayout
+                android:id="@+id/edit_text_clear_phone"
+                android:layout_width="@dimen/auth_bg_edit_text_height"
+                android:layout_height="@dimen/auth_bg_edit_text_height"
+                android:layout_gravity="bottom|end"
+                android:layout_marginBottom="@dimen/auth_bg_edit_text_margin_bottom">
+
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/cancel_24dp"/>
+
+            </FrameLayout>
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/error_phone"
+            android:textColor="@color/errorColor"
+            android:textSize="@dimen/auth_error_text_size"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/auth_error_text_height" />
+
+        <FrameLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <View
+                android:background="@drawable/bg_phone_input"
+                android:layout_gravity="bottom"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/auth_bg_edit_text_height"
+                android:layout_marginBottom="@dimen/auth_bg_edit_text_margin_bottom"/>
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/text_input_layout_pass"
+                android:textColorHint="@color/colorHintAuth"
+                android:hint="@string/pass_hint"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/edit_text_pass"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/auth_edit_text_height"
+                    android:background="#00000000"
+                    android:textCursorDrawable="@drawable/color_cursor"
+                    android:padding="@dimen/auth_edit_text_padding"
+                    android:inputType="textPassword"
+                    android:ems="10"/>
+
+            </android.support.design.widget.TextInputLayout>
+
+            <FrameLayout
+                android:id="@+id/edit_text_clear_pass"
+                android:layout_width="@dimen/auth_bg_edit_text_height"
+                android:layout_height="@dimen/auth_bg_edit_text_height"
+                android:layout_gravity="bottom|end"
+                android:layout_marginBottom="@dimen/auth_bg_edit_text_margin_bottom">
+
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/cancel_24dp"/>
+
+            </FrameLayout>
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/error_pass"
+            android:textColor="@color/errorColor"
+            android:textSize="@dimen/auth_error_text_size"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/auth_error_text_height" />
+
+        <FrameLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <View
+                android:background="@drawable/bg_phone_input"
+                android:layout_gravity="bottom"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/auth_bg_edit_text_height"
+                android:layout_marginBottom="@dimen/auth_bg_edit_text_margin_bottom"/>
+
+            <android.support.design.widget.TextInputLayout
+                android:id="@+id/text_input_layout_pass_conf"
+                android:hint="@string/conf_pass_hint"
+                android:textColorHint="@color/colorHintAuth"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <android.support.design.widget.TextInputEditText
+                    android:id="@+id/edit_text_pass_conf"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/auth_edit_text_height"
+                    android:background="#00000000"
+                    android:textCursorDrawable="@drawable/color_cursor"
+                    android:padding="@dimen/auth_edit_text_padding"
+                    android:inputType="textPassword"
+                    android:ems="10"/>
+
+            </android.support.design.widget.TextInputLayout>
+
+            <FrameLayout
+                android:id="@+id/edit_text_clear_pass_conf"
+                android:layout_width="@dimen/auth_bg_edit_text_height"
+                android:layout_height="@dimen/auth_bg_edit_text_height"
+                android:layout_gravity="bottom|end"
+                android:layout_marginBottom="@dimen/auth_bg_edit_text_margin_bottom">
+
+                <ImageView
+                    android:layout_gravity="center"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/cancel_24dp"/>
+
+            </FrameLayout>
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/error_pass_conf"
+            android:textColor="@color/errorColor"
+            android:textSize="@dimen/auth_error_text_size"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/auth_error_text_height" />
+
+        <FrameLayout
+            android:id="@+id/sign_up_button"
+            android:background="@drawable/bg_auth_btn_selector"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/auth_btn_height"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp">
+
+            <TextView
+                android:textColor="#ffffff"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/sign_up"
+                android:id="@+id/sign_up_button_text"/>
+
+            <ProgressBar
+                android:visibility="invisible"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_margin="2dp"
+                android:id="@+id/progressBar"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+    </LinearLayout>
+
+</ScrollView>
+<!--
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
@@ -144,3 +352,4 @@
         android:layout_gravity="center_horizontal" />
 
 </LinearLayout>
+-->

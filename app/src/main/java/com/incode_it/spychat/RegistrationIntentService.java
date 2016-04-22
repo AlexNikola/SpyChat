@@ -48,7 +48,7 @@ public class RegistrationIntentService extends IntentService {
                     GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
             // [END get_token]
 
-            Log.i(TAG, "GCM Registration Token: " + token);
+            //Log.i(TAG, "GCM Registration Token: " + token);
 
             // TODO: Implement this method to send any registration to your app's servers.
             sendRegistrationToServer(token);
@@ -80,7 +80,7 @@ public class RegistrationIntentService extends IntentService {
 
     private void sendRegToken(String regToken) throws IOException, JSONException
     {
-        Log.i(TAG, "sendRegistrationToServer: " + regToken);
+        //Log.i(TAG, "sendRegistrationToServer: " + regToken);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
         String urlParameters = "regToken=" + regToken;

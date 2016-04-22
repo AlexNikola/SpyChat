@@ -6,11 +6,10 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -18,40 +17,22 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.telephony.PhoneNumberUtils;
 import android.telephony.TelephonyManager;
 import android.util.Log;
-import android.util.Patterns;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.android.gms.iid.InstanceID;
 
-import org.apache.commons.io.IOUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 
-public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
-        OnSignUpListener
-{
+public class ActivityAuth extends AppCompatActivity implements OnFragmentInteractionListener {
     private View progressBarContainer;
     private ViewPager viewPager;
+    private CoordinatorLayout coordinatorLayout;
     private static final String TAG = "myhttp";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
@@ -71,6 +52,8 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
         }
 
         progressBarContainer = findViewById(R.id.progressBar_cont);
+
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         assert toolbar != null;
@@ -93,278 +76,33 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
     }
 
     @Override
-    public void onLogIn(String phoneNumber, String password)
+    public void onLogIn()
     {
         Log.i(TAG, "onLogIn");
         hideKeyBoard();
-        new LogInTask().execute(phoneNumber, password);
     }
 
     @Override
-    public void onSignUp(String phoneNumber, String password)
-    {
+    public void onSignUp() {
         Log.i(TAG, "onSignUp");
         hideKeyBoard();
-        new SignUpTask().execute(phoneNumber, password);
     }
 
-    private class LogInTask extends AsyncTask<String, Void, String>
-    {
+    @Override
+    public void onError(String error) {
+        Snackbar snackbar = Snackbar.make(coordinatorLayout, "Connection error", Snackbar.LENGTH_INDEFINITE)
+                .setActionTextColor(Color.RED)
+                .setAction("OK", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
 
-        public LogInTask() {
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progressBarContainer.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            String phoneNumber = params[0];
-            String password = params[1];
-
-            try
-            {
-
-                InstanceID instanceID = InstanceID.getInstance(ActivityAuth.this);
-                String token = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
-                        GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
-                Log.i(TAG, "GCM Registration Token: " + token);
-
-                String urlParameters = "phone=" +
-                        phoneNumber +
-                        "&" +
-                        "password=" +
-                        password +
-                        "&" +
-                        "regToken=" +
-                        token;
-
-                URL url = new URL(C.BASE_URL + "api/v1/auth/getAccessToke/");
-                Log.i(TAG, "URL: " + url.toString() + urlParameters);
-                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setDoInput(true);
-                httpURLConnection.setDoOutput(true);
-                httpURLConnection.setConnectTimeout(20000);
-                httpURLConnection.setRequestMethod("POST");
-                httpURLConnection.connect();
-
-                OutputStreamWriter outputWriter = new OutputStreamWriter(httpURLConnection.getOutputStream());
-                outputWriter.write(urlParameters);
-                outputWriter.flush();
-                outputWriter.close();
-
-                int httpResponse = httpURLConnection.getResponseCode();
-                //BufferedReader bufferedReader;
-                InputStream inputStream;
-                if (httpResponse == HttpURLConnection.HTTP_OK) {
-                    Log.d(TAG, "HTTP_OK");
-                    /*bufferedReader = new BufferedReader(
-                            new InputStreamReader(httpURLConnection.getInputStream()));*/
-                    inputStream = httpURLConnection.getInputStream();
-                } else {
-                    Log.d(TAG, "HTTP_ERROR");
-                    /*bufferedReader = new BufferedReader(
-                            new InputStreamReader(httpURLConnection.getErrorStream()));*/
-                    inputStream = httpURLConnection.getErrorStream();
-                }
-
-                /*StringBuilder result = new StringBuilder();
-                String line = null;
-                while ((line = bufferedReader.readLine()) != null)
-                {
-                    result.append(line).append("\n");
-                }
-                bufferedReader.close();*/
-                String response = IOUtils.toString(inputStream);
-                inputStream.close();
-                Log.d(TAG, "resp: " + response);
-                return response;
-            }
-            catch (IOException e)
-            {
-                Log.d(TAG, "my err " + e.getLocalizedMessage());
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            progressBarContainer.setVisibility(View.INVISIBLE);
-            if (result == null) {
-                Toast.makeText(ActivityAuth.this, "Connection error", Toast.LENGTH_SHORT).show();
-            } else {
-                try {
-                    JSONObject jsonResponse = new JSONObject(result);
-                    String res = jsonResponse.getString("result");
-                    if (res.equals("success")) {
-                        String accessToken = jsonResponse.getString("accessToken");
-                        String refreshToken = jsonResponse.getString("refreshToken");
-                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ActivityAuth.this);
-                        sharedPreferences.edit().putString(C.ACCESS_TOKEN, accessToken).putString(C.REFRESH_TOKEN, refreshToken).apply();
-                        Intent intent = new Intent(ActivityAuth.this, ActivityMain.class);
-                        startActivity(intent);
-
-                    } else if (res.equals("error")) {
-                        /*
-                        * HTTP_ERROR resp: {"result":"error","param":"user","message":"Incorrect password"}
-                        * resp: {"result":"error","param":"user","message":"User not found"}*/
-                        String param = jsonResponse.getString("param");
-                        if (param.equals("password")){
-                            Toast.makeText(ActivityAuth.this, "password", Toast.LENGTH_SHORT).show();
-                        } else if (param.equals("phone")) {
-                            Toast.makeText(ActivityAuth.this, "phone exists", Toast.LENGTH_SHORT).show();
-                        }
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
+                });
 
-        }
+        TextView textView = (TextView) snackbar.getView().findViewById(android.support.design.R.id.snackbar_text);
+        textView.setTextColor(Color.YELLOW);
+        snackbar.show();
     }
-
-    private class SignUpTask extends AsyncTask<String, Void, String>
-    {
-
-        public SignUpTask() {
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            progressBarContainer.setVisibility(View.VISIBLE);
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            String phoneNumber = params[0];
-            String password = params[1];
-
-            try
-            {
-
-                InstanceID instanceID = InstanceID.getInstance(ActivityAuth.this);
-                String token = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
-                        GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
-                Log.i(TAG, "GCM Registration Token: " + token);
-
-                String urlParameters = "phone=" +
-                        phoneNumber +
-                        "&" +
-                        "password=" +
-                        password +
-                        "&" +
-                        "confirm=" +
-                        password +
-                        "&" +
-                        "regToken=" +
-                        token;
-
-                URL url = new URL(C.BASE_URL + "api/v1/users/register/");
-                Log.i(TAG, "URL: " + url.toString() + urlParameters);
-                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setDoInput(true);
-                httpURLConnection.setDoOutput(true);
-                httpURLConnection.setConnectTimeout(20000);
-                httpURLConnection.setRequestMethod("POST");
-                httpURLConnection.connect();
-
-                OutputStreamWriter outputWriter = new OutputStreamWriter(httpURLConnection.getOutputStream());
-                outputWriter.write(urlParameters);
-                outputWriter.flush();
-                outputWriter.close();
-
-                int httpResponse = httpURLConnection.getResponseCode();
-                InputStream inputStream;
-                if (httpResponse == HttpURLConnection.HTTP_OK) {
-                    Log.d(TAG, "HTTP_OK");
-                    inputStream = httpURLConnection.getInputStream();
-                } else {
-                    Log.d(TAG, "HTTP_ERROR");
-                    inputStream = httpURLConnection.getErrorStream();
-                }
-
-                String response = IOUtils.toString(inputStream);
-                inputStream.close();
-                Log.d(TAG, "resp: " + response);
-                return response;
-            }
-            catch (IOException e)
-            {
-                Log.d(TAG, "my err " + e.getLocalizedMessage());
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            progressBarContainer.setVisibility(View.INVISIBLE);
-            if (result == null) {
-                Toast.makeText(ActivityAuth.this, "Connection error", Toast.LENGTH_SHORT).show();
-            } else {
-                try {
-                    JSONObject jsonResponse = new JSONObject(result);
-                    String res = jsonResponse.getString("result");
-                    if (res.equals("success")) {
-                        String accessToken = jsonResponse.getString("accessToken");
-                        String refreshToken = jsonResponse.getString("refreshToken");
-                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ActivityAuth.this);
-                        sharedPreferences.edit().putString(C.ACCESS_TOKEN, accessToken).putString(C.REFRESH_TOKEN, refreshToken).apply();
-                        Intent intent = new Intent(ActivityAuth.this, ActivityMain.class);
-                        startActivity(intent);
-
-                    } else if (res.equals("error")) {
-                        String param = jsonResponse.getString("param");
-                        if (param.equals("password")){
-                            Toast.makeText(ActivityAuth.this, "password", Toast.LENGTH_SHORT).show();
-                        } else if (param.equals("phone")) {
-                            Toast.makeText(ActivityAuth.this, "phone exists", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-
-        }
-    }
-
-    private boolean getInstanceIDToken()
-    {
-        InstanceID instanceID = InstanceID.getInstance(this);
-        String token = null;
-        try {
-            token = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
-                    GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        Log.i(TAG, "GCM Registration Token: " + token);
-        return token != null;
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     private boolean hasConnection() {
         ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -372,68 +110,7 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
         return activeNetwork != null && activeNetwork.isConnected();
     }
 
-
-    public static class FragmentLogIn extends Fragment
-    {
-        private OnLogInListener logInListener;
-
-        public FragmentLogIn() {
-            // Required empty public constructor
-        }
-
-        @Override
-        public void onAttach(Context context) {
-            super.onAttach(context);
-            logInListener = (OnLogInListener) context;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View view = inflater.inflate(R.layout.fragment_log_in, container, false);
-
-            View inputPhoneLayout = view.findViewById(R.id.input_phone_layout);
-            final TextInputEditText phoneET = (TextInputEditText) inputPhoneLayout.findViewById(R.id.edit_text);
-            phoneET.setText(getPhoneNumber(getContext()));
-            final TextInputLayout tilPhone = (TextInputLayout) inputPhoneLayout.findViewById(R.id.text_input_layout);
-            tilPhone.setHint(getString(R.string.phone_number_hint));
-            inputPhoneLayout.findViewById(R.id.edit_text_clear).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    phoneET.setText("");
-                }
-            });
-
-            View inputPassLayout = view.findViewById(R.id.input_pass_layout);
-            final TextInputEditText passET = (TextInputEditText) inputPassLayout.findViewById(R.id.edit_text);
-            final TextInputLayout tilPass = (TextInputLayout) inputPassLayout.findViewById(R.id.text_input_layout);
-            tilPass.setHint(getString(R.string.pass_hint));
-            inputPassLayout.findViewById(R.id.edit_text_clear).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    passET.setText("");
-                }
-            });
-
-
-            Button logInBtn = (Button) view.findViewById(R.id.log_in_button);
-            logInBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String phoneNumber = phoneET.getText().toString();
-                    String password = passET.getText().toString();
-                    logInListener.onLogIn(phoneNumber, password);
-                }
-            });
-
-
-
-            return view;
-        }
-
-    }
-
-    private static String getPhoneNumber(Context context)
+    public static String getPhoneNumber(Context context)
     {
         TelephonyManager tm = (TelephonyManager)context.getSystemService(TELEPHONY_SERVICE);
         String myPhoneNumber = tm.getLine1Number();
@@ -441,72 +118,10 @@ public class ActivityAuth extends AppCompatActivity implements OnLogInListener,
         {
             Toast.makeText(context, "phone number is unavailable", Toast.LENGTH_SHORT).show();
         }
-        //myPhoneNumber = "+38066751470";
-        //boolean isValid = Patterns.PHONE.matcher(myPhoneNumber).matches();
-        //Log.i(TAG, "isValid: "+ myPhoneNumber + " " + isValid);
         return myPhoneNumber;
     }
 
-    public static class FragmentSingUp extends Fragment
-    {
-        private OnSignUpListener onSignUpListener;
 
-        public FragmentSingUp() {
-            // Required empty public constructor
-        }
-
-        @Override
-        public void onAttach(Context context) {
-            super.onAttach(context);
-            onSignUpListener = (OnSignUpListener) context;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
-            View view = inflater.inflate(R.layout.fragment_sign_up, container, false);
-            final TextInputEditText phoneET = (TextInputEditText) view.findViewById(R.id.phone_number_et);
-            phoneET.setText(getPhoneNumber(getContext()));
-            final TextInputEditText passET = (TextInputEditText) view.findViewById(R.id.password_et);
-            final TextInputEditText confPassET = (TextInputEditText) view.findViewById(R.id.conf_password_et);
-            Button singUpBtn = (Button) view.findViewById(R.id.sign_up_button);
-            singUpBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String phoneNumber = phoneET.getText().toString();
-                    String password = passET.getText().toString();
-                    String confPassword = confPassET.getText().toString();
-
-                    if (password.equals(confPassword))
-                    {
-                        onSignUpListener.onSignUp(phoneNumber, password);
-                    }
-                    else Toast.makeText(getContext(), "Пароли не совпадают", Toast.LENGTH_SHORT).show();
-
-                }
-            });
-            view.findViewById(R.id.phone_number_et_clear).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    phoneET.setText("");
-                }
-            });
-            view.findViewById(R.id.password_et_clear).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    passET.setText("");
-                }
-            });
-            view.findViewById(R.id.conf_password_et_clear).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    confPassET.setText("");
-                }
-            });
-            return view;
-        }
-
-    }
 
     public class AuthFragmentPagerAdapter extends FragmentPagerAdapter {
         ArrayList<Fragment> fragmentArrayList;

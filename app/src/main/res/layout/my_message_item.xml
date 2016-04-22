@@ -8,7 +8,7 @@
     <LinearLayout
         android:id="@+id/text_container"
         android:orientation="vertical"
-        android:background="@drawable/bg_my_message"
+        android:background="@drawable/bg_my_message_success"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toLeftOf="@+id/image"
