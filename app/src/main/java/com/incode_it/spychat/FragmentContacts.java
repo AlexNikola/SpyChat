@@ -1,6 +1,7 @@
 package com.incode_it.spychat;
 
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -17,14 +18,16 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class FragmentContacts extends Fragment {
 
-    RecyclerView recyclerView;
+    private RecyclerView recyclerView;
+    private ArrayList<MyContacts.Contact> mContacts;
     //ServiceConnection sConn;
     boolean bound = false;
     private Context context;
-    MyContactRecyclerViewAdapter adapter;
+    private MyContactRecyclerViewAdapter adapter;
 
     //boolean isExpanded;
 
@@ -74,9 +77,13 @@ public class FragmentContacts extends Fragment {
         Log.d("qwew", "onCreateView isExpanded = "+isExpanded);*/
 
         if (recyclerView != null) return recyclerView;
+
+        mContacts = MyContacts.getContactsList(this.context);
+        localUpdateContactList();
+
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new MyContactRecyclerViewAdapter(context);
+        adapter = new MyContactRecyclerViewAdapter(context, mContacts);
         recyclerView.setAdapter(adapter);
 
         /*sConn = new ServiceConnection() {
@@ -92,6 +99,26 @@ public class FragmentContacts extends Fragment {
         };*/
         return recyclerView;
     }
+
+    private void localUpdateContactList()
+    {
+        ArrayList<String> registeredContacts;
+        registeredContacts = MyDbHelper.readRegisteredContacts(new MyDbHelper(context).getReadableDatabase());
+        for (MyContacts.Contact contact: mContacts)
+        {
+            for (String registeredPhone: registeredContacts)
+            {
+                if (contact.phoneNumber.equals(registeredPhone))
+                {
+                    contact.isRegistered = true;
+                    break;
+                }
+            }
+        }
+
+        Collections.sort(mContacts, new ContactsComparator());
+    }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {

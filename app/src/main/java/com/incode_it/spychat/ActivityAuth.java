@@ -118,6 +118,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
         {
             Toast.makeText(context, "phone number is unavailable", Toast.LENGTH_SHORT).show();
         }
+        //return "+380639461005";
         return myPhoneNumber;
     }
 

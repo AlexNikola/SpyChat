@@ -19,16 +19,14 @@ public class MyDbHelper extends SQLiteOpenHelper
     private static final String TYPE_TEXT = " TEXT";
     private static final String TYPE_INT = " INTEGER";
     private static final String COMMA_SEP = ",";
-    /*private static final String SQL_CREATE_CONTACT_TABLE =
-            "CREATE TABLE " + Contact.TABLE_NAME + " (" +
-                    Contact._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    Contact.PHONE_NUMBER + TYPE_TEXT + COMMA_SEP +
-                    Contact.CHAT_ID + TYPE_INT +
-                    "FOREIGN KEY (" + Contact.CHAT_ID + ") REFERENCES "
-                    + Chat.TABLE_NAME + " ("+Chat._ID+")" + " )";
+
+    private static final String SQL_CREATE_CONTACT_TABLE =
+            "CREATE TABLE " + RegisteredContact.TABLE_NAME + " (" +
+                    RegisteredContact._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    RegisteredContact.PHONE_NUMBER + TYPE_TEXT+ " )";
 
     private static final String SQL_DELETE_CONTACT_TABLE =
-            "DROP TABLE IF EXISTS " + Contact.TABLE_NAME;*/
+            "DROP TABLE IF EXISTS " + RegisteredContact.TABLE_NAME;
 
     private static final String SQL_CREATE_CHAT_TABLE =
             "CREATE TABLE " + Chat.TABLE_NAME + " (" +
@@ -36,12 +34,14 @@ public class MyDbHelper extends SQLiteOpenHelper
                     Chat.MESSAGE + TYPE_TEXT + COMMA_SEP +
                     Chat.SENDER_PHONE_NUMBER + TYPE_TEXT + COMMA_SEP +
                     Chat.RECEIVER_PHONE_NUMBER + TYPE_TEXT + COMMA_SEP +
-                    Chat.DATE + TYPE_TEXT + " )";
+                    Chat.DATE + TYPE_TEXT + COMMA_SEP +
+                    Chat.STATE + TYPE_INT + COMMA_SEP +
+                    Chat.MY_ID + TYPE_INT +" )";
 
     private static final String SQL_DELETE_CHAT_TABLE =
             "DROP TABLE IF EXISTS " + Chat.TABLE_NAME;
 
-    public static final int DATABASE_VERSION = 3;
+    public static final int DATABASE_VERSION = 21;
     public static final String DATABASE_NAME = "Chat.db";
 
     public MyDbHelper(Context context) {
@@ -51,14 +51,22 @@ public class MyDbHelper extends SQLiteOpenHelper
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(SQL_CREATE_CHAT_TABLE);
+        db.execSQL(SQL_CREATE_CONTACT_TABLE);
 
-        initTestData();
-        putTestData(db);
+        /*ArrayList<String> c = new ArrayList<>();
+        c.add("+380664431954");
+        c.add("+380665713467");
+        c.add("+380669713043");
+        c.add("+380991514768");
+        c.add("+380669997588");
+
+        insertRegisteredContacts(db, c);*/
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL(SQL_DELETE_CHAT_TABLE);
+        db.execSQL(SQL_DELETE_CONTACT_TABLE);
         onCreate(db);
     }
 
@@ -69,6 +77,8 @@ public class MyDbHelper extends SQLiteOpenHelper
         values.put(Chat.SENDER_PHONE_NUMBER, message.getSenderPhoneNumber());
         values.put(Chat.RECEIVER_PHONE_NUMBER, message.getReceiverPhoneNumber());
         values.put(Chat.DATE, message.getDate());
+        values.put(Chat.STATE, message.getState());
+        values.put(Chat.MY_ID, message.getMyId());
 
         long newRowId;
         newRowId = db.insert(Chat.TABLE_NAME, null, values);
@@ -102,7 +112,9 @@ public class MyDbHelper extends SQLiteOpenHelper
                 String senderPhoneNumber = cursor.getString(2);
                 String receiverPhoneNumber = cursor.getString(3);
                 String date = cursor.getString(4);
-                Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date);
+                int state = cursor.getInt(5);
+                long myId = cursor.getLong(6);
+                Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, myId);
                 messagesArr.add(message);
                 Log.d(LOG_TAG, "id " + cursor.getString(0));
             }
@@ -111,13 +123,60 @@ public class MyDbHelper extends SQLiteOpenHelper
 
         cursor.close();
         db.close();
-        Log.d(LOG_TAG, sql);
-        Log.d(LOG_TAG, "readContactMessages cursor.getCount " + cursor.getCount());
-        Log.d(LOG_TAG, "readContactMessages size " + messagesArr.size());
         return messagesArr;
     }
 
+    public static synchronized ArrayList<String> readRegisteredContacts(SQLiteDatabase db)
+    {
+        Log.d(LOG_TAG, "readRegisteredContacts");
+        String sql = "SELECT * FROM "+ RegisteredContact.TABLE_NAME;
+        Cursor cursor = db.rawQuery(sql, null);
 
+        ArrayList<String> contactsArr = new ArrayList<>();
+        if (cursor.moveToFirst())
+        {
+            do
+            {
+                String phoneNumber = cursor.getString(1);
+                contactsArr.add(phoneNumber);
+            }
+            while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return contactsArr;
+    }
+
+    public static synchronized void insertRegisteredContacts(SQLiteDatabase db, ArrayList<String> registeredContacts)
+    {
+        db.execSQL(SQL_DELETE_CONTACT_TABLE);
+        db.execSQL(SQL_CREATE_CONTACT_TABLE);
+        Log.d(LOG_TAG, "insertRegisteredContacts " + registeredContacts.size());
+        ContentValues values = new ContentValues();
+
+        for (String phone: registeredContacts)
+        {
+            values.put(RegisteredContact.PHONE_NUMBER, phone);
+            long newRowId;
+            newRowId = db.insert(RegisteredContact.TABLE_NAME, null, values);
+            values.clear();
+        }
+        db.close();
+    }
+
+    public static synchronized void insertMessageState(SQLiteDatabase db, Message message)
+    {
+        ContentValues values = new ContentValues();
+
+        String whereClause = Chat.MY_ID + "=" + message.getMyId();
+
+        values.put(Chat.STATE, message.state);
+        int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
+        db.close();
+
+        Log.d(LOG_TAG, "insertMessageState numbers: "+num);
+    }
 
 
 

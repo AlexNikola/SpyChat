@@ -3,27 +3,71 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="16dp">
+    android:layout_margin="16dp"
+    android:background="#00675767">
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/text_container"
-        android:orientation="vertical"
-        android:background="@drawable/bg_my_message_success"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_my_message_success"
         android:layout_toLeftOf="@+id/image"
         android:layout_toStartOf="@+id/image"
-        android:padding="8dp"
-        android:layout_marginRight="8dp">
+        android:layout_marginRight="8dp"
+        android:layout_marginEnd="8dp">
 
-        <TextView
-            android:id="@+id/text_message"
-            android:text="efetuf fgfdgd "
-            android:textSize="16sp"
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:padding="8dp">
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/text_message"
+                android:text="d"
+                android:textSize="16sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"/>
+
+            <LinearLayout
+                android:layout_gravity="right"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/time_tv"
+                    android:background="#00678676"
+                    android:layout_marginTop="4dp"
+                    android:text="14:53"
+                    android:textSize="10sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <FrameLayout
+                    android:layout_margin="4dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/icon_sent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:src="@drawable/ic_check_12dp"/>
+
+                    <ProgressBar
+                        android:id="@+id/progressBar"
+                        android:layout_width="12dp"
+                        android:layout_height="12dp" />
+
+                </FrameLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </FrameLayout>
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:src="@drawable/profile"

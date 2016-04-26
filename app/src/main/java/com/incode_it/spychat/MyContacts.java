@@ -4,14 +4,18 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class MyContacts
 {
     public static ArrayList<Contact> getContactsList(Context context)
     {
+        TelephonyManager tm = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+        String myPhoneNumber = tm.getLine1Number();
         ArrayList<Contact> contactArrayList = new ArrayList<>();
         Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
         if (phones != null) {
@@ -21,7 +25,7 @@ public class MyContacts
                 String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER));
                 String photoURI = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
                 Uri uri = null;
-                Log.d("mnun", name+" "+phoneNumber);
+                //Log.d("mnun", name+" "+phoneNumber);
                 if (photoURI != null)
                 {
                     uri = Uri.parse(photoURI);
@@ -29,10 +33,11 @@ public class MyContacts
                 boolean isAdded = false;
                 for (Contact contact: contactArrayList)
                 {
-                    if (contact.phoneNumber.equalsIgnoreCase(phoneNumber) || ActivityMain.myPhoneNumber.equalsIgnoreCase(phoneNumber))
+                    if (contact.phoneNumber.equalsIgnoreCase(phoneNumber) || myPhoneNumber.equalsIgnoreCase(phoneNumber))
                     {
                         isAdded = true;
                     }
+
                 }
                 if (!isAdded) contactArrayList.add(new Contact(name, phoneNumber, uri));
             }
@@ -49,7 +54,7 @@ public class MyContacts
         String name;
         String phoneNumber;
         Uri photoURI;
-        boolean isRegistrated;
+        boolean isRegistered;
 
 
         public Contact(String name, String phoneNumber, Uri photoURI) {
@@ -62,5 +67,6 @@ public class MyContacts
         {
             this.subString = subString;
         }
+
     }
 }

@@ -8,6 +8,7 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
@@ -57,17 +58,45 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     @Override
     public void onBindViewHolder(MessageViewHolder messageHolder, int position) {
         messageHolder.text.setText(messages.get(position).getMessage());
+        messageHolder.timeText.setText(messages.get(position).getDate());
+
         if (!messages.get(position).getSenderPhoneNumber().equals(ActivityMain.myPhoneNumber))
         {
             if (contactBitmap == null) messageHolder.imageView.setImageBitmap(MyContactRecyclerViewAdapter.noPhotoBitmap);
             else messageHolder.imageView.setImageBitmap(contactBitmap);
 
+            messageHolder.textContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+            messageHolder.iconSent.setVisibility(View.INVISIBLE);
+            messageHolder.progressBar.setVisibility(View.INVISIBLE);
+            messageHolder.text.setTextColor(Color.parseColor("#000000"));
         }
-        else messageHolder.imageView.setImageBitmap(MyContactRecyclerViewAdapter.noPhotoBitmap);
+        else
+        {
+            messageHolder.imageView.setImageBitmap(MyContactRecyclerViewAdapter.noPhotoBitmap);
+            if (messages.get(position).state == Message.STATE_ADDED)
+            {
+                messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_added);
+                messageHolder.iconSent.setVisibility(View.INVISIBLE);
+                messageHolder.progressBar.setVisibility(View.VISIBLE);
+                messageHolder.text.setTextColor(Color.parseColor("#55000000"));
+            }
+            else if (messages.get(position).state == Message.STATE_SUCCESS)
+            {
+                messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_success);
+                messageHolder.iconSent.setVisibility(View.VISIBLE);
+                messageHolder.progressBar.setVisibility(View.INVISIBLE);
+                messageHolder.text.setTextColor(Color.parseColor("#000000"));
+            }
+            else if (messages.get(position).state == Message.STATE_ERROR)
+            {
+                messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_error);
+                messageHolder.iconSent.setVisibility(View.INVISIBLE);
+                messageHolder.progressBar.setVisibility(View.INVISIBLE);
+                messageHolder.text.setTextColor(Color.parseColor("#000000"));
+            }
+        }
 
-        if (messages.get(position).state == Message.STATE_ADDED) messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_added);
-        else if (messages.get(position).state == Message.STATE_SUCCESS) messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_success);
-        else if (messages.get(position).state == Message.STATE_ERROR) messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_error);
+
     }
 
     @Override
@@ -81,11 +110,18 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         public final TextView text;
         public View textContainer;
 
+        public View progressBar;
+        public View iconSent;
+        public TextView timeText;
+
         public MessageViewHolder(View view) {
             super(view);
             mView = view;
             text = (TextView) view.findViewById(R.id.text_message);
             imageView = (ImageView) view.findViewById(R.id.image);
+            progressBar = view.findViewById(R.id.progressBar);
+            iconSent = view.findViewById(R.id.icon_sent);
+            timeText = (TextView) view.findViewById(R.id.time_tv);
             textContainer = view.findViewById(R.id.text_container);
             textContainer.setOnClickListener(new View.OnClickListener() {
                 @Override

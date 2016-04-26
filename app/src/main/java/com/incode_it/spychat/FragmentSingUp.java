@@ -15,18 +15,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.android.gms.iid.InstanceID;
-
-import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 
 public class FragmentSingUp extends Fragment
 {
@@ -188,58 +182,34 @@ public class FragmentSingUp extends Fragment
         protected String doInBackground(String... params) {
             String phoneNumber = params[0];
             String password = params[1];
+            String regToken;
 
-            try
-            {
-                InstanceID instanceID = InstanceID.getInstance(context);
-                String token = instanceID.getToken(getString(R.string.gcm_defaultSenderId),
-                        GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
-                Log.i(TAG, "GCM Registration Token: " + token);
-
-                String urlParameters = "phone=" +
+            try {
+                phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
+                /*String urlParameters = "phone=" +
                         phoneNumber +
                         "&" +
                         "password=" +
                         password +
                         "&" +
                         "confirm=" +
-                        password +
-                        "&" +
-                        "regToken=" +
-                        token;
+                        password;
+
+                URL url = new URL(C.BASE_URL + "api/v1/users/restorePassword/");*/
+                regToken = MyConnection.getRegToken(context);
+
+                String urlParameters =  "phone="    + phoneNumber   + "&" +
+                                        "password=" + password      + "&" +
+                                        "confirm="  + password      + "&" +
+                                        "regToken=" + regToken;
 
                 URL url = new URL(C.BASE_URL + "api/v1/users/register/");
-                Log.i(TAG, "URL: " + url.toString() + urlParameters);
-                HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-                httpURLConnection.setDoInput(true);
-                httpURLConnection.setDoOutput(true);
-                httpURLConnection.setConnectTimeout(20000);
-                httpURLConnection.setRequestMethod("POST");
-                httpURLConnection.connect();
 
-                OutputStreamWriter outputWriter = new OutputStreamWriter(httpURLConnection.getOutputStream());
-                outputWriter.write(urlParameters);
-                outputWriter.flush();
-                outputWriter.close();
-
-                int httpResponse = httpURLConnection.getResponseCode();
-                InputStream inputStream;
-                if (httpResponse == HttpURLConnection.HTTP_OK) {
-                    Log.d(TAG, "HTTP_OK");
-                    inputStream = httpURLConnection.getInputStream();
-                } else {
-                    Log.d(TAG, "HTTP_ERROR");
-                    inputStream = httpURLConnection.getErrorStream();
-                }
-
-                String response = IOUtils.toString(inputStream);
-                inputStream.close();
-                Log.d(TAG, "resp: " + response);
-                return response;
+                return MyConnection.post(url, urlParameters, null);
             }
             catch (IOException e)
             {
-                Log.d(TAG, "my err " + e.getLocalizedMessage());
+                Log.e(TAG, "my err " + e.getLocalizedMessage());
                 e.printStackTrace();
             }
 

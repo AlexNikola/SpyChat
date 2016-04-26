@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -26,40 +25,32 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.android.gms.iid.InstanceID;
-
-import org.apache.commons.io.IOUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
 import java.lang.ref.WeakReference;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 
 
 public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContactRecyclerViewAdapter.ViewHolder> {
 
     private static final String TAG = "myhttp";
     public ArrayList<MyContacts.Contact> mContacts;
-    private ArrayList<MyContacts.Contact> tempContacts;
+    //private ArrayList<MyContacts.Contact> tempContacts;
     private Context context;
     public static Bitmap noPhotoBitmap;
     private LruCache<String, Bitmap> mMemoryCache;
     UpdateContactsTask updateContactsTask;
 
-    public MyContactRecyclerViewAdapter(Context context) {
+    public MyContactRecyclerViewAdapter(Context context, ArrayList<MyContacts.Contact> mContacts) {
         this.context = context;
-        mContacts = MyContacts.getContactsList(this.context);
-        tempContacts = mContacts;
+        this.mContacts = mContacts;
         updateContacts();
         noPhotoBitmap = BitmapFactory.decodeResource(this.context.getResources(), R.drawable.profile);
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
@@ -89,7 +80,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
 
     }
 
-    private class UpdateContactsTask extends AsyncTask<Void, Void, JSONArray>
+    private class UpdateContactsTask extends AsyncTask<Void, Void, ArrayList<String>>
     {
         ArrayList<String> contactsNumbers;
 
@@ -103,45 +94,59 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         }
 
         @Override
-        protected JSONArray doInBackground(Void... params) {
-            JSONArray jsonArray = null;
+        protected ArrayList<String> doInBackground(Void... params) {
+            ArrayList<String> registeredContacts = null;
             try
             {
-                jsonArray = tryUpdateContacts(contactsNumbers);
+                JSONArray jsonArray = tryUpdateContacts(contactsNumbers);
+                if (jsonArray != null)
+                {
+                    registeredContacts = new ArrayList<>();
+                    for (int i = 0; i < jsonArray.length(); i++)
+                    {
+                        JSONObject contact = (JSONObject) jsonArray.get(i);
+                        String phoneNumber = contact.getString("phone");
+                        boolean isRegistered = contact.getBoolean("isRegistered");
 
+                        if (isRegistered)
+                        {
+                            registeredContacts.add(phoneNumber);
+                        }
+                    }
+                    MyDbHelper.insertRegisteredContacts(new MyDbHelper(context).getWritableDatabase(), registeredContacts);
+
+                }
             }
             catch (IOException | JSONException e)
             {
                 e.printStackTrace();
             }
 
-            return jsonArray;
+            return registeredContacts;
         }
 
         @Override
-        protected void onPostExecute(JSONArray jsonArray) {
-            try
+        protected void onPostExecute(ArrayList<String> regContacts) {
+            if (regContacts != null)
             {
-                if (jsonArray == null)
+                for (MyContacts.Contact mContact: mContacts)
                 {
-                    Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show();
-                }
-                else
-                {
-                    for (int i = 0; i < jsonArray.length(); i++)
+                    mContact.isRegistered = false;
+                    for (String regPhoneNumber: regContacts)
                     {
-                        JSONObject contact = (JSONObject) jsonArray.get(i);
-                        String phoneNumber = contact.getString("phone");
-                        phoneNumber = phoneNumber.replaceFirst(" ", "+");
-                        boolean isRegistered = contact.getBoolean("isRegistered");
-                        mContacts.get(i).isRegistrated = isRegistered;
+                        if (mContact.phoneNumber.equals(regPhoneNumber))
+                        {
+                            mContact.isRegistered = true;
+                            break;
+                        }
                     }
-                    notifyDataSetChanged();
                 }
+                Collections.sort(mContacts, new ContactsComparator());
+                notifyDataSetChanged();
             }
-            catch (JSONException e)
+            else
             {
-                e.printStackTrace();
+                Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -150,43 +155,20 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         StringBuilder sbParams = new StringBuilder();
         for (String number: contactsNumbers)
         {
-            sbParams.append("contacts=").append(number).append("&");
+            sbParams.append("contacts=").append(URLEncoder.encode(number, "UTF-8")).append("&");
         }
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
-
         URL url = new URL(C.BASE_URL + "api/v1/usersJob/inSystem/");
-        Log.e(TAG, "URL: " + url.toString() + sbParams.toString());
-        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-        httpURLConnection.setDoInput(true);
-        httpURLConnection.setDoOutput(true);
-        httpURLConnection.setConnectTimeout(20000);
-        httpURLConnection.setRequestMethod("POST");
-        httpURLConnection.addRequestProperty("Authorization", "Bearer "+accessToken);
-        httpURLConnection.connect();
+        String header = "Bearer "+accessToken;
 
-        OutputStreamWriter outputWriter = new OutputStreamWriter(httpURLConnection.getOutputStream());
-        outputWriter.write(sbParams.toString());
-        outputWriter.flush();
-        outputWriter.close();
-
-        int httpResponse = httpURLConnection.getResponseCode();
-        Log.e(TAG, "HTTP RESP CODE "+httpResponse);
-        InputStream inputStream;
-
-        if (httpResponse == HttpURLConnection.HTTP_OK) inputStream = httpURLConnection.getInputStream();
-        else inputStream = httpURLConnection.getErrorStream();
-
-        String response = IOUtils.toString(inputStream);
-        inputStream.close();
-        Log.e(TAG, "resp: " + response);
-
+        String response = MyConnection.post(url, sbParams.toString(), header);
 
         JSONArray jsonArray = null;
         if (response.equals("Access token is expired"))
         {
-            if (MyConnection.sendRefreshToken(context, TAG))
+            if (MyConnection.sendRefreshToken(context))
                 jsonArray = tryUpdateContacts(contactsNumbers);
         }
         else
@@ -195,24 +177,22 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             String res = jsonResponse.getString("result");
             if (res.equals("success"))
             jsonArray = jsonResponse.getJSONArray("contacts");
-
         }
-
 
         return jsonArray;
     }
 
     public void setContacts(ArrayList<MyContacts.Contact> mContacts)
     {
-        tempContacts = mContacts;
+        /*tempContacts = mContacts;
         this.mContacts = mContacts;
-        notifyDataSetChanged();
+        notifyDataSetChanged();*/
     }
 
     public void restoreContacts()
     {
-        this.mContacts = tempContacts;
-        notifyDataSetChanged();
+        /*this.mContacts = tempContacts;
+        notifyDataSetChanged();*/
     }
 
     @Override
@@ -226,7 +206,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mContact = mContacts.get(position);
 
-        if (holder.mContact.isRegistrated)
+        if (holder.mContact.isRegistered)
         {
             holder.verifyView.setVisibility(View.VISIBLE);
         }
@@ -303,10 +283,11 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (mContact.isRegistrated)
+                    Log.d("mylist", "position "+getAdapterPosition());
+                    if (mContact.isRegistered)
                     {
                         Intent intent = new Intent(context, ActivityChat.class);
-                        intent.putExtra("position", getAdapterPosition());
+                        intent.putExtra(C.PHONE_NUMBER, mContact.phoneNumber);
                         context.startActivity(intent);
                     }
                     else

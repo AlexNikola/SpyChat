@@ -19,6 +19,7 @@ public class Message
     private String receiverPhoneNumber;
     private String date;
     public int state;
+    private long myId;
 
     public Message(String message, String senderPhoneNumber, String receiverPhoneNumber)
     {
@@ -27,15 +28,25 @@ public class Message
         this.receiverPhoneNumber = receiverPhoneNumber;
         date = getDateTime();
         state = STATE_ADDED;
+        myId = System.currentTimeMillis();
     }
 
-    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, String date)
+    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, String date, int state, long myId)
     {
         this.message = message;
         this.senderPhoneNumber = senderPhoneNumber;
         this.receiverPhoneNumber = receiverPhoneNumber;
         this.date = date;
-        state = STATE_SUCCESS;
+        this.state = state;
+        this.myId = myId;
+    }
+
+    public long getMyId() {
+        return myId;
+    }
+
+    public int getState() {
+        return state;
     }
 
     public String getMessage() {

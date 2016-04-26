@@ -84,56 +84,21 @@ public class RegistrationIntentService extends IntentService {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
         String urlParameters = "regToken=" + regToken;
+        String header = "Bearer "+accessToken;
+
         URL url = new URL(C.BASE_URL + "api/v1/usersJob/regTokenChange/");
-        Log.i(TAG, "URL: " + url.toString() + urlParameters);
-        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-        httpURLConnection.setDoInput(true);
-        httpURLConnection.setDoOutput(true);
-        httpURLConnection.setConnectTimeout(20000);
-        httpURLConnection.setRequestMethod("POST");
-        httpURLConnection.addRequestProperty("Authorization", "Bearer "+accessToken);
-        httpURLConnection.connect();
 
-        OutputStreamWriter outputWriter = new OutputStreamWriter(httpURLConnection.getOutputStream());
-        outputWriter.write(urlParameters);
-        outputWriter.flush();
-        outputWriter.close();
+        String response = MyConnection.post(url, urlParameters, header);
 
-        int httpResponse = httpURLConnection.getResponseCode();
-        InputStream inputStream;
-        if (httpResponse == HttpURLConnection.HTTP_OK) {
-            Log.d(TAG, "HTTP_OK");
-            inputStream = httpURLConnection.getInputStream();
-        } else {
-            Log.d(TAG, "HTTP_ERROR");
-            inputStream = httpURLConnection.getErrorStream();
-        }
 
-        String response = IOUtils.toString(inputStream);
-        inputStream.close();
-        Log.d(TAG, "resp: " + response);
-
-        /*
-        resp: Access regToken is expired
-        resp: {"result":"error","param":"refreshToken","message":"Refresh regToken is expired"}
-        */
         if (response.equals("Access token is expired"))
         {
-            if (MyConnection.sendRefreshToken(this, TAG))
+            if (MyConnection.sendRefreshToken(this))
             sendRegToken(regToken);
         }
     }
 
-    /*
-    * curl 'http://localhost:7777/api/v1/usersJob/regTokenChange' -H "Authorization: Bearer
-    * eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjU3MTVlMGE2ZDVjZWFjMzQxNTk2MGY5YSIsInRpb
-    * WVzdGFtcCI6MTQ2MTA1ODk5ODA0M30.vyFswXyNqZuns6EUNyqvv9ZqQjc7U-ZbJvFYuLPQ
-    * xRo"  -X POST -d "regToken=2222222222222222222222222"*/
 
-    /*
-    * curl 'http://localhost:7777/api/v1/auth/refreshAccessToke'
-    * -X POST -d "refreshToken=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1N
-    * iJ9.eyJwaG9uZSI6IjA2MzU0OTE5MjEiLCJ0aW1lc3RhbXAiOjE0NjEwN
-    * TM3MzU3NjR9.4BHDzyJbz-QnLd6GXc0rmG0Zrwk8zmNvgI01V3gd_YQ"*/
+
 
 }

@@ -9,10 +9,12 @@
     <string name="nav_contacts">Contacts</string>
     <string name="nav_security">Security</string>
     <string name="nav_home">Home</string>
+    <string name="nav_log_out">Log out</string>
 
     <string name="menu_search">Search</string>
     <string name="menu_new_contact">New contact</string>
     <string name="title_activity_scrolling">ScrollingActivity</string>
+    <string name="chat_hint">Type your message…</string>
     <string name="large_text">
         "Material is the metaphor.\n\n"
 

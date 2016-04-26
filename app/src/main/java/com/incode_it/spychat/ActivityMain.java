@@ -83,6 +83,7 @@ public class ActivityMain extends AppCompatActivity
 
         TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
         myPhoneNumber = tm.getLine1Number();
+        //myPhoneNumber = "+380639461005";
         if (myPhoneNumber == null)
         {
             Toast.makeText(this, "phone number is unavailable", Toast.LENGTH_SHORT).show();
@@ -144,23 +145,16 @@ public class ActivityMain extends AppCompatActivity
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
 
-        /*CURRENT_TITLE = (String) item.getTitle();
-        toolbar.setTitle(CURRENT_TITLE);
         switch (item.getItemId())
         {
-            case R.id.nav_settings:
-                setupFragment(FRAGMENT_SETTINGS);
+            case R.id.nav_log_out:
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+                sharedPreferences.edit().remove(C.ACCESS_TOKEN).remove(C.REFRESH_TOKEN).apply();
+                Intent intent = new Intent(this, ActivityAuth.class);
+                startActivity(intent);
+                finish();
                 break;
-            case R.id.nav_contacts:
-                setupFragment(FRAGMENT_CONTACTS);
-                break;
-            case R.id.nav_security:
-                setupFragment(FRAGMENT_SECURITY);
-                break;
-            case R.id.nav_home:
-                setupFragment(FRAGMENT_HOME);
-                break;
-        }*/
+        }
 
         return true;
     }
