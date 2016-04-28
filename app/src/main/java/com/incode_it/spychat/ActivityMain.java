@@ -26,6 +26,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ProgressBar;
@@ -65,6 +66,8 @@ public class ActivityMain extends AppCompatActivity
 
     AlarmReceiver alarmReceiver = new AlarmReceiver();
 
+    float xDown = 0;
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -102,31 +105,59 @@ public class ActivityMain extends AppCompatActivity
         toolbar.setTitle("SPYchat");
         setSupportActionBar(toolbar);
 
+
+
         final View contentContainer = findViewById(R.id.content_container);
-        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        {
+        assert contentContainer != null;
+
+        contentContainer.setOnTouchListener(new View.OnTouchListener() {
             @Override
-            public void onDrawerSlide(View drawerView, float slideOffset) {
-                super.onDrawerSlide(drawerView, slideOffset);
+            public boolean onTouch(View v, MotionEvent event) {
 
-                float moveFactor = (drawer.getWidth() * slideOffset);
+                switch (event.getActionMasked())
+                {
+                    case MotionEvent.ACTION_DOWN:
+                        if (contentContainer.getAnimation() != null)contentContainer.getAnimation().cancel();
 
-                contentContainer.setTranslationX(slideOffset);
+                        xDown = event.getX();
+                        Log.d("myto", "getX "+xDown);
+                        Log.d("myto", "getRawX "+event.getRawX());
+                        break;
+
+                    case MotionEvent.ACTION_MOVE:
+                        float translation;
+                        if ((event.getRawX() - xDown) > 200)
+                        {
+                            translation = 200;
+                        }
+                        else if ((event.getRawX() - xDown) < 0)
+                        {
+                            translation = 0;
+                        }
+                        else translation = event.getRawX() - xDown;
+
+                        contentContainer.setTranslationX(translation);
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                        Log.d("myto", "ACTION_UP");
+                        if ((event.getRawX() - xDown) < 100)
+                        {
+                            contentContainer.animate().translationX(0).setDuration(100).start();
+                        }
+                        else
+                        {
+                            contentContainer.animate().translationX(200).setDuration(100).start();
+                        }
+
+
+
+                        break;
+                }
+                return true;
             }
-        };
-        assert drawer != null;
-        drawer.addDrawerListener(toggle);
-        toggle.syncState();
-
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        assert navigationView != null;
-        navigationView.setNavigationItemSelectedListener(this);
-
-        setupFragment(CURRENT_FRAGMENT);
-
+        });
+        //setupFragment(CURRENT_FRAGMENT);
     }
 
     @Override
@@ -138,13 +169,14 @@ public class ActivityMain extends AppCompatActivity
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        super.onBackPressed();
+        /*DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         assert drawer != null;
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
             super.onBackPressed();
-        }
+        }*/
     }
 
 
@@ -195,9 +227,9 @@ public class ActivityMain extends AppCompatActivity
             fragmentTransaction.commit();
         }
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        /*DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         assert drawer != null;
-        drawer.closeDrawer(GravityCompat.START);
+        drawer.closeDrawer(GravityCompat.START);*/
     }
 
     public class MyFragmentPagerAdapter extends FragmentPagerAdapter {
