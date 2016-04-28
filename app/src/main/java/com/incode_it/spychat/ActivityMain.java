@@ -32,6 +32,7 @@ import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.incode_it.spychat.alarm.AlarmReceiver;
 
 import java.util.ArrayList;
 
@@ -60,17 +61,21 @@ public class ActivityMain extends AppCompatActivity
     ViewPager viewPager;
     public static String myPhoneNumber;
 
+    AlarmReceiver alarmReceiver = new AlarmReceiver();
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(FRAGMENT, CURRENT_FRAGMENT);
         outState.putString(TITLE, CURRENT_TITLE);
+
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        alarmReceiver.setAlarm(this);
         typeface = Typeface.createFromAsset(getAssets(), "fonts/OpenSans-Light.ttf");
         CURRENT_TITLE = getResources().getString(R.string.nav_home);
         CURRENT_FRAGMENT = FRAGMENT_HOME;

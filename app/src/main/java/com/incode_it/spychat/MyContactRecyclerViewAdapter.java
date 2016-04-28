@@ -247,7 +247,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             @Override
             public void onClick(View v) {
                 if (null != mListener) {
-                    // Notify the active callbacks interface (the context, if the
+                    // Notify the active callbacks interface (the listener, if the
                     // fragment is attached to one) that an item has been selected.
                     mListener.onFragmentInteraction();
                 }

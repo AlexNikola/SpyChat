@@ -18,13 +18,17 @@ public final class MReaderContract
         public static final String MESSAGE = "message";
         public static final String SENDER_PHONE_NUMBER = "sender_phone_number";
         public static final String RECEIVER_PHONE_NUMBER = "receiver_phone_number";
-        public static final String DATE = "mdate";
-        public static final String STATE = "mstate";
-        public static final String MY_ID = "mid";
+        public static final String DATE = "date";
+        public static final String STATE = "state";
+        public static final String MY_ID = "mId";
+
+        public static final String TIMER_TYPE = "timer_type";
+        public static final String TIMER_ADDED = "timer_added";
+        public static final String MESSAGE_LIFE_TIME = "message_life_time";
     }
 
     public static abstract class RegisteredContact implements BaseColumns {
-        public static final String TABLE_NAME = "registeredContacts";
+        public static final String TABLE_NAME = "registered_contacts";
         public static final String PHONE_NUMBER = "phone_number";
     }
 

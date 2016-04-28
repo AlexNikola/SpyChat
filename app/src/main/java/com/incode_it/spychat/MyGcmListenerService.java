@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
@@ -41,7 +42,10 @@ public class MyGcmListenerService extends GcmListenerService {
          *     - Store message in local database.
          *     - Update UI.
          */
-        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), new Message(message, phone, ActivityMain.myPhoneNumber));
+        TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
+        String myPhoneNumber = tm.getLine1Number();
+
+        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), new Message(message, phone, myPhoneNumber), this);
         Intent intent = new Intent(QuickstartPreferences.RECEIVE_MESSAGE);
         intent.putExtra(C.PHONE_NUMBER, phone);
         intent.putExtra(C.MESSAGE, message);

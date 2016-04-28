@@ -17,6 +17,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +36,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 
-public class FragmentChat extends Fragment {
+public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.OnChatAdapterListener {
 
     private static final int SEND_MESSAGE_DELAY = 500;
     private static final String TAG = "chatm";
@@ -48,11 +50,13 @@ public class FragmentChat extends Fragment {
     Bitmap contactBitmap;
     private Context context;
     private View view;
+    String myPhoneNumber;
 
     ArrayList<Message> messageArrayList;
 
     private BroadcastReceiver mBroadcastReceiver;
     private boolean isReceiverRegistered;
+    OnFragmentChatInteractionListener fragmentChatInteractionListener;
 
     public FragmentChat() {
         // Required empty public constructor
@@ -70,6 +74,14 @@ public class FragmentChat extends Fragment {
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
+        try {
+            // Instantiate the NoticeDialogListener so we can send events to the host
+            fragmentChatInteractionListener = (OnFragmentChatInteractionListener) this.context;
+        } catch (ClassCastException e) {
+            // The listener doesn't implement the interface, throw exception
+            throw new ClassCastException(this.context.toString()
+                    + " must implement OnFragmentChatInteractionListener");
+        }
     }
 
     @Override
@@ -95,6 +107,9 @@ public class FragmentChat extends Fragment {
         }
         view = inflater.inflate(R.layout.fragment_chat, container, false);
 
+        TelephonyManager tm = (TelephonyManager)context.getSystemService(Context.TELEPHONY_SERVICE);
+        myPhoneNumber = tm.getLine1Number();
+
         ArrayList<MyContacts.Contact> myContactsArrayList = MyContacts.getContactsList(context);
         for (MyContacts.Contact contact: myContactsArrayList)
         {
@@ -105,6 +120,9 @@ public class FragmentChat extends Fragment {
             }
         }
 
+        Toolbar toolbar = (Toolbar) view.findViewById(R.id.toolbar);
+        toolbar.setTitle(contact.name);
+
         loadContactBitmap();
 
         MyDbHelper myDbHelper = new MyDbHelper(context);
@@ -112,7 +130,7 @@ public class FragmentChat extends Fragment {
         messageArrayList = MyDbHelper.readContactMessages(db, contact);
 
         recyclerView = (RecyclerView) view.findViewById(R.id.list);
-        adapter = new MyChatRecyclerViewAdapter(messageArrayList, contact, contactBitmap, context);
+        adapter = new MyChatRecyclerViewAdapter(messageArrayList, contact, contactBitmap, fragmentChatInteractionListener, this);
         recyclerView.setAdapter(adapter);
         LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
         layoutManager.setStackFromEnd(true);
@@ -127,11 +145,11 @@ public class FragmentChat extends Fragment {
                 editText.setText("");
                 if (textMessage.length() > 0)
                 {
-                    final Message message = new Message(textMessage, ActivityMain.myPhoneNumber, contact.phoneNumber);
+                    final Message message = new Message(textMessage, myPhoneNumber, contact.phoneNumber);
                     messageArrayList.add(message);
                     adapter.notifyItemInserted(messageArrayList.size() - 1);
                     recyclerView.scrollToPosition(messageArrayList.size() - 1);
-                    MyDbHelper.insertMessage(new MyDbHelper(context).getWritableDatabase(), message);
+                    MyDbHelper.insertMessage(new MyDbHelper(context).getWritableDatabase(), message, getContext());
 
                     new Handler().postDelayed(new Runnable() {
                         public void run() {
@@ -147,7 +165,15 @@ public class FragmentChat extends Fragment {
         return view;
     }
 
-    private class SendMessageTask extends AsyncTask<Message, Void, String>
+    @Override
+    public void onReSendMessage(Message message) {
+        message.state = Message.STATE_ADDED;
+        MyDbHelper.insertMessageState(new MyDbHelper(context).getWritableDatabase(), message);
+        adapter.notifyDataSetChanged();
+        new SendMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+    }
+
+    public class SendMessageTask extends AsyncTask<Message, Void, String>
     {
         private Message message;
 
@@ -241,7 +267,7 @@ public class FragmentChat extends Fragment {
                 String textMessage = intent.getStringExtra(C.MESSAGE);
                 String phone = intent.getStringExtra(C.PHONE_NUMBER);
                 if (!phone.equals(contact.phoneNumber)) return;
-                Message message = new Message(textMessage, phone, ActivityMain.myPhoneNumber);
+                Message message = new Message(textMessage, phone, myPhoneNumber);
                 messageArrayList.add(message);
                 adapter.notifyItemInserted(messageArrayList.size() - 1);
                 recyclerView.scrollToPosition(messageArrayList.size() - 1);
@@ -289,5 +315,14 @@ public class FragmentChat extends Fragment {
                 }
             }
         }
+    }
+
+    public interface OnFragmentChatInteractionListener
+    {
+        void onCreateSuccessMessageDialog(OnMessageDialogListener listener);
+
+        void onCreateErrorMessageDialog(OnMessageDialogListener listener);
+
+        void onCreateTimeDialog(OnMessageDialogListener listener);
     }
 }

@@ -123,8 +123,19 @@
     <string name="incorrect_password">Incorrect password</string>
     <string name="user_not_found">User not found</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="success_dialog">Settings</string>
+    <string name="error_dialog">Settings</string>
+
+    <string-array name="success_massage_dialog">
+        <item>Set time</item>
+        <item>Delete message</item>
+    </string-array>
+
+    <string-array name="error_massage_dialog">
+        <item>Send again</item>
+        <item>Delete message</item>
+    </string-array>
+
 
 
 </resources>
