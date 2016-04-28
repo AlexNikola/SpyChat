@@ -1,5 +1,7 @@
 package com.incode_it.spychat;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -28,7 +30,13 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
+import android.view.animation.OvershootInterpolator;
+import android.view.animation.ScaleAnimation;
+import android.view.animation.TranslateAnimation;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -67,6 +75,9 @@ public class ActivityMain extends AppCompatActivity
     AlarmReceiver alarmReceiver = new AlarmReceiver();
 
     float xDown = 0;
+    boolean isOpen;
+    View contentContainer;
+    ImageView contactsImageView, settingsImageView, logOutImageView;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -101,63 +112,140 @@ public class ActivityMain extends AppCompatActivity
         initRegBroadcastReceiver();
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
+
         assert toolbar != null;
         toolbar.setTitle("SPYchat");
         setSupportActionBar(toolbar);
+        toolbar.setNavigationIcon(R.drawable.arrow_back_24dp);
 
 
 
-        final View contentContainer = findViewById(R.id.content_container);
+
+        contentContainer = findViewById(R.id.content_container);
         assert contentContainer != null;
+        contactsImageView = (ImageView) findViewById(R.id.contacts);
+        assert contactsImageView != null;
+        contactsImageView.setAlpha(0f);
+        contactsImageView.setScaleX(0f);
+        contactsImageView.setScaleY(0f);
+        settingsImageView = (ImageView) findViewById(R.id.settings);
+        assert settingsImageView != null;
+        settingsImageView.setAlpha(0f);
+        settingsImageView.setScaleX(0f);
+        settingsImageView.setScaleY(0f);
+        logOutImageView = (ImageView) findViewById(R.id.log_out);
+        assert logOutImageView != null;
+        logOutImageView.setAlpha(0f);
+        logOutImageView.setScaleX(0f);
+        logOutImageView.setScaleY(0f);
 
-        contentContainer.setOnTouchListener(new View.OnTouchListener() {
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-
-                switch (event.getActionMasked())
+            public void onClick(View v) {
+                if (!isOpen)
                 {
-                    case MotionEvent.ACTION_DOWN:
-                        if (contentContainer.getAnimation() != null)contentContainer.getAnimation().cancel();
+                    isOpen = true;
+                    ObjectAnimator translation = ObjectAnimator.ofFloat(contentContainer, "translationX", 0, 200f);
+                    translation.setDuration(300);
 
-                        xDown = event.getX();
-                        Log.d("myto", "getX "+xDown);
-                        Log.d("myto", "getRawX "+event.getRawX());
-                        break;
+                    ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(contentContainer, "scaleX", 0.95f);
+                    ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(contentContainer, "scaleY", 0.95f);
+                    scaleDownX.setDuration(150);
+                    scaleDownY.setDuration(150);
 
-                    case MotionEvent.ACTION_MOVE:
-                        float translation;
-                        if ((event.getRawX() - xDown) > 200)
-                        {
-                            translation = 200;
-                        }
-                        else if ((event.getRawX() - xDown) < 0)
-                        {
-                            translation = 0;
-                        }
-                        else translation = event.getRawX() - xDown;
+                    ObjectAnimator contactsImageViewAlpha = ObjectAnimator.ofFloat(contactsImageView, "alpha", 0f, 1f);
+                    contactsImageViewAlpha.setDuration(150);
+                    ObjectAnimator settingsImageViewViewAlpha = ObjectAnimator.ofFloat(settingsImageView, "alpha", 0f, 1f);
+                    settingsImageViewViewAlpha.setDuration(150);
+                    ObjectAnimator logOutImageViewAlpha = ObjectAnimator.ofFloat(logOutImageView, "alpha", 0f, 1f);
+                    logOutImageViewAlpha.setDuration(150);
 
-                        contentContainer.setTranslationX(translation);
-                        break;
+                    ObjectAnimator contactsImageViewScaleX = ObjectAnimator.ofFloat(contactsImageView, "scaleX", 0f, 1f);
+                    contactsImageViewScaleX.setDuration(150);
+                    ObjectAnimator contactsImageViewScaleY = ObjectAnimator.ofFloat(contactsImageView, "scaleY", 0f, 1f);
+                    contactsImageViewScaleY.setDuration(150);
+                    ObjectAnimator settingsImageViewViewScaleX = ObjectAnimator.ofFloat(settingsImageView, "scaleX", 0f, 1f);
+                    settingsImageViewViewScaleX.setDuration(150);
+                    ObjectAnimator settingsImageViewViewScaleY = ObjectAnimator.ofFloat(settingsImageView, "scaleY", 0f, 1f);
+                    settingsImageViewViewScaleY.setDuration(150);
+                    ObjectAnimator logOutImageViewScaleX = ObjectAnimator.ofFloat(logOutImageView, "scaleX", 0f, 1f);
+                    logOutImageViewScaleX.setDuration(150);
+                    ObjectAnimator logOutImageViewScaleY = ObjectAnimator.ofFloat(logOutImageView, "scaleY", 0f, 1f);
+                    logOutImageViewScaleY.setDuration(150);
 
-                    case MotionEvent.ACTION_UP:
-                        Log.d("myto", "ACTION_UP");
-                        if ((event.getRawX() - xDown) < 100)
-                        {
-                            contentContainer.animate().translationX(0).setDuration(100).start();
-                        }
-                        else
-                        {
-                            contentContainer.animate().translationX(200).setDuration(100).start();
-                        }
+                    AnimatorSet animatorSetIconsAlpha = new AnimatorSet();
+                    animatorSetIconsAlpha.play(settingsImageViewViewAlpha).before(logOutImageViewAlpha).after(contactsImageViewAlpha);
 
+                    AnimatorSet animatorSetIconsScaleX = new AnimatorSet();
+                    animatorSetIconsScaleX.play(settingsImageViewViewScaleX).before(logOutImageViewScaleX).after(contactsImageViewScaleX);
 
+                    AnimatorSet animatorSetIconsScaleY = new AnimatorSet();
+                    animatorSetIconsScaleY.play(settingsImageViewViewScaleY).before(logOutImageViewScaleY).after(contactsImageViewScaleY);
 
-                        break;
+                    AnimatorSet animatorSetContainer = new AnimatorSet();
+                    animatorSetContainer.play(scaleDownX).with(scaleDownY).with(translation);
+                    animatorSetContainer.start();
+
+                    AnimatorSet animatorSetIcons = new AnimatorSet();
+                    animatorSetIcons.play(animatorSetIconsAlpha).with(animatorSetIconsScaleX).with(animatorSetIconsScaleY);
+                    animatorSetIcons.setStartDelay(300);
+                    animatorSetIcons.setInterpolator(new OvershootInterpolator(2f));
+                    animatorSetIcons.start();
                 }
-                return true;
+                else
+                {
+                    isOpen = false;
+
+                    ObjectAnimator translation = ObjectAnimator.ofFloat(contentContainer, "translationX", 200, 0f);
+                    translation.setDuration(300);
+
+                    ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(contentContainer, "scaleX", 1f);
+                    ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(contentContainer, "scaleY", 1f);
+                    scaleDownX.setDuration(150);
+                    scaleDownY.setDuration(150);
+                    scaleDownX.setStartDelay(150);
+                    scaleDownY.setStartDelay(150);
+
+                    ObjectAnimator contactsImageViewAlpha = ObjectAnimator.ofFloat(contactsImageView, "alpha", 0f);
+                    contactsImageViewAlpha.setDuration(150);
+                    ObjectAnimator settingsImageViewViewAlpha = ObjectAnimator.ofFloat(contactsImageView, "alpha", 0f);
+                    settingsImageViewViewAlpha.setDuration(150);
+                    ObjectAnimator logOutImageViewAlpha = ObjectAnimator.ofFloat(contactsImageView, "alpha", 0f);
+                    logOutImageViewAlpha.setDuration(150);
+
+                    ObjectAnimator contactsImageViewScaleX = ObjectAnimator.ofFloat(contactsImageView, "scaleX", 0f);
+                    contactsImageViewScaleX.setDuration(150);
+                    ObjectAnimator contactsImageViewScaleY = ObjectAnimator.ofFloat(contactsImageView, "scaleY", 0f);
+                    contactsImageViewScaleY.setDuration(150);
+                    ObjectAnimator settingsImageViewViewScaleX = ObjectAnimator.ofFloat(settingsImageView, "scaleX", 0f);
+                    settingsImageViewViewScaleX.setDuration(150);
+                    ObjectAnimator settingsImageViewViewScaleY = ObjectAnimator.ofFloat(settingsImageView, "scaleY", 0f);
+                    settingsImageViewViewScaleY.setDuration(150);
+                    ObjectAnimator logOutImageViewScaleX = ObjectAnimator.ofFloat(logOutImageView, "scaleX", 0f);
+                    logOutImageViewScaleX.setDuration(150);
+                    ObjectAnimator logOutImageViewScaleY = ObjectAnimator.ofFloat(logOutImageView, "scaleY", 0f);
+                    logOutImageViewScaleY.setDuration(150);
+
+                    AnimatorSet animatorSetIconsAlpha = new AnimatorSet();
+                    animatorSetIconsAlpha.play(settingsImageViewViewAlpha).before(logOutImageViewAlpha).after(contactsImageViewAlpha);
+
+                    AnimatorSet animatorSetIconsScaleX = new AnimatorSet();
+                    animatorSetIconsScaleX.play(settingsImageViewViewScaleX).before(logOutImageViewScaleX).after(contactsImageViewScaleX);
+
+                    AnimatorSet animatorSetIconsScaleY = new AnimatorSet();
+                    animatorSetIconsScaleY.play(settingsImageViewViewScaleY).before(logOutImageViewScaleY).after(contactsImageViewScaleY);
+
+                    AnimatorSet animatorSetContainer = new AnimatorSet();
+                    animatorSetContainer.play(scaleDownX).with(scaleDownY).with(translation);
+                    animatorSetContainer.start();
+
+                    AnimatorSet animatorSetIcons = new AnimatorSet();
+                    animatorSetIcons.play(animatorSetIconsAlpha).with(animatorSetIconsScaleX).with(animatorSetIconsScaleY);
+                    animatorSetIcons.start();
+                }
             }
         });
-        //setupFragment(CURRENT_FRAGMENT);
+        setupFragment(CURRENT_FRAGMENT);
     }
 
     @Override
