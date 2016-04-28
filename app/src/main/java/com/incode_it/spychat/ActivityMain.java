@@ -26,6 +26,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -78,17 +80,16 @@ public class ActivityMain extends AppCompatActivity
         alarmReceiver.setAlarm(this);
         typeface = Typeface.createFromAsset(getAssets(), "fonts/OpenSans-Light.ttf");
         CURRENT_TITLE = getResources().getString(R.string.nav_home);
-        CURRENT_FRAGMENT = FRAGMENT_HOME;
+        CURRENT_FRAGMENT = FRAGMENT_CONTACTS;
 
         if (savedInstanceState != null)
         {
-            CURRENT_FRAGMENT = savedInstanceState.getString(FRAGMENT, FRAGMENT_HOME);
+            CURRENT_FRAGMENT = savedInstanceState.getString(FRAGMENT, FRAGMENT_CONTACTS);
             CURRENT_TITLE = savedInstanceState.getString(TITLE, CURRENT_TITLE);
         }
 
         TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
         myPhoneNumber = tm.getLine1Number();
-        //myPhoneNumber = "+380639461005";
         if (myPhoneNumber == null)
         {
             Toast.makeText(this, "phone number is unavailable", Toast.LENGTH_SHORT).show();
@@ -96,34 +97,35 @@ public class ActivityMain extends AppCompatActivity
 
         initRegBroadcastReceiver();
 
-
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         assert toolbar != null;
         toolbar.setTitle("SPYchat");
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        final View contentContainer = findViewById(R.id.content_container);
+        final DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                super.onDrawerSlide(drawerView, slideOffset);
+
+                float moveFactor = (drawer.getWidth() * slideOffset);
+
+                contentContainer.setTranslationX(slideOffset);
+            }
+        };
         assert drawer != null;
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
+
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         assert navigationView != null;
         navigationView.setNavigationItemSelectedListener(this);
 
-        //setupFragment(CURRENT_FRAGMENT);
-        viewPager = (ViewPager) findViewById(R.id.viewPager);
-        MyFragmentPagerAdapter adapter = new MyFragmentPagerAdapter(getSupportFragmentManager());
-        viewPager.setAdapter(adapter);
-
-        tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(viewPager);
-        tabLayout.getTabAt(0).setIcon(R.drawable.home_24dp);
-        tabLayout.getTabAt(1).setIcon(R.drawable.person_24dp);
-        tabLayout.getTabAt(2).setIcon(R.drawable.security_24dp);
-        tabLayout.getTabAt(3).setIcon(R.drawable.settings_24dp);
+        setupFragment(CURRENT_FRAGMENT);
 
     }
 
@@ -152,6 +154,12 @@ public class ActivityMain extends AppCompatActivity
 
         switch (item.getItemId())
         {
+            case R.id.nav_contacts:
+                setupFragment(FRAGMENT_CONTACTS);
+                break;
+            case R.id.nav_settings:
+                setupFragment(FRAGMENT_SETTINGS);
+                break;
             case R.id.nav_log_out:
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
                 sharedPreferences.edit().remove(C.ACCESS_TOKEN).remove(C.REFRESH_TOKEN).apply();
@@ -182,14 +190,6 @@ public class ActivityMain extends AppCompatActivity
                 case FRAGMENT_CONTACTS:
                     FragmentContacts fragmentContacts = FragmentContacts.newInstance();
                     fragmentTransaction.replace(R.id.fragments_container, fragmentContacts, FRAGMENT_CONTACTS);
-                    break;
-                case FRAGMENT_SECURITY:
-                    FragmentSecurity fragmentSecurity = FragmentSecurity.newInstance();
-                    fragmentTransaction.replace(R.id.fragments_container, fragmentSecurity, FRAGMENT_SECURITY);
-                    break;
-                case FRAGMENT_HOME:
-                    FragmentHome fragmentHome = FragmentHome.newInstance();
-                    fragmentTransaction.replace(R.id.fragments_container, fragmentHome, FRAGMENT_HOME);
                     break;
             }
             fragmentTransaction.commit();
