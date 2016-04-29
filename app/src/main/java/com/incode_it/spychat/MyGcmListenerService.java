@@ -45,7 +45,7 @@ public class MyGcmListenerService extends GcmListenerService {
         TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         String myPhoneNumber = tm.getLine1Number();
 
-        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), new Message(message, phone, myPhoneNumber), this);
+        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), new Message(message, phone, myPhoneNumber, Message.STATE_SUCCESS), this);
         Intent intent = new Intent(QuickstartPreferences.RECEIVE_MESSAGE);
         intent.putExtra(C.PHONE_NUMBER, phone);
         intent.putExtra(C.MESSAGE, message);

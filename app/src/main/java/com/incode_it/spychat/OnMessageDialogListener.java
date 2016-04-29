@@ -7,5 +7,5 @@ public interface OnMessageDialogListener {
 
     void onReSendMessage();
 
-    void onApplyTime(int hour, int minute);
+    void onApplyTime(long timer);
 }

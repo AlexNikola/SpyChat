@@ -9,8 +9,10 @@ public class C
     public static final String PHONE_NUMBER = "phone_number";
     public static final String MESSAGE = "massage";
 
-    public static final String BASE_URL = "http://192.168.0.107:7777/";
+    public static final String BASE_URL = "http://192.168.0.102:7777/";
 
     public static final String GLOBAL_TIMER = "global_timer";
     public static final String GLOBAL_TIMER_ADDED = "global_timer_added";
+
+    public static final String IDS_TO_DELETE = "ids_to_delete";
 }

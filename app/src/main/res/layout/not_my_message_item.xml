@@ -42,6 +42,17 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
 
+                <TextView
+                    android:id="@+id/timer_message_tv"
+                    android:textColor="@color/errorColor"
+                    android:layout_marginTop="4dp"
+                    android:text="14:53"
+                    android:textSize="10sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginStart="5dp"/>
+
                 <FrameLayout
                     android:visibility="gone"
                     android:layout_margin="4dp"

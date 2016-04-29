@@ -60,7 +60,7 @@ public class FragmentSecurity extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d(ActivityMain.FRAGMENT_SETTINGS, "Security "+this.hashCode());
+
 
         View view = inflater.inflate(R.layout.fragment_security, container, false);
 

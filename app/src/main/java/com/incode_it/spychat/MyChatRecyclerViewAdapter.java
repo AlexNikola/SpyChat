@@ -3,8 +3,7 @@ package com.incode_it.spychat;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.os.AsyncTask;
-import android.support.v4.app.Fragment;
+import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -14,7 +13,13 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecyclerViewAdapter.MessageViewHolder>
 {
@@ -54,8 +59,13 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
     @Override
     public void onBindViewHolder(MessageViewHolder messageHolder, int position) {
-        messageHolder.text.setText(messages.get(position).getMessage());
-        messageHolder.timeText.setText(messages.get(position).getDate());
+        Message message = messages.get(position);
+        messageHolder.text.setText(message.getMessage());
+        messageHolder.timeText.setText(message.getDate());
+
+        messageHolder.timerTextView.setText("");
+        messageHolder.startTimer();
+
 
         if (!messages.get(position).getSenderPhoneNumber().equals(myPhoneNumber))
         {
@@ -111,10 +121,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         public View iconSent;
         public TextView timeText;
 
+        public TextView timerTextView;
+        public MyTimerTask timerTask;
+
         public MessageViewHolder(View view) {
             super(view);
             mView = view;
             text = (TextView) view.findViewById(R.id.text_message);
+            timerTextView = (TextView) view.findViewById(R.id.timer_message_tv);
             imageView = (ImageView) view.findViewById(R.id.image);
             progressBar = view.findViewById(R.id.progressBar);
             iconSent = view.findViewById(R.id.icon_sent);
@@ -141,6 +155,10 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         public void onDeleteMessage() {
             MyDbHelper.removeMessage(new MyDbHelper((Context) listener).getWritableDatabase(), messages.get(getAdapterPosition()).getmId());
             messages.remove(getAdapterPosition());
+            if (timerTask != null && timerTask.isRunning)
+            {
+                timerTask.cancel();
+            }
             notifyItemRemoved(getAdapterPosition());
         }
 
@@ -155,9 +173,38 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         }
 
         @Override
-        public void onApplyTime(int hour, int minute) {
+        public void onApplyTime(long timer) {
+            Message message = messages.get(getAdapterPosition());
+            message.setTimerAdded(System.currentTimeMillis());
+            message.setMessageTime(timer);
+            startTimer();
+            if (timer == 0)
+            {
+                MyDbHelper.updateMessageTimer(new MyDbHelper((Context) listener)
+                        .getWritableDatabase(), message.getmId(), timer, Message.TYPE_TIMER_GLOBAL, (Context) listener);
+            }
+            else MyDbHelper.updateMessageTimer(new MyDbHelper((Context) listener)
+                    .getWritableDatabase(), message.getmId(), timer, Message.TYPE_TIMER_INDIVIDUAL, (Context) listener);
 
         }
+
+        public void startTimer()
+        {
+            Message message = messages.get(getAdapterPosition());
+            if (timerTask != null && timerTask.isRunning)
+            {
+                timerTask.cancel();
+            }
+            if (message.getMessageTimer() > 0)
+            {
+                timerTask = new MyTimerTask(message.getTimerAdded(), message.getMessageTimer(), timerTextView);
+                timerTask.isRunning = true;
+                Timer myTimer = new Timer();
+                myTimer.schedule(timerTask, 0, 1000);
+            }
+        }
+
+
     }
 
     @Override

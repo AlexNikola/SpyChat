@@ -22,29 +22,34 @@ public class Message
     private String date;
     public int state;
     private long mId;
+    private long messageTimer;
+    private long timerAdded;
 
-    /*private int timerType;
-    private String timerTime;
-
-    public int getTimerType() {
-
-        return timerType;
+    public long getTimerAdded() {
+        return timerAdded;
     }
 
-    public String getTimerTime() {
-        return timerTime;
-    }*/
+    public void setTimerAdded(long timerAdded) {
+        this.timerAdded = timerAdded;
+    }
 
-    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber)
+    public long getMessageTimer() {
+        return messageTimer;
+    }
+
+    public void setMessageTime(long messageTimer) {
+        this.messageTimer = messageTimer;
+    }
+
+    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state)
     {
         this.message = message;
         this.senderPhoneNumber = senderPhoneNumber;
         this.receiverPhoneNumber = receiverPhoneNumber;
         date = getDateTime();
-        state = STATE_SUCCESS;
+        this.state = state;
         mId = System.currentTimeMillis();
 
-        //timerType = TYPE_TIMER_GLOBAL;
     }
 
     public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, String date, int state, long mId)
@@ -55,8 +60,6 @@ public class Message
         this.date = date;
         this.state = state;
         this.mId = mId;
-
-        //timerType = TYPE_TIMER_GLOBAL;
     }
 
     public long getmId() {

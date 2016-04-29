@@ -24,6 +24,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.json.JSONException;
@@ -35,6 +36,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Timer;
 
 public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.OnChatAdapterListener {
 
@@ -51,12 +53,17 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private Context context;
     private View view;
     String myPhoneNumber;
+    private BroadcastReceiver mDeleteMessagesReceiver;
 
     ArrayList<Message> messageArrayList;
 
     private BroadcastReceiver mBroadcastReceiver;
     private boolean isReceiverRegistered;
+    private boolean isDeleteMessagesReceiverRegistered;
     OnFragmentChatInteractionListener fragmentChatInteractionListener;
+
+    TextView globalTimerTextView;
+    MyTimerTask timerTask;
 
     public FragmentChat() {
         // Required empty public constructor
@@ -95,6 +102,28 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     }
 
+    public void startTimer()
+    {
+        if (timerTask != null && timerTask.isRunning)
+        {
+            timerTask.cancel();
+        }
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        long globalMessageLifeTime = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
+        long globalMessageTimerAdded = sharedPreferences.getLong(C.GLOBAL_TIMER_ADDED, 0);
+        if (globalMessageLifeTime > 0)
+        {
+            timerTask = new MyTimerTask(globalMessageTimerAdded, globalMessageLifeTime, globalTimerTextView);
+            timerTask.isRunning = true;
+            Timer myTimer = new Timer();
+            myTimer.schedule(timerTask, 0, 1000);
+        }
+        else
+        {
+            globalTimerTextView.setText("00:00:00");
+        }
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -103,6 +132,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         if (view != null)
         {
             initBroadcastReceiver();
+            initDeleteMassagesReceiver();
             return view;
         }
         view = inflater.inflate(R.layout.fragment_chat, container, false);
@@ -145,7 +175,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 editText.setText("");
                 if (textMessage.length() > 0)
                 {
-                    final Message message = new Message(textMessage, myPhoneNumber, contact.phoneNumber);
+                    final Message message = new Message(textMessage, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED);
                     messageArrayList.add(message);
                     adapter.notifyItemInserted(messageArrayList.size() - 1);
                     recyclerView.scrollToPosition(messageArrayList.size() - 1);
@@ -162,6 +192,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         });
 
         initBroadcastReceiver();
+        initDeleteMassagesReceiver();
         return view;
     }
 
@@ -194,7 +225,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             try
             {
                 result = trySendMessage(textMessage);
-
             }
             catch (IOException | JSONException e)
             {
@@ -267,7 +297,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 String textMessage = intent.getStringExtra(C.MESSAGE);
                 String phone = intent.getStringExtra(C.PHONE_NUMBER);
                 if (!phone.equals(contact.phoneNumber)) return;
-                Message message = new Message(textMessage, phone, myPhoneNumber);
+                Message message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_SUCCESS);
                 messageArrayList.add(message);
                 adapter.notifyItemInserted(messageArrayList.size() - 1);
                 recyclerView.scrollToPosition(messageArrayList.size() - 1);
@@ -286,10 +316,40 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
     }
 
+    private void initDeleteMassagesReceiver()
+    {
+        mDeleteMessagesReceiver = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent)
+            {
+                ArrayList<Message> arrayList = MyDbHelper.readContactMessages(new MyDbHelper(context).getReadableDatabase(), contact);
+                messageArrayList.clear();
+                messageArrayList.addAll(arrayList);
+                adapter.notifyDataSetChanged();
+
+            }
+        };
+
+        // Registering BroadcastReceiver
+        registerDeleteMassagesReceiver();
+    }
+
+    private void registerDeleteMassagesReceiver(){
+        if(!isDeleteMessagesReceiverRegistered) {
+            LocalBroadcastManager.getInstance(context).registerReceiver(mDeleteMessagesReceiver,
+                    new IntentFilter(QuickstartPreferences.DELETE_MESSAGES));
+            isDeleteMessagesReceiverRegistered = true;
+        }
+    }
+
     @Override
     public void onPause() {
         LocalBroadcastManager.getInstance(context).unregisterReceiver(mBroadcastReceiver);
         isReceiverRegistered = false;
+
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(mDeleteMessagesReceiver);
+        isDeleteMessagesReceiverRegistered = false;
         Log.e(TAG, "onPause Fragment Chat");
         super.onPause();
     }

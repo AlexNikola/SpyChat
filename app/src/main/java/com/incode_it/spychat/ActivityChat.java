@@ -2,12 +2,13 @@ package com.incode_it.spychat;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.TimePickerDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -18,6 +19,9 @@ import android.text.format.DateFormat;
 import android.util.Log;
 import android.widget.TimePicker;
 import android.widget.Toast;
+
+import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
+import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
 import java.util.Calendar;
 
@@ -60,14 +64,31 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
     }
 
     @Override
-    public void onCreateTimeDialog(OnMessageDialogListener listener) {
-        DialogFragment newFragment = TimePickerFragment.newInstance(listener);
-        newFragment.show(getSupportFragmentManager(), TimePickerFragment.TAG);
+    public void onCreateTimeDialog(final OnMessageDialogListener listener) {
+        TimePickerDialog tpd = TimePickerDialog.newInstance(null, 0, 0, true);
+
+        tpd.vibrate(true);
+        tpd.setAccentColor(getResources().getColor(R.color.colorPrimary));
+        tpd.setTitle("Message timer");
+        tpd.enableSeconds(true);
+        tpd.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+
+            }
+        });
+        tpd.setOnTimeSetListener(new TimePickerDialog.OnTimeSetListener() {
+            @Override
+            public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
+                long timer = (hourOfDay * 60 * 60 * 1000) + (minute * 60 * 1000) + (second * 1000);
+                Log.d("mytim", "hourOfDay " + hourOfDay);
+                Log.d("mytim", "minute " + minute);
+                Log.d("mytim", "second " + second);
+                listener.onApplyTime(timer);
+            }
+        });
+        tpd.show(getFragmentManager(), "Timepickerdialog");
     }
-
-
-
-
 
 
     public static class SuccessMessageDialogFragment extends DialogFragment {
@@ -153,55 +174,7 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
         }
     }
 
-    public static class TimePickerFragment extends DialogFragment
-            implements TimePickerDialog.OnTimeSetListener {
-        public static final String TAG = "TimePickerFragment";
 
-        private OnMessageDialogListener listener;
-
-        public static TimePickerFragment newInstance(OnMessageDialogListener listener)
-        {
-            TimePickerFragment fragment = new TimePickerFragment();
-            fragment.setListener(listener);
-            return fragment;
-        }
-
-        public void setListener(OnMessageDialogListener listener) {
-            this.listener = listener;
-        }
-
-        @NonNull
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            // Use the current time as the default values for the picker
-            final Calendar c = Calendar.getInstance();
-            int hour = c.get(Calendar.HOUR_OF_DAY);
-            int minute = c.get(Calendar.MINUTE);
-
-            // Create a new instance of TimePickerDialog and return it
-            return new TimePickerDialog(getActivity(), this, 0, 0,
-                    DateFormat.is24HourFormat(getActivity()));
-        }
-
-        public void onTimeSet(TimePicker view, int hourOfDay, int minute)
-        {
-            listener.onApplyTime(hourOfDay, minute);
-            // Do something with the time chosen by the user
-            /*AlarmManager alarmMgr;
-            PendingIntent pendingIntent;
-
-            alarmMgr = (AlarmManager)getContext().getSystemService(Context.ALARM_SERVICE);
-            Intent intent = new Intent(getContext(), AlarmReceiver.class);
-            pendingIntent = PendingIntent.getBroadcast(getContext(), 0, intent, 0);
-
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTimeInMillis(System.currentTimeMillis());
-            calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
-            calendar.set(Calendar.MINUTE, minute);
-
-            alarmMgr.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);*/
-        }
-    }
 
     public class AlarmReceiver extends BroadcastReceiver {
 
