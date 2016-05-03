@@ -1,5 +1,6 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.contacts;
 
+import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.BroadcastReceiver;
@@ -8,102 +9,83 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Typeface;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.incode_it.spychat.alarm.AlarmReceiver;
+import com.incode_it.spychat.C;
+import com.incode_it.spychat.MyTimerTask;
+import com.incode_it.spychat.QuickstartPreferences;
+import com.incode_it.spychat.R;
+import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
+import com.incode_it.spychat.authorization.ActivityAuth;
+import com.incode_it.spychat.gcm.RegistrationIntentService;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.TimeZone;
 import java.util.Timer;
-import java.util.TimerTask;
 
 public class ActivityMain extends AppCompatActivity implements
         TimePickerDialog.OnTimeSetListener
 
 {
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    private static final String TAG = "myhttp";
+    private static final String TAG = "debb";
 
     private BroadcastReceiver mRegistrationBroadcastReceiver;
     private boolean isReceiverRegistered;
 
     public static final String IS_NAV_OPEN = "is_nav_open";
-    public static final String TITLE = "title";
     public static final String FRAGMENT_CONTACTS = "fr_con";
-
 
     private static final int DURATION_SLIDE = 300;
     private static final int DURATION_SCALE = 150;
     private static final int DURATION_NAV_ICONS = 250;
     private static final int DELAY_NAV_ICONS = 80;
 
-    Toolbar toolbar;
-    private TabLayout tabLayout;
-    static Typeface typeface;
-    ViewPager viewPager;
-    public static String myPhoneNumber;
-
-    AlarmReceiver alarmReceiver = new AlarmReceiver();
-
-    float xDown = 0;
-    boolean isOpen;
-    View contentContainer;
-    ImageView timerImageView, settingsImageView, logOutImageView;
-    TextView globalTimerTextView;
-    MyTimerTask timerTask;
+    private boolean isNavMenuOpen;
+    private View contentContainer;
+    private ImageView timerImageView, settingsImageView, logOutImageView;
+    private TextView globalTimerTextView;
+    private MyTimerTask timerTask;
+    private Toolbar toolbar;
+    private float translationX;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putBoolean(IS_NAV_OPEN, isOpen);
+        outState.putBoolean(IS_NAV_OPEN, isNavMenuOpen);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        alarmReceiver.setAlarm(this);
-        typeface = Typeface.createFromAsset(getAssets(), "fonts/OpenSans-Light.ttf");
 
         if (savedInstanceState != null)
         {
-            isOpen = savedInstanceState.getBoolean(IS_NAV_OPEN, false);
-        }
-
-        TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-        myPhoneNumber = tm.getLine1Number();
-        if (myPhoneNumber == null)
-        {
-            Toast.makeText(this, "phone number is unavailable", Toast.LENGTH_SHORT).show();
+            isNavMenuOpen = savedInstanceState.getBoolean(IS_NAV_OPEN, false);
         }
 
         initRegBroadcastReceiver();
 
         contentContainer = findViewById(R.id.content_container);
-        assert contentContainer != null;
+        View navContainer = findViewById(R.id.nav_container);
+        assert navContainer != null;
+        ViewGroup.LayoutParams layoutParams = navContainer.getLayoutParams();
+        translationX = layoutParams.width;
 
         initNavIcons();
         initToolbar();
@@ -122,7 +104,7 @@ public class ActivityMain extends AppCompatActivity implements
     @Override
     public void onBackPressed() {
 
-        if (isOpen) {
+        if (isNavMenuOpen) {
             closeNavMenu();
         } else {
             super.onBackPressed();
@@ -196,27 +178,7 @@ public class ActivityMain extends AppCompatActivity implements
         registerReceiver();
     }
 
-    public void startTimer()
-    {
-        if (timerTask != null && timerTask.isRunning)
-        {
-            timerTask.cancel();
-        }
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        long globalMessageLifeTime = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
-        long globalMessageTimerAdded = sharedPreferences.getLong(C.GLOBAL_TIMER_ADDED, 0);
-        if (globalMessageLifeTime > 0)
-        {
-            timerTask = new MyTimerTask(globalMessageTimerAdded, globalMessageLifeTime, globalTimerTextView);
-            timerTask.isRunning = true;
-            Timer myTimer = new Timer();
-            myTimer.schedule(timerTask, 0, 1000);
-        }
-        else
-        {
-            globalTimerTextView.setText("00:00:00");
-        }
-    }
+
 
 
 
@@ -231,7 +193,7 @@ public class ActivityMain extends AppCompatActivity implements
         logOutImageView = (ImageView) findViewById(R.id.log_out);
         assert logOutImageView != null;
 
-        if (!isOpen)
+        if (!isNavMenuOpen)
         {
             timerImageView.setAlpha(0f);
             timerImageView.setScaleX(0f);
@@ -300,14 +262,43 @@ public class ActivityMain extends AppCompatActivity implements
     @Override
     public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
 
-        long globalTimer = (hourOfDay * 60 * 60 * 1000) + (minute * 60 * 1000) + (second * 1000);
+        long timer = (hourOfDay * 60 * 60 * 1000) + (minute * 60 * 1000) + (second * 1000);
+        long removalTime = System.currentTimeMillis() + timer;
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        sharedPreferences.edit()
-                .putLong(C.GLOBAL_TIMER, globalTimer)
-                .putLong(C.GLOBAL_TIMER_ADDED, System.currentTimeMillis())
-                .apply();
+        AlarmReceiverGlobal alarmReceiverGlobal = new AlarmReceiverGlobal();
+        if (timer == 0)
+        {
+            long removalTimeOld = sharedPreferences.getLong(C.REMOVAL_GLOBAL_TIME, 0);
+            sharedPreferences.edit().putLong(C.REMOVAL_GLOBAL_TIME, 0).apply();
+            alarmReceiverGlobal.cancelAlarm(this, removalTimeOld);
+        }
+        else
+        {
+            sharedPreferences.edit().putLong(C.REMOVAL_GLOBAL_TIME, removalTime).apply();
+            alarmReceiverGlobal.setAlarm(this, removalTime);
+        }
         startTimer();
-        Log.d("TimePicker", "globalTimer " + globalTimer);
+    }
+
+    public void startTimer()
+    {
+        if (timerTask != null && timerTask.isRunning)
+        {
+            timerTask.cancel();
+        }
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        long removalTime = sharedPreferences.getLong(C.REMOVAL_GLOBAL_TIME, 0);
+        if (removalTime > 0)
+        {
+            timerTask = new MyTimerTask(removalTime, globalTimerTextView);
+            timerTask.isRunning = true;
+            Timer myTimer = new Timer();
+            myTimer.schedule(timerTask, 0, 1000);
+        }
+        else
+        {
+            globalTimerTextView.setText("00:00:00");
+        }
     }
 
     private void startSettingsDialog()
@@ -321,12 +312,12 @@ public class ActivityMain extends AppCompatActivity implements
         assert toolbar != null;
         toolbar.setTitle("SPYchat");
         setSupportActionBar(toolbar);
-        toolbar.setNavigationIcon(R.drawable.arrow_back_24dp);
+        toolbar.setNavigationIcon(R.drawable.nav_menu);
 
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!isOpen)
+                if (!isNavMenuOpen)
                 {
                     openNavMenu();
                 }
@@ -340,14 +331,15 @@ public class ActivityMain extends AppCompatActivity implements
 
     private void openNavMenu()
     {
-        isOpen = true;
-        ObjectAnimator translation = ObjectAnimator.ofFloat(contentContainer, "translationX", 0, 200f);
+        isNavMenuOpen = true;
+        ObjectAnimator translation = ObjectAnimator.ofFloat(contentContainer, "translationX", 0, translationX);
         translation.setDuration(DURATION_SLIDE);
 
         ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(contentContainer, "scaleX", 0.95f);
         ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(contentContainer, "scaleY", 0.95f);
         scaleDownX.setDuration(DURATION_SCALE);
         scaleDownY.setDuration(DURATION_SCALE);
+
 
         ObjectAnimator contactsImageViewAlpha = ObjectAnimator.ofFloat(timerImageView, "alpha", 0f, 1f);
         contactsImageViewAlpha.setDuration(DURATION_NAV_ICONS);
@@ -386,6 +378,27 @@ public class ActivityMain extends AppCompatActivity implements
 
         AnimatorSet animatorSetContainer = new AnimatorSet();
         animatorSetContainer.play(scaleDownX).with(scaleDownY).with(translation);
+        animatorSetContainer.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                toolbar.setNavigationIcon(R.drawable.arrow_back_24dp);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
         animatorSetContainer.start();
 
         AnimatorSet animatorSetIcons = new AnimatorSet();
@@ -397,8 +410,8 @@ public class ActivityMain extends AppCompatActivity implements
 
     private void closeNavMenu()
     {
-        isOpen = false;
-        ObjectAnimator translation = ObjectAnimator.ofFloat(contentContainer, "translationX", 200, 0f);
+        isNavMenuOpen = false;
+        ObjectAnimator translation = ObjectAnimator.ofFloat(contentContainer, "translationX", translationX, 0f);
         translation.setDuration(DURATION_SLIDE);
 
         ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(contentContainer, "scaleX", 1f);
@@ -437,6 +450,27 @@ public class ActivityMain extends AppCompatActivity implements
 
         AnimatorSet animatorSetContainer = new AnimatorSet();
         animatorSetContainer.play(scaleDownX).with(scaleDownY).with(translation);
+        animatorSetContainer.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                toolbar.setNavigationIcon(R.drawable.nav_menu);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
         animatorSetContainer.start();
 
         AnimatorSet animatorSetIcons = new AnimatorSet();

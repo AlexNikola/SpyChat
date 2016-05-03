@@ -1,4 +1,4 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.data_base;
 
 import android.provider.BaseColumns;
 
@@ -21,10 +21,7 @@ public final class MReaderContract
         public static final String DATE = "date";
         public static final String STATE = "state";
         public static final String MY_ID = "mId";
-
-        public static final String TIMER_TYPE = "timer_type";
-        public static final String TIMER_ADDED = "timer_added";
-        public static final String MESSAGE_LIFE_TIME = "message_life_time";
+        public static final String REMOVAL_TIME = "removal_time";
     }
 
     public static abstract class RegisteredContact implements BaseColumns {

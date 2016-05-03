@@ -23,7 +23,9 @@ public class UpdateUIService extends IntentService
     @Override
     protected void onHandleIntent(Intent intent) {
 
+        int mId = intent.getIntExtra(C.ID_TO_DELETE, 0);
         Intent i = new Intent(QuickstartPreferences.DELETE_MESSAGES);
+        i.putExtra(C.ID_TO_DELETE, mId);
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }
 }

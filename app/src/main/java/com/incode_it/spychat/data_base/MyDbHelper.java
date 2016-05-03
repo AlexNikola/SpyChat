@@ -1,15 +1,15 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.data_base;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.incode_it.spychat.MReaderContract.*;
+import com.incode_it.spychat.Message;
+import com.incode_it.spychat.MyContacts;
+import com.incode_it.spychat.data_base.MReaderContract.*;
 import com.incode_it.spychat.alarm.TimeHolder;
 
 import java.util.ArrayList;
@@ -40,14 +40,12 @@ public class MyDbHelper extends SQLiteOpenHelper
                     Chat.DATE + TYPE_TEXT + COMMA_SEP +
                     Chat.STATE + TYPE_INT + COMMA_SEP +
                     Chat.MY_ID + TYPE_INT + COMMA_SEP +
-                    Chat.TIMER_TYPE + TYPE_INT + COMMA_SEP +
-                    Chat.TIMER_ADDED + TYPE_INT + COMMA_SEP +
-                    Chat.MESSAGE_LIFE_TIME + TYPE_INT +" )";
+                    Chat.REMOVAL_TIME + TYPE_INT  +" )";
 
     private static final String SQL_DELETE_CHAT_TABLE =
             "DROP TABLE IF EXISTS " + Chat.TABLE_NAME;
 
-    public static final int DATABASE_VERSION = 11;
+    public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "SpyChat.db";
 
     public MyDbHelper(Context context) {
@@ -60,10 +58,6 @@ public class MyDbHelper extends SQLiteOpenHelper
         db.execSQL(SQL_CREATE_CONTACT_TABLE);
 
         ArrayList<String> c = new ArrayList<>();
-        c.add("+380664431954");
-        c.add("+380665713467");
-        c.add("+380669713043");
-        c.add("+380991514768");
         c.add("+380669997588");
 
         insertRegisteredContacts(db, c);
@@ -76,11 +70,8 @@ public class MyDbHelper extends SQLiteOpenHelper
         onCreate(db);
     }
 
-    public static synchronized void insertMessage(SQLiteDatabase db, Message message, Context context)
+    public static synchronized void insertMessage(SQLiteDatabase db, Message message)
     {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        long globalMessageLifeTime = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
-
         ContentValues values = new ContentValues();
         values.put(Chat.MESSAGE, message.getMessage());
         values.put(Chat.SENDER_PHONE_NUMBER, message.getSenderPhoneNumber());
@@ -88,14 +79,9 @@ public class MyDbHelper extends SQLiteOpenHelper
         values.put(Chat.DATE, message.getDate());
         values.put(Chat.STATE, message.getState());
         values.put(Chat.MY_ID, message.getmId());
+        values.put(Chat.REMOVAL_TIME, message.getRemovalTime());
 
-        values.put(Chat.TIMER_ADDED, System.currentTimeMillis());
-        values.put(Chat.TIMER_TYPE, Message.TYPE_TIMER_GLOBAL);
-        values.put(Chat.MESSAGE_LIFE_TIME, globalMessageLifeTime);
-
-        long newRowId;
-        newRowId = db.insert(Chat.TABLE_NAME, null, values);
-
+        db.insert(Chat.TABLE_NAME, null, values);
         db.close();
     }
 
@@ -105,9 +91,7 @@ public class MyDbHelper extends SQLiteOpenHelper
 
         String sql = "SELECT " +
                 Chat.MY_ID + COMMA_SEP +
-                Chat.TIMER_ADDED + COMMA_SEP +
-                Chat.MESSAGE_LIFE_TIME + COMMA_SEP +
-                Chat.TIMER_TYPE +
+                Chat.REMOVAL_TIME +
                 " FROM Chat";
 
         Cursor cursor = db.rawQuery(sql, null);
@@ -118,10 +102,8 @@ public class MyDbHelper extends SQLiteOpenHelper
             {
                 TimeHolder timeHolder = new TimeHolder();
 
-                timeHolder.mId = cursor.getLong(0);
-                timeHolder.timerAdded = cursor.getLong(1);
-                timeHolder.messageLifeTime = cursor.getLong(2);
-                timeHolder.timerType = cursor.getInt(3);
+                timeHolder.mId = cursor.getInt(0);
+                timeHolder.removalTime = cursor.getLong(1);
 
                 arrayList.add(timeHolder);
             }
@@ -143,19 +125,10 @@ public class MyDbHelper extends SQLiteOpenHelper
 
     public static synchronized ArrayList<Message> readContactMessages(SQLiteDatabase db, MyContacts.Contact contact)
     {
-        String[] columnNames = { Chat.MESSAGE, Chat.SENDER_PHONE_NUMBER,
-                Chat.RECEIVER_PHONE_NUMBER, Chat.DATE };
-        String whereClause = contact.phoneNumber + " = ? OR " + contact.phoneNumber + " = ?";
-        String[] selectionArgs = {Chat.SENDER_PHONE_NUMBER, Chat.RECEIVER_PHONE_NUMBER};
-        String groupBy = null;
-        String having = null;
         String orderBy = "datetime("+Chat.DATE+")" + " ASC";
 
-        /*Cursor cursor = db.query(Chat.TABLE_NAME, columnNames, whereClause, selectionArgs,
-                groupBy, having, orderBy);*/
-
-        String sql = "SELECT * FROM Chat WHERE " + Chat.SENDER_PHONE_NUMBER + " LIKE '%"+contact.phoneNumber+"%' OR " + Chat.RECEIVER_PHONE_NUMBER + " LIKE '%"+contact.phoneNumber+"%' ORDER BY " +
-                orderBy;
+        String sql = "SELECT * FROM Chat WHERE " + Chat.SENDER_PHONE_NUMBER + " LIKE '%"+contact.phoneNumber+"%' OR "
+                + Chat.RECEIVER_PHONE_NUMBER + " LIKE '%"+contact.phoneNumber+"%' ORDER BY " + orderBy;
         Cursor cursor = db.rawQuery(sql, null);
 
         ArrayList<Message> messagesArr = new ArrayList<>();
@@ -168,12 +141,9 @@ public class MyDbHelper extends SQLiteOpenHelper
                 String receiverPhoneNumber = cursor.getString(3);
                 String date = cursor.getString(4);
                 int state = cursor.getInt(5);
-                long myId = cursor.getLong(6);
-                long timerAdded = cursor.getLong(8);
-                long messageTime = cursor.getLong(9);
-                Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, myId);
-                message.setTimerAdded(timerAdded);
-                message.setMessageTime(messageTime);
+                int myId = cursor.getInt(6);
+                long removalTime = cursor.getLong(7);
+                Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, myId, removalTime);
                 messagesArr.add(message);
             }
             while (cursor.moveToNext());
@@ -216,8 +186,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         for (String phone: registeredContacts)
         {
             values.put(RegisteredContact.PHONE_NUMBER, phone);
-            long newRowId;
-            newRowId = db.insert(RegisteredContact.TABLE_NAME, null, values);
+            db.insert(RegisteredContact.TABLE_NAME, null, values);
             values.clear();
         }
         //db.close();
@@ -236,28 +205,12 @@ public class MyDbHelper extends SQLiteOpenHelper
         Log.d(LOG_TAG, "insertMessageState numbers: "+num);
     }
 
-    public static synchronized void updateMessageTimer(SQLiteDatabase db, long mId, long timer, int type, Context context)
+    public static synchronized void updateMessageTimer(SQLiteDatabase db, long mId, long removalTime)
     {
         ContentValues values = new ContentValues();
         String whereClause = Chat.MY_ID + "=" + mId;
 
-        if (type == Message.TYPE_TIMER_INDIVIDUAL)
-        {
-            values.put(Chat.TIMER_ADDED, System.currentTimeMillis());
-            values.put(Chat.TIMER_TYPE, Message.TYPE_TIMER_INDIVIDUAL);
-            values.put(Chat.MESSAGE_LIFE_TIME, timer);
-        }
-        else if (type == Message.TYPE_TIMER_GLOBAL)
-        {
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-            long globalMessageLifeTime = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
-            long globalTimerAdded = sharedPreferences.getLong(C.GLOBAL_TIMER_ADDED, 0);
-
-            values.put(Chat.TIMER_ADDED, globalTimerAdded);
-            values.put(Chat.TIMER_TYPE, Message.TYPE_TIMER_INDIVIDUAL);
-            values.put(Chat.MESSAGE_LIFE_TIME, globalMessageLifeTime);
-        }
-
+        values.put(Chat.REMOVAL_TIME, removalTime);
 
         db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();

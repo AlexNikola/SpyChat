@@ -21,25 +21,8 @@ public class Message
     private String receiverPhoneNumber;
     private String date;
     public int state;
-    private long mId;
-    private long messageTimer;
-    private long timerAdded;
-
-    public long getTimerAdded() {
-        return timerAdded;
-    }
-
-    public void setTimerAdded(long timerAdded) {
-        this.timerAdded = timerAdded;
-    }
-
-    public long getMessageTimer() {
-        return messageTimer;
-    }
-
-    public void setMessageTime(long messageTimer) {
-        this.messageTimer = messageTimer;
-    }
+    private int mId;
+    private long removalTime;
 
     public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state)
     {
@@ -48,11 +31,11 @@ public class Message
         this.receiverPhoneNumber = receiverPhoneNumber;
         date = getDateTime();
         this.state = state;
-        mId = System.currentTimeMillis();
-
+        mId = C.getMyId();
+        removalTime = 0;
     }
 
-    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, String date, int state, long mId)
+    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, String date, int state, int mId, long removalTime)
     {
         this.message = message;
         this.senderPhoneNumber = senderPhoneNumber;
@@ -60,9 +43,18 @@ public class Message
         this.date = date;
         this.state = state;
         this.mId = mId;
+        this.removalTime = removalTime;
     }
 
-    public long getmId() {
+    public void setRemovalTime(long removalTime) {
+        this.removalTime = removalTime;
+    }
+
+    public long getRemovalTime() {
+        return removalTime;
+    }
+
+    public int getmId() {
         return mId;
     }
 

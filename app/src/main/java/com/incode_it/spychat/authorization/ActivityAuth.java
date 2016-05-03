@@ -1,4 +1,4 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.authorization;
 
 import android.content.Context;
 import android.content.Intent;
@@ -26,6 +26,10 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.incode_it.spychat.contacts.ActivityMain;
+import com.incode_it.spychat.C;
+import com.incode_it.spychat.R;
+import com.incode_it.spychat.interfaces.OnFragmentInteractionListener;
 
 import java.util.ArrayList;
 
@@ -40,7 +44,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkPlayServices();
-        if (checkIsLoggedIn())
+        if (true)
         {
             Intent intent = new Intent(this, ActivityMain.class);
             startActivity(intent);

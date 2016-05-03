@@ -1,4 +1,4 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.chat;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -9,23 +9,34 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.text.format.DateFormat;
 import android.util.Log;
-import android.widget.TimePicker;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.incode_it.spychat.C;
+import com.incode_it.spychat.MyContacts;
+import com.incode_it.spychat.MyTimerTask;
+import com.incode_it.spychat.R;
+import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
-import java.util.Calendar;
+import java.util.ArrayList;
+import java.util.Timer;
 
 public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFragmentChatInteractionListener {
+
+    private MyTimerTask timerTask;
+    private TextView globalTimerTextView;
+    private MyContacts.Contact contact;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +45,28 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
 
         String phone = getIntent().getStringExtra(C.PHONE_NUMBER);
 
+        ArrayList<MyContacts.Contact> myContactsArrayList = MyContacts.getContactsList(this);
+        for (MyContacts.Contact contact: myContactsArrayList)
+        {
+            if (contact.phoneNumber.equals(phone))
+            {
+                this.contact = contact;
+                break;
+            }
+        }
+
+        globalTimerTextView = (TextView) findViewById(R.id.global_timer_text);
+        TextView nameTextView = (TextView) findViewById(R.id.title);
+        assert nameTextView != null;
+        nameTextView.setText(contact.name);
+        View backBtn = findViewById(R.id.back_to_contacts);
+        assert backBtn != null;
+        backBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -41,9 +74,31 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
         Fragment fr = fragmentManager.findFragmentByTag(FragmentChat.TAG_FRAGMENT);
         if (fr == null)
         {
-            FragmentChat fragment = FragmentChat.newInstance(phone);
+            FragmentChat fragment = FragmentChat.newInstance(contact);
             fragmentTransaction.add(R.id.fragment_chat_container, fragment, FragmentChat.TAG_FRAGMENT);
             fragmentTransaction.commit();
+        }
+        startTimer();
+    }
+
+    public void startTimer()
+    {
+        if (timerTask != null && timerTask.isRunning)
+        {
+            timerTask.cancel();
+        }
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        long removalTime = sharedPreferences.getLong(C.REMOVAL_GLOBAL_TIME, 0);
+        if (removalTime > 0)
+        {
+            timerTask = new MyTimerTask(removalTime, globalTimerTextView);
+            timerTask.isRunning = true;
+            Timer myTimer = new Timer();
+            myTimer.schedule(timerTask, 0, 1000);
+        }
+        else
+        {
+            globalTimerTextView.setText("00:00:00");
         }
     }
 
@@ -81,10 +136,8 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
             @Override
             public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
                 long timer = (hourOfDay * 60 * 60 * 1000) + (minute * 60 * 1000) + (second * 1000);
-                Log.d("mytim", "hourOfDay " + hourOfDay);
-                Log.d("mytim", "minute " + minute);
-                Log.d("mytim", "second " + second);
-                listener.onApplyTime(timer);
+                long removalTime = System.currentTimeMillis() + timer;
+                listener.onApplyTime(removalTime, timer);
             }
         });
         tpd.show(getFragmentManager(), "Timepickerdialog");

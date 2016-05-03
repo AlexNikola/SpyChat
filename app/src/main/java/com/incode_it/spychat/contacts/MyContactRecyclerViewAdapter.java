@@ -1,4 +1,4 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.contacts;
 
 import android.content.Context;
 import android.content.Intent;
@@ -25,6 +25,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.incode_it.spychat.chat.ActivityChat;
+import com.incode_it.spychat.C;
+import com.incode_it.spychat.ContactsComparator;
+import com.incode_it.spychat.MyConnection;
+import com.incode_it.spychat.MyContacts;
+import com.incode_it.spychat.R;
+import com.incode_it.spychat.data_base.MyDbHelper;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,22 +44,23 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 
 public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContactRecyclerViewAdapter.ViewHolder> {
 
     private static final String TAG = "myhttp";
-    public ArrayList<MyContacts.Contact> mContacts;
-    //private ArrayList<MyContacts.Contact> tempContacts;
+    private ArrayList<MyContacts.Contact> mContacts;
     private Context context;
-    public static Bitmap noPhotoBitmap;
+    private Bitmap noPhotoBitmap;
     private LruCache<String, Bitmap> mMemoryCache;
-    UpdateContactsTask updateContactsTask;
+    private Typeface typeface;
 
     public MyContactRecyclerViewAdapter(Context context, ArrayList<MyContacts.Contact> mContacts) {
         this.context = context;
         this.mContacts = mContacts;
-        updateContacts();
+        typeface = Typeface.createFromAsset(context.getAssets(), "fonts/OpenSans-Light.ttf");
+
         noPhotoBitmap = BitmapFactory.decodeResource(this.context.getResources(), R.drawable.profile);
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;
@@ -61,138 +70,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                 return bitmap.getByteCount() / 1024;
             }
         };
-    }
-
-    private void updateContacts()
-    {
-        ArrayList<String> contactsNumbers = new ArrayList<>();
-        for (MyContacts.Contact contact: mContacts)
-        {
-            contactsNumbers.add(contact.phoneNumber);
-        }
-        //new UpdateContactsTask(contactsNumbers).execute();
-        //new UpdateContactsTask(contactsNumbers).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        if (updateContactsTask == null)
-        {
-            updateContactsTask = new UpdateContactsTask(contactsNumbers);
-            updateContactsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        }
-
-    }
-
-    private class UpdateContactsTask extends AsyncTask<Void, Void, ArrayList<String>>
-    {
-        ArrayList<String> contactsNumbers;
-
-        public UpdateContactsTask(ArrayList<String> contactsNumbers) {
-            this.contactsNumbers = contactsNumbers;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected ArrayList<String> doInBackground(Void... params) {
-            ArrayList<String> registeredContacts = null;
-            try
-            {
-                JSONArray jsonArray = tryUpdateContacts(contactsNumbers);
-                if (jsonArray != null)
-                {
-                    registeredContacts = new ArrayList<>();
-                    for (int i = 0; i < jsonArray.length(); i++)
-                    {
-                        JSONObject contact = (JSONObject) jsonArray.get(i);
-                        String phoneNumber = contact.getString("phone");
-                        boolean isRegistered = contact.getBoolean("isRegistered");
-
-                        if (isRegistered)
-                        {
-                            registeredContacts.add(phoneNumber);
-                        }
-                    }
-                    MyDbHelper.insertRegisteredContacts(new MyDbHelper(context).getWritableDatabase(), registeredContacts);
-
-                }
-            }
-            catch (IOException | JSONException e)
-            {
-                e.printStackTrace();
-            }
-
-            return registeredContacts;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<String> regContacts) {
-            if (regContacts != null)
-            {
-                for (MyContacts.Contact mContact: mContacts)
-                {
-                    mContact.isRegistered = false;
-                    for (String regPhoneNumber: regContacts)
-                    {
-                        if (mContact.phoneNumber.equals(regPhoneNumber))
-                        {
-                            mContact.isRegistered = true;
-                            break;
-                        }
-                    }
-                }
-                Collections.sort(mContacts, new ContactsComparator());
-                notifyDataSetChanged();
-            }
-            else
-            {
-                Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    private JSONArray tryUpdateContacts(ArrayList<String> contactsNumbers) throws IOException, JSONException {
-        StringBuilder sbParams = new StringBuilder();
-        for (String number: contactsNumbers)
-        {
-            sbParams.append("contacts=").append(URLEncoder.encode(number, "UTF-8")).append("&");
-        }
-
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
-        URL url = new URL(C.BASE_URL + "api/v1/usersJob/inSystem/");
-        String header = "Bearer "+accessToken;
-
-        String response = MyConnection.post(url, sbParams.toString(), header);
-
-        JSONArray jsonArray = null;
-        if (response.equals("Access token is expired"))
-        {
-            if (MyConnection.sendRefreshToken(context))
-                jsonArray = tryUpdateContacts(contactsNumbers);
-        }
-        else
-        {
-            JSONObject jsonResponse = new JSONObject(response);
-            String res = jsonResponse.getString("result");
-            if (res.equals("success"))
-            jsonArray = jsonResponse.getJSONArray("contacts");
-        }
-
-        return jsonArray;
-    }
-
-    public void setContacts(ArrayList<MyContacts.Contact> mContacts)
-    {
-        /*tempContacts = mContacts;
-        this.mContacts = mContacts;
-        notifyDataSetChanged();*/
-    }
-
-    public void restoreContacts()
-    {
-        /*this.mContacts = tempContacts;
-        notifyDataSetChanged();*/
     }
 
     @Override
@@ -212,47 +89,32 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         }
         else holder.verifyView.setVisibility(View.INVISIBLE);
 
-        String name = mContacts.get(position).name;
+        /*String name = mContacts.get(position).name;
         final SpannableStringBuilder sb = new SpannableStringBuilder(name);
         int start, end;
         start = name.toLowerCase().indexOf(holder.mContact.subString.toLowerCase());
         end = start + holder.mContact.subString.length();
         if (start != -1)
         {
-
             final ForegroundColorSpan fcs = new ForegroundColorSpan(context.getResources().getColor(R.color.colorPrimary));
             sb.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
             //holder.mNameView.setTextColor(Color.rgb(158, 158, 158));
             holder.mNameView.setText(sb);
         }
-        else holder.mNameView.setText(name);
+        else*/
 
-
+        holder.mNameView.setText(mContacts.get(position).name);
         holder.mNumberView.setText(mContacts.get(position).phoneNumber);
-
 
         Uri uri = mContacts.get(position).photoURI;
         if (uri != null)
         {
             loadBitmap(uri, holder.mImage);
-            //holder.mImage.setImageURI(mContacts.get(position).photoURI);
         }
         else
         {
             holder.mImage.setImageBitmap(noPhotoBitmap);
-            //holder.mImage.setImageResource(R.drawable.profle);
         }
-
-        /*holder.mView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (null != mListener) {
-                    // Notify the active callbacks interface (the listener, if the
-                    // fragment is attached to one) that an item has been selected.
-                    mListener.onFragmentInteraction();
-                }
-            }
-        });*/
     }
 
     @Override
@@ -275,10 +137,8 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             mNumberView = (TextView) view.findViewById(R.id.number);
             mImage = (ImageView) view.findViewById(R.id.image);
             verifyView = view.findViewById(R.id.verify);
-
-            mNameView.setTypeface(ActivityMain.typeface, Typeface.BOLD);
-
-            mNumberView.setTypeface(ActivityMain.typeface);
+            mNameView.setTypeface(typeface, Typeface.BOLD);
+            mNumberView.setTypeface(typeface);
 
             mView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -315,7 +175,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             final Bitmap bitmap = getBitmapFromMemCache(uri.toString());
             if (bitmap != null)
             {
-                //Log.d(LOG_TAG, "getBitmapFromMemCache");
                 imageView.setImageBitmap(bitmap);
             }
             else
@@ -324,8 +183,8 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                 final AsyncDrawable asyncDrawable =
                         new AsyncDrawable(context.getResources(), noPhotoBitmap, task);
                 imageView.setImageDrawable(asyncDrawable);
-                task.execute(uri);
-                //task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, uri);
+                //task.execute(uri);
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, uri);
             }
         }
     }
@@ -336,7 +195,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         if (bitmapWorkerTask != null) {
             final Uri bitmapUri = bitmapWorkerTask.imageUri;
             // If bitmapData is not yet set or it differs from the new data
-            if (bitmapUri == null || bitmapUri.equals(uri)) {
+            if (bitmapUri == null || !bitmapUri.equals(uri)) {
                 // Cancel previous task
                 bitmapWorkerTask.cancel(true);
             } else {
@@ -373,6 +232,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         @Override
         protected Bitmap doInBackground(Uri... resIds) {
             //Log.d(TAG, "doInBackground");
+
             imageUri = resIds[0];
             Bitmap bitmap = null;
             try {

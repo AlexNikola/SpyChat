@@ -1,4 +1,4 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.authorization;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,6 +15,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.incode_it.spychat.contacts.ActivityMain;
+import com.incode_it.spychat.C;
+import com.incode_it.spychat.MyConnection;
+import com.incode_it.spychat.R;
+import com.incode_it.spychat.interfaces.OnFragmentInteractionListener;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -22,27 +28,25 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class FragmentSingUp extends Fragment
+public class FragmentLogIn extends Fragment
 {
-    private View view;
     private static final String TAG = "myhttp";
     private Context context;
+    private View view;
 
     private OnFragmentInteractionListener fragmentListener;
     private TextInputEditText phoneET;
     private TextInputEditText passET;
-    private TextInputEditText passConfET;
 
     private TextView errorPhoneTextView;
     private TextView errorPassTextView;
-    private TextView errorPassConfTextView;
 
-    private View signUpBtnText;
+    private View logInBtnText;
     private View progressBarView;
-    private View signUpBtn;
+    private View logInBtn;
 
 
-    public FragmentSingUp() {
+    public FragmentLogIn() {
         // Required empty public constructor
     }
 
@@ -60,67 +64,52 @@ public class FragmentSingUp extends Fragment
     }
 
     @Override
-    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if (view != null) return view;
 
-        view = inflater.inflate(R.layout.fragment_sign_up, container, false);
+        if (view != null)
+        {
+            Log.d("qaz", "onCreateView " + view.hashCode());
+            return view;
+        }
+        else Log.d("qaz", "onCreateView view = null");
+
+        view = inflater.inflate(R.layout.fragment_log_in, container, false);
 
         initPhoneInputLayout(view);
         initPassInputLayout(view);
-        initPassConfInputLayout(view);
 
         errorPhoneTextView = (TextView) view.findViewById(R.id.error_phone);
         errorPassTextView = (TextView) view.findViewById(R.id.error_pass);
-        errorPassConfTextView = (TextView) view.findViewById(R.id.error_pass_conf);
 
-        signUpBtnText = view.findViewById(R.id.sign_up_button_text);
+        logInBtnText = view.findViewById(R.id.log_in_button_text);
         progressBarView = view.findViewById(R.id.progressBar);
 
-        signUpBtn = view.findViewById(R.id.sign_up_button);
-        signUpBtn.setOnClickListener(new View.OnClickListener() {
+        logInBtn = view.findViewById(R.id.log_in_button);
+        logInBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String phoneNumber = phoneET.getText().toString();
                 String password = passET.getText().toString();
-                String passwordConf = passConfET.getText().toString();
                 boolean isValid = true;
-                if (phoneNumber.length() < 1) {
+                if (phoneNumber.length() < 1)
+                {
                     errorPhoneTextView.setText(R.string.enter_phone_number);
                     isValid = false;
-                } else errorPhoneTextView.setText("");
-
-                if (!password.equals(passwordConf))
+                }
+                else errorPhoneTextView.setText("");
+                if (password.length() < 6)
                 {
-                    errorPassTextView.setText(R.string.passwords_not_match);
-                    errorPassConfTextView.setText(R.string.passwords_not_match);
+                    Log.d("qaz", "Password is too short " + password.length());
+                    if (password.length() == 0) errorPassTextView.setText(R.string.enter_password);
+                    else errorPassTextView.setText(R.string.short_password);
                     isValid = false;
                 }
-                else
-                {
-                    if (password.length() == 0)
-                    {
-                        errorPassTextView.setText(R.string.enter_password);
-                        errorPassConfTextView.setText(R.string.enter_password);
-                        isValid = false;
-                    }
-                    else if (password.length() < 6)
-                    {
-                        errorPassTextView.setText(R.string.short_password);
-                        errorPassConfTextView.setText(R.string.short_password);
-                        isValid = false;
-                    }
-                    else
-                    {
-                        errorPassTextView.setText("");
-                        errorPassConfTextView.setText("");
-                    }
-                }
-
+                else errorPassTextView.setText("");
                 if (!isValid) return;
 
                 fragmentListener.onLogIn();
-                new SignUpTask().execute(phoneNumber, password);
+                new LogInTask().execute(phoneNumber, password);
             }
         });
 
@@ -152,30 +141,18 @@ public class FragmentSingUp extends Fragment
         });
     }
 
-    private void initPassConfInputLayout(View view)
-    {
-        passConfET = (TextInputEditText) view.findViewById(R.id.edit_text_pass_conf);
-
-        view.findViewById(R.id.edit_text_clear_pass_conf).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                passConfET.setText("");
-            }
-        });
-    }
-
-    private class SignUpTask extends AsyncTask<String, Void, String>
+    private class LogInTask extends AsyncTask<String, Void, String>
     {
 
-        public SignUpTask() {
+        public LogInTask() {
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             progressBarView.setVisibility(View.VISIBLE);
-            signUpBtnText.setVisibility(View.INVISIBLE);
-            signUpBtn.setEnabled(false);
+            logInBtnText.setVisibility(View.INVISIBLE);
+            logInBtn.setEnabled(false);
         }
 
         @Override
@@ -183,27 +160,16 @@ public class FragmentSingUp extends Fragment
             String phoneNumber = params[0];
             String password = params[1];
             String regToken;
-
-            try {
-                phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
-                /*String urlParameters = "phone=" +
-                        phoneNumber +
-                        "&" +
-                        "password=" +
-                        password +
-                        "&" +
-                        "confirm=" +
-                        password;
-
-                URL url = new URL(C.BASE_URL + "api/v1/users/restorePassword/");*/
+            try
+            {
                 regToken = MyConnection.getRegToken(context);
 
-                String urlParameters =  "phone="    + phoneNumber   + "&" +
-                                        "password=" + password      + "&" +
-                                        "confirm="  + password      + "&" +
-                                        "regToken=" + regToken;
+                phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
+                String urlParameters = "phone=" + phoneNumber + "&" +
+                        "password=" + password + "&" +
+                        "regToken=" + regToken;
 
-                URL url = new URL(C.BASE_URL + "api/v1/users/register/");
+                URL url = new URL(C.BASE_URL + "api/v1/auth/getAccessToke/");
 
                 return MyConnection.post(url, urlParameters, null);
             }
@@ -218,9 +184,9 @@ public class FragmentSingUp extends Fragment
 
         @Override
         protected void onPostExecute(String result) {
-            signUpBtn.setEnabled(true);
+            logInBtn.setEnabled(true);
             progressBarView.setVisibility(View.INVISIBLE);
-            signUpBtnText.setVisibility(View.VISIBLE);
+            logInBtnText.setVisibility(View.VISIBLE);
 
             if (result == null) {
                 fragmentListener.onError("Connection error");
@@ -238,8 +204,10 @@ public class FragmentSingUp extends Fragment
 
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");
-                        if (message.equals("There is an existing user connected to this phone number.")) {
-                            errorPhoneTextView.setText(R.string.existing_user);
+                        if (message.equals("Incorrect password")){
+                            errorPassTextView.setText(R.string.incorrect_password);
+                        } else if (message.equals("User not found")) {
+                            errorPhoneTextView.setText(R.string.user_not_found);
                         }
                     }
                 } catch (JSONException e) {

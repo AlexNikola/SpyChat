@@ -25,7 +25,6 @@ public class MyContacts
                 String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER));
                 String photoURI = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
                 Uri uri = null;
-                //Log.d("mnun", name+" "+phoneNumber);
                 if (photoURI != null)
                 {
                     uri = Uri.parse(photoURI);
@@ -48,13 +47,25 @@ public class MyContacts
         return contactArrayList;
     }
 
+    /*public static ArrayList<Contact> getContactsList(Context context)
+    {
+        ArrayList<Contact> contactArrayList = new ArrayList<>();
+
+        contactArrayList.add(new Contact("Настя", "+380661234567", null));
+        contactArrayList.add(new Contact("Aндрей", "+380665557778", null));
+        contactArrayList.add(new Contact("Алексей", "+380662223344", null));
+        contactArrayList.add(new Contact("Богдан", "+380669998855", null));
+        contactArrayList.add(new Contact("Виктор", "+380661112255", null));
+        return contactArrayList;
+    }*/
+
     public static class Contact
     {
-        String subString = "";
-        String name;
-        String phoneNumber;
-        Uri photoURI;
-        boolean isRegistered;
+        public String subString = "";
+        public String name;
+        public String phoneNumber;
+        public Uri photoURI;
+        public boolean isRegistered;
 
 
         public Contact(String name, String phoneNumber, Uri photoURI) {

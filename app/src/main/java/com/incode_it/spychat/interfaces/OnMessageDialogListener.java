@@ -1,4 +1,4 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.interfaces;
 
 public interface OnMessageDialogListener {
     void onSetTime();
@@ -7,5 +7,5 @@ public interface OnMessageDialogListener {
 
     void onReSendMessage();
 
-    void onApplyTime(long timer);
+    void onApplyTime(long removalTime, long timer);
 }

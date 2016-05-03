@@ -1,44 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
-    tools:context="com.incode_it.spychat.ActivityChat">
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimary">
-
-        <TextView
-            android:layout_marginStart="10dp"
-            android:layout_marginLeft="10dp"
-            android:layout_gravity="center_vertical"
-            android:text="Contact"
-            android:textSize="20sp"
-            android:textColor="#ffffff"
-            android:id="@+id/title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-        <TextView
-            android:layout_marginEnd="10dp"
-            android:layout_marginRight="10dp"
-            android:layout_gravity="center_vertical"
-            android:text="Contact"
-            android:textSize="20sp"
-            android:textColor="#ffffff"
-            android:id="@+id/global_timer_text"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-
-    </RelativeLayout>
+    tools:context=".chat.ActivityChat">
 
     <android.support.v7.widget.RecyclerView
-        android:layout_marginTop="?attr/actionBarSize"
         android:id="@+id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -46,8 +15,7 @@
         tools:listitem="@layout/my_message_item"
         android:background="#e5f0ff"
         android:clipToPadding="false"
-        android:paddingBottom="100dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+        android:paddingBottom="100dp"/>
 
     <LinearLayout
         android:layout_margin="10dp"
@@ -87,4 +55,4 @@
 
     </LinearLayout>
 
-</android.support.design.widget.CoordinatorLayout>
+</FrameLayout>

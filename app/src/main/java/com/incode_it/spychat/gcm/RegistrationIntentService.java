@@ -1,4 +1,4 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.gcm;
 
 import android.app.IntentService;
 import android.content.Context;
@@ -10,6 +10,10 @@ import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
+import com.incode_it.spychat.C;
+import com.incode_it.spychat.MyConnection;
+import com.incode_it.spychat.QuickstartPreferences;
+import com.incode_it.spychat.R;
 
 import org.apache.commons.io.IOUtils;
 import org.json.JSONException;

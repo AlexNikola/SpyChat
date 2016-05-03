@@ -1,4 +1,4 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.interfaces;
 
 public interface OnFragmentInteractionListener {
 

@@ -1,4 +1,4 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.gcm;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -13,8 +13,12 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
-
-import java.util.Set;
+import com.incode_it.spychat.chat.ActivityChat;
+import com.incode_it.spychat.C;
+import com.incode_it.spychat.Message;
+import com.incode_it.spychat.data_base.MyDbHelper;
+import com.incode_it.spychat.QuickstartPreferences;
+import com.incode_it.spychat.R;
 
 public class MyGcmListenerService extends GcmListenerService {
 
@@ -45,7 +49,7 @@ public class MyGcmListenerService extends GcmListenerService {
         TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         String myPhoneNumber = tm.getLine1Number();
 
-        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), new Message(message, phone, myPhoneNumber, Message.STATE_SUCCESS), this);
+        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), new Message(message, phone, myPhoneNumber, Message.STATE_SUCCESS));
         Intent intent = new Intent(QuickstartPreferences.RECEIVE_MESSAGE);
         intent.putExtra(C.PHONE_NUMBER, phone);
         intent.putExtra(C.MESSAGE, message);
