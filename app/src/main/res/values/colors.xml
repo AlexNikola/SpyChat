@@ -15,4 +15,7 @@
     <color name="errorColor">#ff1f1f</color>
 
     <color name="color_text_message_added">#55000000</color>
+
+    <color name="pin_cancel">#ec4a4a</color>
+    <color name="pin_ok">#237b2d</color>
 </resources>

@@ -9,11 +9,21 @@ public class C
     public static final String PHONE_NUMBER = "phone_number";
     public static final String MESSAGE = "massage";
 
-    public static final String BASE_URL = "http://192.168.0.102:7777/";
+    public static final String BASE_URL = "http://192.168.0.101:7777/";
 
     public static final String REMOVAL_GLOBAL_TIME = "removal_global_time";
 
     public static final String ID_TO_DELETE = "id_to_delete";
+
+    public static final String SETTING_SOUND = "is_sound_on";
+    public static final String SETTING_VIBRATE = "is_vibrate_on";
+    public static final String SETTING_PIN = "is_pin_on";
+
+    public static final String PIN = "my_pin";
+
+    public static final String REQUEST_PIN = "request_pin";
+
+    public static final int SECURITY_EXIT = 1;
 
     public static int getMyId()
     {

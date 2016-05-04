@@ -189,7 +189,9 @@ public class FragmentContacts extends Fragment {
             }
             else
             {
-                Toast.makeText(getContext(), "Connection error", Toast.LENGTH_SHORT).show();
+                Context context = getContext();
+                if (context != null)
+                Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show();
             }
         }
     }

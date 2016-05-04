@@ -200,6 +200,7 @@ public class FragmentLogIn extends Fragment
                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
                         sharedPreferences.edit().putString(C.ACCESS_TOKEN, accessToken).putString(C.REFRESH_TOKEN, refreshToken).apply();
                         Intent intent = new Intent(context, ActivityMain.class);
+                        intent.putExtra(C.REQUEST_PIN, false);
                         startActivity(intent);
 
                     } else if (res.equals("error")) {

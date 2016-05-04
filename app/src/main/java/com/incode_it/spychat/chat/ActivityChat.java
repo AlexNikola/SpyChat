@@ -26,22 +26,27 @@ import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.MyTimerTask;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
+import com.incode_it.spychat.pin.FragmentPin;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
 import java.util.ArrayList;
 import java.util.Timer;
 
-public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFragmentChatInteractionListener {
+public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFragmentChatInteractionListener, FragmentPin.FragmentPinListener {
 
     private MyTimerTask timerTask;
     private TextView globalTimerTextView;
     private MyContacts.Contact contact;
+    private SharedPreferences sharedPreferences;
+    private boolean requestPin = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
         String phone = getIntent().getStringExtra(C.PHONE_NUMBER);
 
@@ -143,6 +148,13 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
         tpd.show(getFragmentManager(), "Timepickerdialog");
     }
 
+    @Override
+    public void onSecurityClose() {
+        Intent intent = new Intent();
+        setResult(C.SECURITY_EXIT, intent);
+        finish();
+    }
+
 
     public static class SuccessMessageDialogFragment extends DialogFragment {
 
@@ -238,5 +250,46 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
             Toast.makeText(context, "I'm running", Toast.LENGTH_SHORT).show();
 
         }
+    }
+
+    @Override
+    protected void onPause() {
+        /*LocalBroadcastManager.getInstance(this).unregisterReceiver(mPinReceiver);
+        isPinReceiverRegistered = false;*/
+        requestPin = true;
+        Log.d("lifes", "onPause");
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        //registerPinReceiver();
+        Log.d("lifes", "onResume");
+        showPinDialog();
+        super.onResume();
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        requestPin = false;
+        Log.d("lifes", "onRestoreInstanceState");
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    private void showPinDialog()
+    {
+        boolean isPinOn = sharedPreferences.getBoolean(C.SETTING_PIN, false);
+        if (isPinOn && requestPin)
+        {
+            FragmentPin fragmentPin = FragmentPin.newInstance();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            fragmentPin.show(ft, FragmentPin.TAG);
+        }
+
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
     }
 }

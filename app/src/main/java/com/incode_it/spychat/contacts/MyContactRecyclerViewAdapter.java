@@ -1,5 +1,6 @@
 package com.incode_it.spychat.contacts;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -148,7 +149,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                     {
                         Intent intent = new Intent(context, ActivityChat.class);
                         intent.putExtra(C.PHONE_NUMBER, mContact.phoneNumber);
-                        context.startActivity(intent);
+                        ((Activity)context).startActivityForResult(intent, 0);
                     }
                     else
                     {
@@ -157,7 +158,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                         smsIntent.setType("vnd.android-dir/mms-sms");
                         smsIntent.putExtra("sms_body", "my sms");
                         smsIntent.putExtra("address", mContact.phoneNumber);
-                        context.startActivity(smsIntent);
+                       context.startActivity(smsIntent);
                     }
                 }
             });

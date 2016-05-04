@@ -6,5 +6,6 @@ public class QuickstartPreferences
     public static final String REGISTRATION_COMPLETE = "registrationComplete";
     public static final String RECEIVE_MESSAGE = "receiveMessage";
     public static final String DELETE_MESSAGES = "delete_massages";
+    public static final String SHOW_PIN = "show_pin";
 
 }

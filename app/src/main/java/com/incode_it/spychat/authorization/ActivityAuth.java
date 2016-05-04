@@ -44,9 +44,10 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkPlayServices();
-        if (true)
+        if (checkIsLoggedIn())
         {
             Intent intent = new Intent(this, ActivityMain.class);
+            intent.putExtra(C.REQUEST_PIN, true);
             startActivity(intent);
             return;
         }

@@ -1,13 +1,92 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="com.incode_it.spychat.FragmentSettings">
+    android:layout_height="match_parent">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:text="Fragment Settings" />
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-</FrameLayout>
+        <FrameLayout
+            android:background="@color/colorPrimary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_margin="16dp"
+                android:layout_gravity="center"
+                android:text="@string/settings_dialog_title"
+                android:textSize="16sp"
+                android:textColor="#ffffff"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </FrameLayout>
+
+        <Switch
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/setting_item_padding"
+            android:text="Sound"
+            android:id="@+id/sett_sound"/>
+
+        <Switch
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/setting_item_padding"
+            android:text="Vibration"
+            android:id="@+id/sett_vibrate"/>
+
+        <LinearLayout
+            android:layout_margin="5dp"
+            android:background="@drawable/bg_sett_pin"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <Switch
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/setting_item_padding"
+                android:text="Pin security"
+                android:id="@+id/sett_pin"/>
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:textColor="#ffffff"
+                    android:padding="5dp"
+                    android:layout_margin="8dp"
+                    android:background="@drawable/selector_pin_input"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp"
+                    android:inputType="number"
+                    android:ems="10"
+                    android:id="@+id/pin_editText" />
+
+                <Button
+                    android:background="@drawable/selector_pin_save"
+                    android:id="@+id/pin_save"
+                    android:layout_margin="8dp"
+                    android:layout_weight="0.4"
+                    android:text="Save"
+                    android:textColor="#ffffff"
+                    android:layout_width="0dp"
+                    android:layout_height="40dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+
+
+
+
+    </LinearLayout>
+
+</ScrollView>
+

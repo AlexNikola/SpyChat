@@ -32,20 +32,21 @@ import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
 import com.incode_it.spychat.authorization.ActivityAuth;
-import com.incode_it.spychat.gcm.RegistrationIntentService;
+import com.incode_it.spychat.pin.FragmentPin;
+import com.incode_it.spychat.settings.FragmentSettings;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
 import java.util.Timer;
 
 public class ActivityMain extends AppCompatActivity implements
-        TimePickerDialog.OnTimeSetListener
+        TimePickerDialog.OnTimeSetListener, FragmentPin.FragmentPinListener
 
 {
     private static final String TAG = "debb";
 
-    private BroadcastReceiver mRegistrationBroadcastReceiver;
-    private boolean isReceiverRegistered;
+    private BroadcastReceiver mPinReceiver;
+    private boolean isPinReceiverRegistered;
 
     public static final String IS_NAV_OPEN = "is_nav_open";
     public static final String FRAGMENT_CONTACTS = "fr_con";
@@ -63,8 +64,12 @@ public class ActivityMain extends AppCompatActivity implements
     private Toolbar toolbar;
     private float translationX;
 
+    private boolean requestPin = true;
+    private SharedPreferences sharedPreferences;
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        Log.d("lifes", "onSaveInstanceState");
         super.onSaveInstanceState(outState);
         outState.putBoolean(IS_NAV_OPEN, isNavMenuOpen);
     }
@@ -74,12 +79,13 @@ public class ActivityMain extends AppCompatActivity implements
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        requestPin = getIntent().getBooleanExtra(C.REQUEST_PIN, true);
+
         if (savedInstanceState != null)
         {
             isNavMenuOpen = savedInstanceState.getBoolean(IS_NAV_OPEN, false);
         }
-
-        initRegBroadcastReceiver();
 
         contentContainer = findViewById(R.id.content_container);
         View navContainer = findViewById(R.id.nav_container);
@@ -92,6 +98,8 @@ public class ActivityMain extends AppCompatActivity implements
 
         setupFragment();
         startTimer();
+
+        registerPinReceiver();
     }
 
     @Override
@@ -128,54 +136,52 @@ public class ActivityMain extends AppCompatActivity implements
         }
     }
 
-
-
-    private void initRegBroadcastReceiver()
-    {
-        mRegistrationBroadcastReceiver = new BroadcastReceiver()
-        {
-            @Override
-            public void onReceive(Context context, Intent intent)
-            {
-                SharedPreferences sharedPreferences =
-                        PreferenceManager.getDefaultSharedPreferences(context);
-                boolean sentToken = sharedPreferences
-                        .getBoolean(QuickstartPreferences.SENT_TOKEN_TO_SERVER, false);
-                if (sentToken) {
-                    //Log.d(TAG, "RegBroadcastReceiver sentToken: " + sentToken);
-                } else {
-                    //Log.d(TAG, "RegBroadcastReceiver sentToken: " + sentToken);
-                }
-            }
-        };
-
-        // Registering BroadcastReceiver
-        registerReceiver();
-
-        // Start IntentService to register this application with GCM.
-        Intent intent = new Intent(this, RegistrationIntentService.class);
-        startService(intent);
-    }
-
-    private void registerReceiver(){
-        if(!isReceiverRegistered) {
-            LocalBroadcastManager.getInstance(this).registerReceiver(mRegistrationBroadcastReceiver,
-                    new IntentFilter(QuickstartPreferences.REGISTRATION_COMPLETE));
-            isReceiverRegistered = true;
+    private void registerPinReceiver(){
+        mPinReceiver = new UserPinBroadcastReceiver();
+        if(!isPinReceiverRegistered) {
+            LocalBroadcastManager.getInstance(this).registerReceiver(mPinReceiver,
+                    new IntentFilter(QuickstartPreferences.SHOW_PIN));
+            isPinReceiverRegistered = true;
+            Log.d("lifes", "registerPinReceiver");
         }
     }
 
     @Override
     protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mRegistrationBroadcastReceiver);
-        isReceiverRegistered = false;
+        /*LocalBroadcastManager.getInstance(this).unregisterReceiver(mPinReceiver);
+        isPinReceiverRegistered = false;*/
+        requestPin = true;
+        Log.d("lifes", "onPause");
         super.onPause();
     }
 
     @Override
     protected void onResume() {
+        //registerPinReceiver();
+        Log.d("lifes", "onResume");
+        showPinDialog();
         super.onResume();
-        registerReceiver();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        requestPin = false;
+        Log.d("lifes", "onActivityResult");
+        if (resultCode == C.SECURITY_EXIT)
+        {
+            finish();
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+
+
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        requestPin = false;
+        Log.d("lifes", "onRestoreInstanceState");
+        super.onRestoreInstanceState(savedInstanceState);
     }
 
 
@@ -231,7 +237,6 @@ public class ActivityMain extends AppCompatActivity implements
         logOutImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ActivityMain.this);
                 sharedPreferences.edit().remove(C.ACCESS_TOKEN).remove(C.REFRESH_TOKEN).apply();
                 Intent intent = new Intent(ActivityMain.this, ActivityAuth.class);
                 startActivity(intent);
@@ -264,7 +269,6 @@ public class ActivityMain extends AppCompatActivity implements
 
         long timer = (hourOfDay * 60 * 60 * 1000) + (minute * 60 * 1000) + (second * 1000);
         long removalTime = System.currentTimeMillis() + timer;
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         AlarmReceiverGlobal alarmReceiverGlobal = new AlarmReceiverGlobal();
         if (timer == 0)
         {
@@ -286,7 +290,6 @@ public class ActivityMain extends AppCompatActivity implements
         {
             timerTask.cancel();
         }
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         long removalTime = sharedPreferences.getLong(C.REMOVAL_GLOBAL_TIME, 0);
         if (removalTime > 0)
         {
@@ -303,7 +306,9 @@ public class ActivityMain extends AppCompatActivity implements
 
     private void startSettingsDialog()
     {
-
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        FragmentSettings newFragment = FragmentSettings.newInstance();
+        newFragment.show(ft, FragmentSettings.TAG);
     }
 
     private void initToolbar()
@@ -476,6 +481,43 @@ public class ActivityMain extends AppCompatActivity implements
         AnimatorSet animatorSetIcons = new AnimatorSet();
         animatorSetIcons.play(animatorSetIconsAlpha).with(animatorSetIconsScaleX).with(animatorSetIconsScaleY);
         animatorSetIcons.start();
+    }
+
+    @Override
+    public void onSecurityClose() {
+        finish();
+    }
+
+    public class UserPinBroadcastReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+
+        /*Sent when the user is present after
+         * device wakes up (e.g when the keyguard is gone)
+         * */
+            if(intent.getAction().equals(QuickstartPreferences.SHOW_PIN)) {
+                boolean isPinOn = sharedPreferences.getBoolean(C.SETTING_PIN, false);
+                if (isPinOn)
+                {
+
+                }
+            }
+        }
+    }
+
+
+
+    private void showPinDialog()
+    {
+        boolean isPinOn = sharedPreferences.getBoolean(C.SETTING_PIN, false);
+        if (isPinOn && requestPin)
+        {
+            FragmentPin fragmentPin = FragmentPin.newInstance();
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            fragmentPin.show(ft, FragmentPin.TAG);
+        }
+
     }
 
 }

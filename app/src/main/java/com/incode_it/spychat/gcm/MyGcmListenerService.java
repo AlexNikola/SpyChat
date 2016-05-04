@@ -79,10 +79,11 @@ public class MyGcmListenerService extends GcmListenerService {
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_chat_24dp)
-                .setContentTitle("GCM Message")
+                .setContentTitle("Spy Message")
                 .setContentText(message)
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
+                .setVibrate(new long[] {1000, 1000} )
                 .setContentIntent(pendingIntent);
 
         NotificationManager notificationManager =
