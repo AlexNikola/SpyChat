@@ -13,6 +13,7 @@ import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.R;
@@ -45,8 +46,15 @@ public class FragmentSettings extends DialogFragment implements CompoundButton.O
             @Override
             public void onClick(View v) {
                 String pin = pinInput.getText().toString();
-                if (pin.length() > 0)
-                sharedPreferences.edit().putString(C.PIN, pin).apply();
+                if (pin.length() == 4)
+                {
+                    sharedPreferences.edit().putString(C.PIN, pin).apply();
+                    Toast.makeText(getContext(), R.string.pin_saved, Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    Toast.makeText(getContext(), R.string.pin_error, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

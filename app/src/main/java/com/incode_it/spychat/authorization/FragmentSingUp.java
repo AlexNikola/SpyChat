@@ -192,6 +192,7 @@ public class FragmentSingUp extends Fragment
 
             try {
                 phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
+                password = URLEncoder.encode(password, "UTF-8");
                 /*String urlParameters = "phone=" +
                         phoneNumber +
                         "&" +

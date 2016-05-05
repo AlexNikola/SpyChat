@@ -35,6 +35,8 @@
     <string name="incorrect_password">Incorrect password</string>
     <string name="user_not_found">User not found</string>
 
+    <string name="pin_saved">Saved</string>
+    <string name="pin_error">Enter four numbers</string>
     <string name="pin_dialog_title">Spy security</string>
     <string name="pin_hint">Enter pin</string>
     <string name="settings_dialog_title">SETTINGS</string>
@@ -50,7 +52,6 @@
         <item>Send again</item>
         <item>Delete message</item>
     </string-array>
-
 
 
 </resources>

@@ -165,6 +165,7 @@ public class FragmentLogIn extends Fragment
                 regToken = MyConnection.getRegToken(context);
 
                 phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
+                password = URLEncoder.encode(password, "UTF-8");
                 String urlParameters = "phone=" + phoneNumber + "&" +
                         "password=" + password + "&" +
                         "regToken=" + regToken;

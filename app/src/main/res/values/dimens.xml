@@ -26,4 +26,6 @@
     <dimen name="pin_btn_size">50dp</dimen>
     <dimen name="pin_btn_margin">10dp</dimen>
 
+    <dimen name="chat_pop_up_y">?attr/actionBarSize</dimen>
+
 </resources>

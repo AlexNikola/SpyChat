@@ -88,6 +88,22 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     }
 
     @Override
+    public void onPause() {
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver);
+        isReceiverRegistered = false;
+
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDeleteMessagesReceiver);
+        isDeleteMessagesReceiverRegistered = false;
+        Log.e(TAG, "onPause Fragment Chat");
+        super.onPause();
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
@@ -97,8 +113,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         Log.e(TAG, "onCreate phone: " + phone);
 
     }
-
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -218,7 +232,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private String trySendMessage(String message) throws IOException, JSONException
     {
         StringBuilder sbParams = new StringBuilder();
-        sbParams.append("message=").append(message).append("&").append("destination=").append(URLEncoder.encode(contact.phoneNumber, "UTF-8"));
+        sbParams.append("message=").append(URLEncoder.encode(contact.phoneNumber, "UTF-8")).append("&").append("destination=").append(URLEncoder.encode(contact.phoneNumber, "UTF-8"));
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
         URL url = new URL(C.BASE_URL + "api/v1/message/sendMessage/");
@@ -297,16 +311,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
     }
 
-    @Override
-    public void onPause() {
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver);
-        isReceiverRegistered = false;
 
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDeleteMessagesReceiver);
-        isDeleteMessagesReceiverRegistered = false;
-        Log.e(TAG, "onPause Fragment Chat");
-        super.onPause();
-    }
 
     private void loadContactBitmap()
     {

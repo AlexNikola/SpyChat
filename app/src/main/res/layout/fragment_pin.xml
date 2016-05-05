@@ -55,7 +55,7 @@
                     <Button
                         android:id="@+id/pin_1"
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_number"
+                        android:background="@drawable/selector_bg_pin_number"
                         android:text="1"
                         android:textColor="#ffffff"
                         android:layout_width="@dimen/pin_btn_size"
@@ -64,7 +64,7 @@
                     <Button
                         android:id="@+id/pin_2"
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_number"
+                        android:background="@drawable/selector_bg_pin_number"
                         android:text="2"
                         android:textColor="#ffffff"
                         android:layout_width="@dimen/pin_btn_size"
@@ -73,7 +73,7 @@
                     <Button
                         android:id="@+id/pin_3"
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_number"
+                        android:background="@drawable/selector_bg_pin_number"
                         android:text="3"
                         android:textColor="#ffffff"
                         android:layout_width="@dimen/pin_btn_size"
@@ -89,7 +89,7 @@
                     <Button
                         android:id="@+id/pin_4"
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_number"
+                        android:background="@drawable/selector_bg_pin_number"
                         android:text="4"
                         android:textColor="#ffffff"
                         android:layout_width="@dimen/pin_btn_size"
@@ -98,7 +98,7 @@
                     <Button
                         android:id="@+id/pin_5"
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_number"
+                        android:background="@drawable/selector_bg_pin_number"
                         android:text="5"
                         android:textColor="#ffffff"
                         android:layout_width="@dimen/pin_btn_size"
@@ -107,7 +107,7 @@
                     <Button
                         android:id="@+id/pin_6"
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_number"
+                        android:background="@drawable/selector_bg_pin_number"
                         android:text="6"
                         android:textColor="#ffffff"
                         android:layout_width="@dimen/pin_btn_size"
@@ -123,7 +123,7 @@
                     <Button
                         android:id="@+id/pin_7"
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_number"
+                        android:background="@drawable/selector_bg_pin_number"
                         android:text="7"
                         android:textColor="#ffffff"
                         android:layout_width="@dimen/pin_btn_size"
@@ -132,7 +132,7 @@
                     <Button
                         android:id="@+id/pin_8"
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_number"
+                        android:background="@drawable/selector_bg_pin_number"
                         android:text="8"
                         android:textColor="#ffffff"
                         android:layout_width="@dimen/pin_btn_size"
@@ -141,7 +141,7 @@
                     <Button
                         android:id="@+id/pin_9"
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_number"
+                        android:background="@drawable/selector_bg_pin_number"
                         android:text="9"
                         android:textColor="#ffffff"
                         android:layout_width="@dimen/pin_btn_size"
@@ -156,7 +156,7 @@
 
                     <ImageView
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_cancel"
+                        android:background="@drawable/selector_bg_pin_cancel"
                         android:id="@+id/btn_cancel"
                         android:src="@drawable/cancel"
                         android:scaleType="center"
@@ -166,7 +166,7 @@
                     <Button
                         android:id="@+id/pin_0"
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_number"
+                        android:background="@drawable/selector_bg_pin_number"
                         android:text="0"
                         android:textColor="#ffffff"
                         android:layout_width="@dimen/pin_btn_size"
@@ -174,7 +174,7 @@
 
                     <Button
                         android:layout_margin="@dimen/pin_btn_margin"
-                        android:background="@drawable/bg_pin_clear"
+                        android:background="@drawable/selector_bg_pin_clear"
                         android:id="@+id/btn_clear"
                         android:text="C"
                         android:textColor="#ffffff"
@@ -189,6 +189,14 @@
 
 
         </FrameLayout>
+
+        <Button
+            android:textColor="#ffffff"
+            android:text="Log out"
+            android:background="#b2ff4141"
+            android:id="@+id/security_log_out"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
 
     </LinearLayout>

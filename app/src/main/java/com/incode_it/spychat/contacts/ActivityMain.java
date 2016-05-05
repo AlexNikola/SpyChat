@@ -45,9 +45,6 @@ public class ActivityMain extends AppCompatActivity implements
 {
     private static final String TAG = "debb";
 
-    private BroadcastReceiver mPinReceiver;
-    private boolean isPinReceiverRegistered;
-
     public static final String IS_NAV_OPEN = "is_nav_open";
     public static final String FRAGMENT_CONTACTS = "fr_con";
 
@@ -99,7 +96,6 @@ public class ActivityMain extends AppCompatActivity implements
         setupFragment();
         startTimer();
 
-        registerPinReceiver();
     }
 
     @Override
@@ -136,20 +132,10 @@ public class ActivityMain extends AppCompatActivity implements
         }
     }
 
-    private void registerPinReceiver(){
-        mPinReceiver = new UserPinBroadcastReceiver();
-        if(!isPinReceiverRegistered) {
-            LocalBroadcastManager.getInstance(this).registerReceiver(mPinReceiver,
-                    new IntentFilter(QuickstartPreferences.SHOW_PIN));
-            isPinReceiverRegistered = true;
-            Log.d("lifes", "registerPinReceiver");
-        }
-    }
+
 
     @Override
     protected void onPause() {
-        /*LocalBroadcastManager.getInstance(this).unregisterReceiver(mPinReceiver);
-        isPinReceiverRegistered = false;*/
         requestPin = true;
         Log.d("lifes", "onPause");
         super.onPause();
@@ -157,7 +143,6 @@ public class ActivityMain extends AppCompatActivity implements
 
     @Override
     protected void onResume() {
-        //registerPinReceiver();
         Log.d("lifes", "onResume");
         showPinDialog();
         super.onResume();
@@ -183,10 +168,6 @@ public class ActivityMain extends AppCompatActivity implements
         Log.d("lifes", "onRestoreInstanceState");
         super.onRestoreInstanceState(savedInstanceState);
     }
-
-
-
-
 
     private void initNavIcons()
     {
@@ -219,7 +200,6 @@ public class ActivityMain extends AppCompatActivity implements
             contentContainer.setScaleX(0.95f);
             contentContainer.setScaleY(0.95f);
         }
-
 
         timerImageView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -317,7 +297,14 @@ public class ActivityMain extends AppCompatActivity implements
         assert toolbar != null;
         toolbar.setTitle("SPYchat");
         setSupportActionBar(toolbar);
-        toolbar.setNavigationIcon(R.drawable.nav_menu);
+        if (isNavMenuOpen)
+        {
+            toolbar.setNavigationIcon(R.drawable.arrow_back_24dp);
+        }
+        else
+        {
+            toolbar.setNavigationIcon(R.drawable.nav_menu);
+        }
 
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -488,22 +475,12 @@ public class ActivityMain extends AppCompatActivity implements
         finish();
     }
 
-    public class UserPinBroadcastReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-        /*Sent when the user is present after
-         * device wakes up (e.g when the keyguard is gone)
-         * */
-            if(intent.getAction().equals(QuickstartPreferences.SHOW_PIN)) {
-                boolean isPinOn = sharedPreferences.getBoolean(C.SETTING_PIN, false);
-                if (isPinOn)
-                {
-
-                }
-            }
-        }
+    @Override
+    public void onSecurityLogOut() {
+        sharedPreferences.edit().remove(C.ACCESS_TOKEN).remove(C.REFRESH_TOKEN).apply();
+        Intent intent = new Intent(this, ActivityAuth.class);
+        startActivity(intent);
+        finish();
     }
 
 
@@ -513,8 +490,16 @@ public class ActivityMain extends AppCompatActivity implements
         boolean isPinOn = sharedPreferences.getBoolean(C.SETTING_PIN, false);
         if (isPinOn && requestPin)
         {
-            FragmentPin fragmentPin = FragmentPin.newInstance();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            Fragment prev = getSupportFragmentManager().findFragmentByTag(FragmentPin.TAG);
+            if (prev != null) {
+                ft.remove(prev);
+                ft.addToBackStack(null);
+                ft.commit();
+            }
+
+            ft = getSupportFragmentManager().beginTransaction();
+            FragmentPin fragmentPin = FragmentPin.newInstance();
             fragmentPin.show(ft, FragmentPin.TAG);
         }
 

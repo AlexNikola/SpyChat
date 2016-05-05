@@ -119,11 +119,12 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
     {
         TelephonyManager tm = (TelephonyManager)context.getSystemService(TELEPHONY_SERVICE);
         String myPhoneNumber = tm.getLine1Number();
-        if (myPhoneNumber == null)
+        if (myPhoneNumber == null || myPhoneNumber.length() == 0)
         {
-            Toast.makeText(context, "phone number is unavailable", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Phone number is unavailable", Toast.LENGTH_SHORT).show();
         }
         //return "+380639461005";
+
         return myPhoneNumber;
     }
 

@@ -1,7 +1,5 @@
 package com.incode_it.spychat.pin;
 
-import android.animation.AnimatorInflater;
-import android.animation.AnimatorSet;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -28,6 +26,7 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
     private Button btnClear;
     private TextView pinTextView;
     private String enteredPinCode = "";
+    private Button logOutBtn;
 
     private FragmentPinListener fragmentPinListener;
 
@@ -52,7 +51,13 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
         setCancelable(false);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         pinTextView = (TextView) view.findViewById(R.id.pin_text);
-
+        logOutBtn = (Button) view.findViewById(R.id.security_log_out);
+        logOutBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                fragmentPinListener.onSecurityLogOut();
+            }
+        });
 
         btnClear = (Button) view.findViewById(R.id.btn_clear);
         btnClear.setOnClickListener(new View.OnClickListener() {
@@ -87,10 +92,6 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
 
     @Override
     public void onClick(View v) {
-        AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(getContext(),
-                R.animator.pin_btn);
-        set.setTarget(v);
-        set.start();
 
         String number = "";
         switch (v.getId())
@@ -148,5 +149,7 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
     public interface FragmentPinListener
     {
         void onSecurityClose();
+
+        void onSecurityLogOut();
     }
 }

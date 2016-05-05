@@ -4,9 +4,11 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.TelephonyManager;
@@ -82,9 +84,14 @@ public class MyGcmListenerService extends GcmListenerService {
                 .setContentTitle("Spy Message")
                 .setContentText(message)
                 .setAutoCancel(true)
-                .setSound(defaultSoundUri)
-                .setVibrate(new long[] {1000, 1000} )
                 .setContentIntent(pendingIntent);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean isSoundOn = sharedPreferences.getBoolean(C.SETTING_SOUND, true);
+        boolean isVibrateOn = sharedPreferences.getBoolean(C.SETTING_VIBRATE, true);
+        if (isSoundOn) notificationBuilder.setSound(defaultSoundUri);
+        if (isVibrateOn) notificationBuilder.setVibrate(new long[] {1000, 1000} );
+
 
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);

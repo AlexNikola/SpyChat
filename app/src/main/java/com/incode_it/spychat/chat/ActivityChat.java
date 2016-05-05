@@ -1,5 +1,7 @@
 package com.incode_it.spychat.chat;
 
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorSet;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.BroadcastReceiver;
@@ -9,7 +11,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.provider.Settings;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
@@ -18,6 +20,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +28,7 @@ import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.MyTimerTask;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.authorization.ActivityAuth;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.pin.FragmentPin;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
@@ -35,11 +39,22 @@ import java.util.Timer;
 
 public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFragmentChatInteractionListener, FragmentPin.FragmentPinListener {
 
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+
     private MyTimerTask timerTask;
     private TextView globalTimerTextView;
     private MyContacts.Contact contact;
     private SharedPreferences sharedPreferences;
     private boolean requestPin = false;
+
+    private float popUpTranslationY;
+
+    private View attachmentsBtn;
+    private View toolbarFake;
+    private View attachmentsContainer;
+    private boolean isPopupVisible;
+
+    private ImageView takePhoto, takeVideo, openGallery;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +75,46 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
             }
         }
 
+        toolbarFake = findViewById(R.id.toolbar_fake);
+        popUpTranslationY = toolbarFake.getLayoutParams().height;
+
+        attachmentsContainer = findViewById(R.id.attachments_container);
+        attachmentsBtn = findViewById(R.id.attachments);
+        attachmentsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isPopupVisible)
+                {
+                    hidePopup();
+                }
+                else
+                {
+                    showPopup();
+                }
+
+            }
+        });
+        takePhoto = (ImageView) findViewById(R.id.take_photo);
+        takePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openPhotoCamera();
+            }
+        });
+        takeVideo = (ImageView) findViewById(R.id.take_video);
+        takeVideo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openVideoCamera();
+            }
+        });
+        openGallery = (ImageView) findViewById(R.id.open_gallery);
+        openGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openMedia();
+            }
+        });
         globalTimerTextView = (TextView) findViewById(R.id.global_timer_text);
         TextView nameTextView = (TextView) findViewById(R.id.title);
         assert nameTextView != null;
@@ -83,8 +138,57 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
             fragmentTransaction.add(R.id.fragment_chat_container, fragment, FragmentChat.TAG_FRAGMENT);
             fragmentTransaction.commit();
         }
+
         startTimer();
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            Log.d("lifes", "ActivityChat onActivityResult REQUEST_IMAGE_CAPTURE RESULT_OK");
+            /*Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            mImageView.setImageBitmap(imageBitmap);*/
+
+        }
+    }
+
+    private void openPhotoCamera()
+    {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
+
+    private void openVideoCamera()
+    {
+
+    }
+
+    private void openMedia()
+    {
+
+    }
+
+    private void showPopup()
+    {
+        isPopupVisible = true;
+                    /*AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(ActivityChat.this, R.animator.chat_popup_show);
+                    set.setTarget(attachmentsContainer);
+                    set.start();*/
+        attachmentsContainer.animate().translationY(popUpTranslationY).start();
+    }
+
+    private void hidePopup()
+    {
+        isPopupVisible = false;
+                    /*AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(ActivityChat.this, R.animator.chat_popup_hide);
+                    set.setTarget(v);
+                    set.start();*/
+        attachmentsContainer.animate().translationY(0f).start();
+    }
+
 
     public void startTimer()
     {
@@ -151,6 +255,17 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
     @Override
     public void onSecurityClose() {
         Intent intent = new Intent();
+        setResult(C.SECURITY_EXIT, intent);
+        finish();
+    }
+
+    @Override
+    public void onSecurityLogOut() {
+        sharedPreferences.edit().remove(C.ACCESS_TOKEN).remove(C.REFRESH_TOKEN).apply();
+        Intent intent = new Intent(this, ActivityAuth.class);
+        startActivity(intent);
+
+        intent = new Intent();
         setResult(C.SECURITY_EXIT, intent);
         finish();
     }
@@ -281,8 +396,16 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
         boolean isPinOn = sharedPreferences.getBoolean(C.SETTING_PIN, false);
         if (isPinOn && requestPin)
         {
-            FragmentPin fragmentPin = FragmentPin.newInstance();
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            Fragment prev = getSupportFragmentManager().findFragmentByTag(FragmentPin.TAG);
+            if (prev != null) {
+                ft.remove(prev);
+                ft.addToBackStack(null);
+                ft.commit();
+            }
+
+            ft = getSupportFragmentManager().beginTransaction();
+            FragmentPin fragmentPin = FragmentPin.newInstance();
             fragmentPin.show(ft, FragmentPin.TAG);
         }
 
@@ -290,6 +413,8 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
 
     @Override
     public void onBackPressed() {
+        if (isPopupVisible) hidePopup();
+        else
         super.onBackPressed();
     }
 }

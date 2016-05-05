@@ -9,7 +9,7 @@ public class C
     public static final String PHONE_NUMBER = "phone_number";
     public static final String MESSAGE = "massage";
 
-    public static final String BASE_URL = "http://192.168.0.101:7777/";
+    public static final String BASE_URL = "http://192.168.0.103:7777/";
 
     public static final String REMOVAL_GLOBAL_TIME = "removal_global_time";
 
