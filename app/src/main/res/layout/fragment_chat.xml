@@ -15,7 +15,8 @@
         tools:listitem="@layout/my_message_item"
         android:background="#e5f0ff"
         android:clipToPadding="false"
-        android:paddingBottom="100dp"/>
+        android:paddingBottom="100dp"
+        android:layout_marginTop="?attr/actionBarSize"/>
 
     <LinearLayout
         android:layout_margin="10dp"
@@ -52,7 +53,13 @@
 
         </FrameLayout>
 
-
     </LinearLayout>
+
+    <com.incode_it.spychat.chat.FakeToolbar
+        android:id="@+id/toolbar_fake_layout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </com.incode_it.spychat.chat.FakeToolbar>
 
 </FrameLayout>

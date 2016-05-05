@@ -1,6 +1,7 @@
 package com.incode_it.spychat.chat;
 
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +13,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -21,8 +23,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CalendarView;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -45,11 +47,12 @@ import java.util.ArrayList;
 
 public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.OnChatAdapterListener {
 
+    static final int REQUEST_IMAGE_CAPTURE = 1;
+
     private static final int SEND_MESSAGE_DELAY = 500;
     private static final String TAG = "chatm";
     public static final String TAG_FRAGMENT = "FragmentChat";
-    private String phone;
-    private MyContacts.Contact contact;
+    private String opponentPhone;
     private RecyclerView recyclerView;
     private EditText editText;
     private MyChatRecyclerViewAdapter adapter;
@@ -64,27 +67,28 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private boolean isDeleteMessagesReceiverRegistered;
     private OnFragmentChatInteractionListener fragmentChatInteractionListener;
 
+
+    private MyContacts.Contact contact;
+
+
+    private SharedPreferences sharedPreferences;
+
     public FragmentChat() {
         // Required empty public constructor
     }
 
-    public static FragmentChat newInstance(MyContacts.Contact contact) {
+    public static FragmentChat newInstance(String phone) {
         FragmentChat fragment = new FragmentChat();
-        fragment.contact = contact;
+        Bundle bundle = new Bundle();
+        bundle.putString(C.PHONE_NUMBER, phone);
+        fragment.setArguments(bundle);
         return fragment;
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        try {
-            // Instantiate the NoticeDialogListener so we can send events to the host
-            fragmentChatInteractionListener = (OnFragmentChatInteractionListener) context;
-        } catch (ClassCastException e) {
-            // The listener doesn't implement the interface, throw exception
-            throw new ClassCastException(getContext().toString()
-                    + " must implement OnFragmentChatInteractionListener");
-        }
+        fragmentChatInteractionListener = (OnFragmentChatInteractionListener) context;
     }
 
     @Override
@@ -100,7 +104,13 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
+            Log.d("lifes", "FragmentChat onActivityResult REQUEST_IMAGE_CAPTURE RESULT_OK");
+            /*Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            mImageView.setImageBitmap(imageBitmap);*/
+
+        }
     }
 
     @Override
@@ -108,10 +118,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         if (getArguments() != null) {
-            phone = getArguments().getString(C.PHONE_NUMBER);
+            opponentPhone = getArguments().getString(C.PHONE_NUMBER);
         }
-        Log.e(TAG, "onCreate phone: " + phone);
-
     }
 
     @Override
@@ -119,24 +127,77 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
 
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        findContactByNumber();
+        initMyPhoneNumber();
+        loadOpponentBitmap();
+        loadMessages();
+        initRecyclerView(view);
+        editText = (EditText) view.findViewById(R.id.edit_text);
+        initFakeToolbar(view);
+        initSendMessageView(view);
+        initMessageReceiver();
+        initDeleteMassagesReceiver();
+
+        return view;
+    }
+
+    private void initFakeToolbar(View view)
+    {
+        FakeToolbar fakeToolbar = (FakeToolbar) view.findViewById(R.id.toolbar_fake_layout);
+        fakeToolbar.setTitle(contact.name);
+        fakeToolbar.startTimer();
+        fakeToolbar.setOnPhotoClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openPhotoCamera();
+            }
+        });
+
+    }
+
+    private void openPhotoCamera()
+    {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
+            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+        }
+    }
+
+    private void findContactByNumber()
+    {
+        if (contact == null)
+        {
+            ArrayList<MyContacts.Contact> myContactsArrayList = MyContacts.getContactsList(getContext());
+            for (MyContacts.Contact contact: myContactsArrayList)
+            {
+                if (contact.phoneNumber.equals(opponentPhone))
+                {
+                    this.contact = contact;
+                    break;
+                }
+            }
+        }
+    }
+
+    private void initMyPhoneNumber()
+    {
         if (myPhoneNumber == null)
         {
             TelephonyManager tm = (TelephonyManager)getContext().getSystemService(Context.TELEPHONY_SERVICE);
             myPhoneNumber = tm.getLine1Number();
         }
+    }
 
-        loadContactBitmap();
-
+    private void loadMessages()
+    {
         if (messageArrayList == null)
-        messageArrayList = MyDbHelper.readContactMessages(new MyDbHelper(getContext()).getReadableDatabase(), contact);
+            messageArrayList = MyDbHelper.readContactMessages(new MyDbHelper(getContext()).getReadableDatabase(), contact);
+    }
 
-        recyclerView = (RecyclerView) view.findViewById(R.id.list);
-        initRecyclerView();
-
-        editText = (EditText) view.findViewById(R.id.edit_text);
-
-        View sendMessageView = view.findViewById(R.id.send_view);
-        sendMessageView.setOnClickListener(new View.OnClickListener() {
+    private void initSendMessageView(View view)
+    {
+        view.findViewById(R.id.send_view).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String textMessage = editText.getText().toString();
@@ -158,10 +219,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 }
             }
         });
-
-        initBroadcastReceiver();
-        initDeleteMassagesReceiver();
-        return view;
     }
 
     @Override
@@ -232,7 +289,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private String trySendMessage(String message) throws IOException, JSONException
     {
         StringBuilder sbParams = new StringBuilder();
-        sbParams.append("message=").append(URLEncoder.encode(contact.phoneNumber, "UTF-8")).append("&").append("destination=").append(URLEncoder.encode(contact.phoneNumber, "UTF-8"));
+        sbParams.append("message=").append(URLEncoder.encode(message, "UTF-8")).append("&").append("destination=").append(URLEncoder.encode(contact.phoneNumber, "UTF-8"));
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
         URL url = new URL(C.BASE_URL + "api/v1/message/sendMessage/");
@@ -255,7 +312,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         return result;
     }
 
-    private void initBroadcastReceiver()
+    private void initMessageReceiver()
     {
         mBroadcastReceiver = new BroadcastReceiver()
         {
@@ -273,10 +330,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         };
 
         // Registering BroadcastReceiver
-        registerReceiver();
+        registerMessageReceiver();
     }
 
-    private void registerReceiver(){
+    private void registerMessageReceiver(){
         if(!isReceiverRegistered) {
             LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver,
                     new IntentFilter(QuickstartPreferences.RECEIVE_MESSAGE));
@@ -311,9 +368,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
     }
 
-
-
-    private void loadContactBitmap()
+    private void loadOpponentBitmap()
     {
         if (contact.photoURI != null && contactBitmap == null)
         {
@@ -336,8 +391,9 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
     }
 
-    private void initRecyclerView()
+    private void initRecyclerView(View view)
     {
+        recyclerView = (RecyclerView) view.findViewById(R.id.list);
         adapter = new MyChatRecyclerViewAdapter(getContext(), messageArrayList, contact, contactBitmap, fragmentChatInteractionListener, this);
         recyclerView.setAdapter(adapter);
         LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
@@ -352,4 +408,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
         void onCreateTimeDialog(OnMessageDialogListener listener);
     }
+
+
 }
