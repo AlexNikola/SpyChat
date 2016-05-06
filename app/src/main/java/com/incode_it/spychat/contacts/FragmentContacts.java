@@ -1,15 +1,19 @@
 package com.incode_it.spychat.contacts;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -39,7 +43,7 @@ import java.util.Collections;
 public class FragmentContacts extends Fragment {
 
     private RecyclerView recyclerView;
-    private ArrayList<MyContacts.Contact> mContacts;
+    private ArrayList<MyContacts.Contact> mContacts = new ArrayList<>();
     private MyContactRecyclerViewAdapter adapter;
 
     private UpdateContactsTask updateContactsTask;
@@ -75,22 +79,59 @@ public class FragmentContacts extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-        if (mContacts == null)
-        {
-            mContacts = MyContacts.getContactsList(getContext());
-        }
 
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
-
-        localUpdateContactList();
+        loadMyContacts();
         initRecyclerView();
+        localUpdateContactList();
         updateContacts();
 
         return recyclerView;
     }
 
+    private void loadMyContacts()
+    {
+        Log.d("lodl", "loadMyContacts");
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                getContext().checkSelfPermission(Manifest.permission.READ_CONTACTS)
+                        != PackageManager.PERMISSION_GRANTED)
+        {
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS},
+                    C.READ_CONTACTS_CODE);
+        }
+        else
+        {
+            mContacts = MyContacts.getContactsList(getContext());
+            Log.d("lodl", "mContacts "+mContacts.size());
+
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Log.d("lodl", "onRequestPermissionsResult " + requestCode);
+        if (requestCode == C.READ_CONTACTS_CODE)
+        {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            {
+                ArrayList<MyContacts.Contact> arr = MyContacts.getContactsList(getContext());
+                mContacts.clear();
+                mContacts.addAll(arr);
+                localUpdateContactList();
+                updateContacts();
+            }
+            else
+            {
+                Toast.makeText(getContext(), "Sorry!!! Permission Denied",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
     private void localUpdateContactList()
     {
+        Log.d("lodl", "localUpdateContactList");
         ArrayList<String> registeredContacts;
         registeredContacts = MyDbHelper.readRegisteredContacts(new MyDbHelper(getContext()).getReadableDatabase());
         for (MyContacts.Contact contact: mContacts)
@@ -106,10 +147,13 @@ public class FragmentContacts extends Fragment {
         }
 
         Collections.sort(mContacts, new ContactsComparator());
+        adapter.notifyDataSetChanged();
+        Log.d("lodl", "mContacts "+mContacts.size());
     }
 
     private void updateContacts()
     {
+        Log.d("lodl", "updateContacts");
         ArrayList<String> contactsNumbers = new ArrayList<>();
         for (MyContacts.Contact contact: mContacts)
         {
@@ -186,12 +230,18 @@ public class FragmentContacts extends Fragment {
                 }
                 Collections.sort(mContacts, new ContactsComparator());
                 adapter.notifyDataSetChanged();
+                Log.d("lodl", "mContacts "+mContacts.size());
             }
             else
             {
+
                 Context context = getContext();
                 if (context != null)
-                Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show();
+                {
+                    adapter.notifyDataSetChanged();
+                    Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show();
+                }
+
             }
         }
     }

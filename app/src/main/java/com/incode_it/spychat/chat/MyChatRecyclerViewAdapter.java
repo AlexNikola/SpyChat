@@ -50,6 +50,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         noPhotoBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.profile);
         TelephonyManager tm = (TelephonyManager)((Context)listener).getSystemService(Context.TELEPHONY_SERVICE);
         myPhoneNumber = tm.getLine1Number();
+        if (myPhoneNumber == null) myPhoneNumber = "";
     }
 
     @Override

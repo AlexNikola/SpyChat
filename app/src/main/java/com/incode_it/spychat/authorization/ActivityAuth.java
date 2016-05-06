@@ -1,15 +1,20 @@
 package com.incode_it.spychat.authorization;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -39,6 +44,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
     private CoordinatorLayout coordinatorLayout;
     private static final String TAG = "myhttp";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
+    public static String myPhoneNumber = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,13 +54,15 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
         {
             Intent intent = new Intent(this, ActivityMain.class);
             intent.putExtra(C.REQUEST_PIN, true);
-            startActivity(intent);
+            startActivityForResult(intent, 123);
             return;
         }
         else
         {
             setContentView(R.layout.activity_auth);
         }
+
+        getPhoneNumber();
 
         progressBarContainer = findViewById(R.id.progressBar_cont);
 
@@ -115,20 +123,51 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
         return activeNetwork != null && activeNetwork.isConnected();
     }
 
-    public static String getPhoneNumber(Context context)
+    public void getPhoneNumber()
     {
-        TelephonyManager tm = (TelephonyManager)context.getSystemService(TELEPHONY_SERVICE);
-        String myPhoneNumber = tm.getLine1Number();
-        if (myPhoneNumber == null || myPhoneNumber.length() == 0)
+        Log.d("myPerm", "AA getPhoneNumber ");
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                checkSelfPermission(Manifest.permission.READ_SMS)
+                        != PackageManager.PERMISSION_GRANTED)
         {
-            Toast.makeText(context, "Phone number is unavailable", Toast.LENGTH_SHORT).show();
+            requestPermissions(new String[]{Manifest.permission.READ_SMS},
+                    C.READ_SMS_CODE);
         }
-        //return "+380639461005";
-
-        return myPhoneNumber;
+        else
+        {
+            TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
+            myPhoneNumber = tm.getLine1Number();
+        }
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d("myPerm", "AA onActivityResult resultCode "+resultCode);
+        if (resultCode ==123) finish();
+    }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Log.d("myPerm", "AA onRequestPermissionsResult " + requestCode);
+        if (requestCode == C.READ_SMS_CODE)
+        {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            {
+                TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
+                myPhoneNumber = tm.getLine1Number();
+                if (myPhoneNumber == null || myPhoneNumber.length() == 0)
+                {
+                    myPhoneNumber = "";
+                    Toast.makeText(this, "Phone number is unavailable", Toast.LENGTH_SHORT).show();
+                }
+            }
+            else
+            {
+                Toast.makeText(this, "Sorry!!! Permission Denied",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 
     public class AuthFragmentPagerAdapter extends FragmentPagerAdapter {
         ArrayList<Fragment> fragmentArrayList;

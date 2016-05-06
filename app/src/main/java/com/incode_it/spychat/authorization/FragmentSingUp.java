@@ -136,7 +136,7 @@ public class FragmentSingUp extends Fragment
     private void initPhoneInputLayout(View view)
     {
         phoneET = (TextInputEditText) view.findViewById(R.id.edit_text_phone);
-        phoneET.setText(ActivityAuth.getPhoneNumber(getContext()));
+        phoneET.setText(ActivityAuth.myPhoneNumber);
 
         view.findViewById(R.id.edit_text_clear_phone).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -242,7 +242,7 @@ public class FragmentSingUp extends Fragment
                         sharedPreferences.edit().putString(C.ACCESS_TOKEN, accessToken).putString(C.REFRESH_TOKEN, refreshToken).apply();
                         Intent intent = new Intent(context, ActivityMain.class);
                         intent.putExtra(C.REQUEST_PIN, false);
-                        startActivity(intent);
+                        startActivityForResult(intent, 123);
 
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");

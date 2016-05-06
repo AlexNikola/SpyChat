@@ -1,19 +1,23 @@
 package com.incode_it.spychat.chat;
 
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -25,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CalendarView;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -69,6 +74,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
 
     private MyContacts.Contact contact;
+    ArrayList<MyContacts.Contact> myContactsArrayList;
 
 
     private SharedPreferences sharedPreferences;
@@ -168,7 +174,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     {
         if (contact == null)
         {
-            ArrayList<MyContacts.Contact> myContactsArrayList = MyContacts.getContactsList(getContext());
+            loadMyContacts();
             for (MyContacts.Contact contact: myContactsArrayList)
             {
                 if (contact.phoneNumber.equals(opponentPhone))
@@ -180,12 +186,72 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
     }
 
+    private void loadMyContacts()
+    {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                getContext().checkSelfPermission(Manifest.permission.READ_CONTACTS)
+                        != PackageManager.PERMISSION_GRANTED)
+        {
+            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS},
+                    C.READ_CONTACTS_CODE);
+        }
+        else
+        {
+            myContactsArrayList = MyContacts.getContactsList(getContext());
+        }
+    }
+
     private void initMyPhoneNumber()
     {
         if (myPhoneNumber == null)
         {
-            TelephonyManager tm = (TelephonyManager)getContext().getSystemService(Context.TELEPHONY_SERVICE);
-            myPhoneNumber = tm.getLine1Number();
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+                    getContext().checkSelfPermission(Manifest.permission.READ_SMS)
+                            != PackageManager.PERMISSION_GRANTED)
+            {
+                requestPermissions(new String[]{Manifest.permission.READ_SMS},
+                        C.READ_SMS_CODE);
+            }
+            else
+            {
+                TelephonyManager tm = (TelephonyManager)getContext().getSystemService(Context.TELEPHONY_SERVICE);
+                myPhoneNumber = tm.getLine1Number();
+            }
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == C.READ_SMS_CODE)
+        {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            {
+                TelephonyManager tm = (TelephonyManager)getContext().getSystemService(Context.TELEPHONY_SERVICE);
+                myPhoneNumber = tm.getLine1Number();
+                if (myPhoneNumber == null || myPhoneNumber.length() == 0)
+                {
+                    myPhoneNumber = "";
+                    Toast.makeText(getContext(), "Phone number is unavailable", Toast.LENGTH_SHORT).show();
+                }
+            }
+            else
+            {
+                Toast.makeText(getContext(), "Sorry!!! Permission Denied",
+                        Toast.LENGTH_SHORT).show();
+            }
+        }
+        else if (requestCode == C.READ_CONTACTS_CODE)
+        {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            {
+                myContactsArrayList = MyContacts.getContactsList(getContext());
+            }
+            else
+            {
+                Toast.makeText(getContext(), "Sorry!!! Permission Denied",
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

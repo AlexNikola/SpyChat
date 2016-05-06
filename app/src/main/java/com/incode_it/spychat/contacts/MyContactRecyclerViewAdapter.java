@@ -114,6 +114,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         }
         else
         {
+            Log.d("myPerm", "noPhotoBitmap ");
             holder.mImage.setImageBitmap(noPhotoBitmap);
         }
     }
@@ -153,12 +154,17 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                     }
                     else
                     {
-                        Intent smsIntent = new Intent(Intent.ACTION_VIEW);
+                        /*Intent smsIntent = new Intent(Intent.ACTION_VIEW);
                         smsIntent.setData(Uri.parse("sms:"));
                         smsIntent.setType("vnd.android-dir/mms-sms");
-                        smsIntent.putExtra("sms_body", "my sms");
+                        smsIntent.putExtra("sms_body", "sms test");
                         smsIntent.putExtra("address", mContact.phoneNumber);
-                       context.startActivity(smsIntent);
+                        context.startActivity(smsIntent);*/
+
+                        Intent intent = new Intent(Intent.ACTION_SENDTO);
+                        intent.setData(Uri.parse("smsto:" + Uri.encode(mContact.phoneNumber)));
+                        intent.putExtra("sms_body", "sms test");
+                        context.startActivity(intent);
                     }
                 }
             });

@@ -9,7 +9,7 @@ public class C
     public static final String PHONE_NUMBER = "phone_number";
     public static final String MESSAGE = "massage";
 
-    public static final String BASE_URL = "http://192.168.0.103:7777/";
+    public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
 
     public static final String REMOVAL_GLOBAL_TIME = "removal_global_time";
 
@@ -24,6 +24,9 @@ public class C
     public static final String REQUEST_PIN = "request_pin";
 
     public static final int SECURITY_EXIT = 1;
+
+    public static final int READ_SMS_CODE = 0;
+    public static final int READ_CONTACTS_CODE = 1;
 
     public static int getMyId()
     {

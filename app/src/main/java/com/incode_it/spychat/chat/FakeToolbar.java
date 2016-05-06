@@ -125,7 +125,7 @@ public class FakeToolbar extends FrameLayout {
 
     public void setOnPhotoClickListener(OnClickListener listener)
     {
-        takePhoto.setOnClickListener(listener);
+        //takePhoto.setOnClickListener(listener);
     }
 
     public void setOnVideoClickListener(OnClickListener listener)
