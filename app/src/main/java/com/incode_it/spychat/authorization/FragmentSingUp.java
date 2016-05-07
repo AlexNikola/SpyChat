@@ -19,7 +19,7 @@ import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.R;
-import com.incode_it.spychat.interfaces.OnFragmentInteractionListener;
+import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +34,7 @@ public class FragmentSingUp extends Fragment
     private static final String TAG = "myhttp";
     private Context context;
 
-    private OnFragmentInteractionListener fragmentListener;
+    private OnFragmentsAuthorizationListener fragmentListener;
     private TextInputEditText phoneET;
     private TextInputEditText passET;
     private TextInputEditText passConfET;
@@ -47,6 +47,8 @@ public class FragmentSingUp extends Fragment
     private View progressBarView;
     private View signUpBtn;
 
+    private String myPhoneNumber = "";
+
 
     public FragmentSingUp() {
         // Required empty public constructor
@@ -56,7 +58,7 @@ public class FragmentSingUp extends Fragment
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        fragmentListener = (OnFragmentInteractionListener) context;
+        fragmentListener = (OnFragmentsAuthorizationListener) context;
     }
 
     @Override
@@ -87,11 +89,11 @@ public class FragmentSingUp extends Fragment
         signUpBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String phoneNumber = phoneET.getText().toString();
+                myPhoneNumber = phoneET.getText().toString();
                 String password = passET.getText().toString();
                 String passwordConf = passConfET.getText().toString();
                 boolean isValid = true;
-                if (phoneNumber.length() < 1) {
+                if (myPhoneNumber.length() < 1) {
                     errorPhoneTextView.setText(R.string.enter_phone_number);
                     isValid = false;
                 } else errorPhoneTextView.setText("");
@@ -126,7 +128,7 @@ public class FragmentSingUp extends Fragment
                 if (!isValid) return;
 
                 fragmentListener.onLogIn();
-                new SignUpTask().execute(phoneNumber, password);
+                new SignUpTask().execute(myPhoneNumber, password);
             }
         });
 
@@ -238,11 +240,8 @@ public class FragmentSingUp extends Fragment
                     if (res.equals("success")) {
                         String accessToken = jsonResponse.getString("accessToken");
                         String refreshToken = jsonResponse.getString("refreshToken");
-                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-                        sharedPreferences.edit().putString(C.ACCESS_TOKEN, accessToken).putString(C.REFRESH_TOKEN, refreshToken).apply();
-                        Intent intent = new Intent(context, ActivityMain.class);
-                        intent.putExtra(C.REQUEST_PIN, false);
-                        startActivityForResult(intent, 123);
+
+                        fragmentListener.onAuthorizationSuccess(accessToken, refreshToken, myPhoneNumber);
 
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");

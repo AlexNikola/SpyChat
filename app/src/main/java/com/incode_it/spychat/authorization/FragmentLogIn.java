@@ -19,7 +19,7 @@ import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.R;
-import com.incode_it.spychat.interfaces.OnFragmentInteractionListener;
+import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -34,7 +34,7 @@ public class FragmentLogIn extends Fragment
     private Context context;
     private View view;
 
-    private OnFragmentInteractionListener fragmentListener;
+    private OnFragmentsAuthorizationListener fragmentListener;
     private TextInputEditText phoneET;
     private TextInputEditText passET;
 
@@ -43,8 +43,9 @@ public class FragmentLogIn extends Fragment
 
     private View logInBtnText;
     private View progressBarView;
-    private View logInBtn;
+    private View logInBtnView;
 
+    private String myPhoneNumber = "";
 
     public FragmentLogIn() {
         // Required empty public constructor
@@ -54,7 +55,7 @@ public class FragmentLogIn extends Fragment
     public void onAttach(Context context) {
         super.onAttach(context);
         this.context = context;
-        fragmentListener = (OnFragmentInteractionListener) context;
+        fragmentListener = (OnFragmentsAuthorizationListener) context;
     }
 
     @Override
@@ -67,13 +68,6 @@ public class FragmentLogIn extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        if (view != null)
-        {
-            Log.d("qaz", "onCreateView " + view.hashCode());
-            return view;
-        }
-        else Log.d("qaz", "onCreateView view = null");
-
         view = inflater.inflate(R.layout.fragment_log_in, container, false);
 
         initPhoneInputLayout(view);
@@ -85,14 +79,14 @@ public class FragmentLogIn extends Fragment
         logInBtnText = view.findViewById(R.id.log_in_button_text);
         progressBarView = view.findViewById(R.id.progressBar);
 
-        logInBtn = view.findViewById(R.id.log_in_button);
-        logInBtn.setOnClickListener(new View.OnClickListener() {
+        logInBtnView = view.findViewById(R.id.log_in_button);
+        logInBtnView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String phoneNumber = phoneET.getText().toString();
+                myPhoneNumber = phoneET.getText().toString();
                 String password = passET.getText().toString();
                 boolean isValid = true;
-                if (phoneNumber.length() < 1)
+                if (myPhoneNumber.length() < 1)
                 {
                     errorPhoneTextView.setText(R.string.enter_phone_number);
                     isValid = false;
@@ -109,7 +103,7 @@ public class FragmentLogIn extends Fragment
                 if (!isValid) return;
 
                 fragmentListener.onLogIn();
-                new LogInTask().execute(phoneNumber, password);
+                new LogInTask().execute(myPhoneNumber, password);
             }
         });
 
@@ -143,7 +137,6 @@ public class FragmentLogIn extends Fragment
 
     private class LogInTask extends AsyncTask<String, Void, String>
     {
-
         public LogInTask() {
         }
 
@@ -152,7 +145,7 @@ public class FragmentLogIn extends Fragment
             super.onPreExecute();
             progressBarView.setVisibility(View.VISIBLE);
             logInBtnText.setVisibility(View.INVISIBLE);
-            logInBtn.setEnabled(false);
+            logInBtnView.setEnabled(false);
         }
 
         @Override
@@ -185,7 +178,7 @@ public class FragmentLogIn extends Fragment
 
         @Override
         protected void onPostExecute(String result) {
-            logInBtn.setEnabled(true);
+            logInBtnView.setEnabled(true);
             progressBarView.setVisibility(View.INVISIBLE);
             logInBtnText.setVisibility(View.VISIBLE);
 
@@ -198,11 +191,8 @@ public class FragmentLogIn extends Fragment
                     if (res.equals("success")) {
                         String accessToken = jsonResponse.getString("accessToken");
                         String refreshToken = jsonResponse.getString("refreshToken");
-                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-                        sharedPreferences.edit().putString(C.ACCESS_TOKEN, accessToken).putString(C.REFRESH_TOKEN, refreshToken).apply();
-                        Intent intent = new Intent(context, ActivityMain.class);
-                        intent.putExtra(C.REQUEST_PIN, false);
-                        startActivityForResult(intent, 123);
+
+                        fragmentListener.onAuthorizationSuccess(accessToken, refreshToken, myPhoneNumber);
 
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");

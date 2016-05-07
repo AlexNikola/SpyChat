@@ -3,18 +3,14 @@ package com.incode_it.spychat.contacts;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -28,7 +24,6 @@ import android.widget.TextView;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyTimerTask;
-import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
 import com.incode_it.spychat.authorization.ActivityAuth;
@@ -75,7 +70,7 @@ public class ActivityMain extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setResult(123);
+        setResult(C.REQUEST_CODE_SKIP_AUTH);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         requestPin = getIntent().getBooleanExtra(C.REQUEST_PIN, true);
 
@@ -152,11 +147,10 @@ public class ActivityMain extends AppCompatActivity implements
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         requestPin = false;
         Log.d("lifes", "onActivityResult");
-        if (resultCode == C.SECURITY_EXIT)
+        if (resultCode == C.REQUEST_CODE_SECURITY_EXIT)
         {
             finish();
         }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
 
@@ -217,7 +211,7 @@ public class ActivityMain extends AppCompatActivity implements
         logOutImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sharedPreferences.edit().remove(C.ACCESS_TOKEN).remove(C.REFRESH_TOKEN).apply();
+                sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
                 Intent intent = new Intent(ActivityMain.this, ActivityAuth.class);
                 startActivity(intent);
                 finish();
@@ -477,7 +471,7 @@ public class ActivityMain extends AppCompatActivity implements
 
     @Override
     public void onSecurityLogOut() {
-        sharedPreferences.edit().remove(C.ACCESS_TOKEN).remove(C.REFRESH_TOKEN).apply();
+        sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
         Intent intent = new Intent(this, ActivityAuth.class);
         startActivity(intent);
         finish();

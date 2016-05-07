@@ -3,8 +3,9 @@ package com.incode_it.spychat;
 
 public class C
 {
-    public static final String ACCESS_TOKEN = "access_token";
-    public static final String REFRESH_TOKEN = "refresh_token";
+    public static final String SHARED_ACCESS_TOKEN = "access_token";
+    public static final String SHARED_REFRESH_TOKEN = "refresh_token";
+    public static final String SHARED_MY_PHONE_NUMBER = "my_phone_number";
 
     public static final String PHONE_NUMBER = "phone_number";
     public static final String MESSAGE = "massage";
@@ -23,7 +24,8 @@ public class C
 
     public static final String REQUEST_PIN = "request_pin";
 
-    public static final int SECURITY_EXIT = 1;
+    public static final int REQUEST_CODE_SECURITY_EXIT = 1;
+    public static final int REQUEST_CODE_SKIP_AUTH = 2;
 
     public static final int READ_SMS_CODE = 0;
     public static final int READ_CONTACTS_CODE = 1;

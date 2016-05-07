@@ -13,7 +13,6 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -254,7 +253,7 @@ public class FragmentContacts extends Fragment {
         }
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
+        String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, "");
         URL url = new URL(C.BASE_URL + "api/v1/usersJob/inSystem/");
         String header = "Bearer "+accessToken;
 

@@ -1,7 +1,6 @@
 package com.incode_it.spychat.gcm;
 
 import android.app.IntentService;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -15,15 +14,9 @@ import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
 
-import org.apache.commons.io.IOUtils;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 public class RegistrationIntentService extends IntentService {
@@ -86,7 +79,7 @@ public class RegistrationIntentService extends IntentService {
     {
         //Log.i(TAG, "sendRegistrationToServer: " + regToken);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
+        String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, "");
         String urlParameters = "regToken=" + regToken;
         String header = "Bearer "+accessToken;
 

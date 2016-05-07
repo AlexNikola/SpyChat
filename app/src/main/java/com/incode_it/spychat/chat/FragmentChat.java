@@ -27,7 +27,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CalendarView;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -357,7 +356,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         StringBuilder sbParams = new StringBuilder();
         sbParams.append("message=").append(URLEncoder.encode(message, "UTF-8")).append("&").append("destination=").append(URLEncoder.encode(contact.phoneNumber, "UTF-8"));
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, "");
+        String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, "");
         URL url = new URL(C.BASE_URL + "api/v1/message/sendMessage/");
         String header = "Bearer "+accessToken;
 

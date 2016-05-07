@@ -17,7 +17,6 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 
 public class MyConnection
 {
@@ -25,7 +24,7 @@ public class MyConnection
 
     public static synchronized boolean sendRefreshToken(Context context) throws IOException, JSONException {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        String refreshToken = sharedPreferences.getString(C.REFRESH_TOKEN, "");
+        String refreshToken = sharedPreferences.getString(C.SHARED_REFRESH_TOKEN, "");
         Log.i(TAG, "sendRefreshToken: " + refreshToken);
         String urlParameters = "refreshToken=" + refreshToken;
         URL url = new URL(C.BASE_URL + "api/v1/auth/refreshAccessToke/");
@@ -61,7 +60,7 @@ public class MyConnection
             {
                 String accessToken = jsonResponse.getString("accessToken");
                 refreshToken = jsonResponse.getString("refreshToken");
-                sharedPreferences.edit().putString(C.ACCESS_TOKEN, accessToken).putString(C.REFRESH_TOKEN, refreshToken).apply();
+                sharedPreferences.edit().putString(C.SHARED_ACCESS_TOKEN, accessToken).putString(C.SHARED_REFRESH_TOKEN, refreshToken).apply();
                 return true;
             }
         }

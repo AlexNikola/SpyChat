@@ -1,20 +1,15 @@
 package com.incode_it.spychat.authorization;
 
-import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Build;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -27,20 +22,17 @@ import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.R;
-import com.incode_it.spychat.interfaces.OnFragmentInteractionListener;
+import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
 
 import java.util.ArrayList;
 
-public class ActivityAuth extends AppCompatActivity implements OnFragmentInteractionListener {
-    private View progressBarContainer;
-    private ViewPager viewPager;
+public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthorizationListener {
     private CoordinatorLayout coordinatorLayout;
     private static final String TAG = "myhttp";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
@@ -54,7 +46,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
         {
             Intent intent = new Intent(this, ActivityMain.class);
             intent.putExtra(C.REQUEST_PIN, true);
-            startActivityForResult(intent, 123);
+            startActivityForResult(intent, C.REQUEST_CODE_SKIP_AUTH);
             return;
         }
         else
@@ -64,8 +56,6 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
 
         getPhoneNumber();
 
-        progressBarContainer = findViewById(R.id.progressBar_cont);
-
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -73,18 +63,20 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
         toolbar.setTitle("SPYchat");
         setSupportActionBar(toolbar);
 
-        viewPager = (ViewPager) findViewById(R.id.fragment_view_pager);
+        ViewPager viewPager = (ViewPager) findViewById(R.id.fragment_view_pager);
         AuthFragmentPagerAdapter adapter = new AuthFragmentPagerAdapter(getSupportFragmentManager());
+        assert viewPager != null;
         viewPager.setAdapter(adapter);
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
+        assert tabLayout != null;
         tabLayout.setupWithViewPager(viewPager);
     }
 
     private boolean checkIsLoggedIn()
     {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String accessToken = sharedPreferences.getString(C.ACCESS_TOKEN, null);
+        String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, null);
         return accessToken != null;
     }
 
@@ -99,6 +91,19 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
     public void onSignUp() {
         Log.i(TAG, "onSignUp");
         hideKeyBoard();
+    }
+
+    @Override
+    public void onAuthorizationSuccess(String accessToken, String refreshToken, String myPhoneNumber) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.edit()
+                .putString(C.SHARED_ACCESS_TOKEN, accessToken)
+                .putString(C.SHARED_REFRESH_TOKEN, refreshToken)
+                .putString(C.SHARED_MY_PHONE_NUMBER, myPhoneNumber)
+                .apply();
+        Intent intent = new Intent(this, ActivityMain.class);
+        intent.putExtra(C.REQUEST_PIN, false);
+        startActivityForResult(intent, C.REQUEST_CODE_SKIP_AUTH);
     }
 
     @Override
@@ -126,7 +131,9 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
     public void getPhoneNumber()
     {
         Log.d("myPerm", "AA getPhoneNumber ");
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+        TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
+        myPhoneNumber = tm.getLine1Number();
+        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 checkSelfPermission(Manifest.permission.READ_SMS)
                         != PackageManager.PERMISSION_GRANTED)
         {
@@ -137,16 +144,16 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
         {
             TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
             myPhoneNumber = tm.getLine1Number();
-        }
+        }*/
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d("myPerm", "AA onActivityResult resultCode "+resultCode);
-        if (resultCode ==123) finish();
+        if (resultCode == C.REQUEST_CODE_SKIP_AUTH) finish();
     }
 
-    @Override
+    /*@Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         Log.d("myPerm", "AA onRequestPermissionsResult " + requestCode);
         if (requestCode == C.READ_SMS_CODE)
@@ -167,7 +174,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentInterac
                         Toast.LENGTH_SHORT).show();
             }
         }
-    }
+    }*/
 
     public class AuthFragmentPagerAdapter extends FragmentPagerAdapter {
         ArrayList<Fragment> fragmentArrayList;
