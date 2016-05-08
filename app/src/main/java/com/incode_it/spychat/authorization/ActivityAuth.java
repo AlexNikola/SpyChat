@@ -1,5 +1,6 @@
 package com.incode_it.spychat.authorization;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -28,6 +29,8 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.country_selection.Country;
+import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
 
 import java.util.ArrayList;
@@ -36,7 +39,9 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     private CoordinatorLayout coordinatorLayout;
     private static final String TAG = "myhttp";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-    public static String myPhoneNumber = "";
+    public static String myPhoneNumber;
+    public static String myCountryCode;
+    public static String myCountryISO;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +51,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
         {
             Intent intent = new Intent(this, ActivityMain.class);
             intent.putExtra(C.REQUEST_PIN, true);
-            startActivityForResult(intent, C.REQUEST_CODE_SKIP_AUTH);
+            startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_CONTACTS);
             return;
         }
         else
@@ -54,7 +59,8 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
             setContentView(R.layout.activity_auth);
         }
 
-        getPhoneNumber();
+        findCountyCode();
+        myPhoneNumber = getPhoneNumber();
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator);
 
@@ -81,16 +87,50 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     }
 
     @Override
-    public void onLogIn()
+    public void onLogIn(String phone)
     {
         Log.i(TAG, "onLogIn");
         hideKeyBoard();
+        showPhone(phone);
     }
 
     @Override
-    public void onSignUp() {
+    public void onSignUp(String phone) {
         Log.i(TAG, "onSignUp");
         hideKeyBoard();
+        showPhone(phone);
+    }
+
+    private void showPhone(String phone)
+    {
+        Snackbar snackbar = Snackbar.make(coordinatorLayout, phone, Snackbar.LENGTH_INDEFINITE)
+                .setActionTextColor(Color.RED)
+                .setAction("OK", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                    }
+                });
+
+        TextView textView = (TextView) snackbar.getView().findViewById(android.support.design.R.id.snackbar_text);
+        textView.setTextColor(Color.YELLOW);
+        snackbar.show();
+    }
+
+    public void findCountyCode() {
+        ArrayList<Country> countryArrayList = MyDbHelper.readCountries(new MyDbHelper(this).getReadableDatabase());
+        TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        myCountryISO = tm.getSimCountryIso();
+        //simCountry = "in";
+        if (myCountryISO == null) return;
+        for (Country country: countryArrayList)
+        {
+            if (country.codeISO.equalsIgnoreCase(myCountryISO))
+            {
+                myCountryCode = country.codePhone;
+                break;
+            }
+        }
     }
 
     @Override
@@ -103,7 +143,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
                 .apply();
         Intent intent = new Intent(this, ActivityMain.class);
         intent.putExtra(C.REQUEST_PIN, false);
-        startActivityForResult(intent, C.REQUEST_CODE_SKIP_AUTH);
+        startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_CONTACTS);
     }
 
     @Override
@@ -128,11 +168,11 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
         return activeNetwork != null && activeNetwork.isConnected();
     }
 
-    public void getPhoneNumber()
+    public String getPhoneNumber()
     {
         Log.d("myPerm", "AA getPhoneNumber ");
         TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-        myPhoneNumber = tm.getLine1Number();
+        return tm.getLine1Number();
         /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 checkSelfPermission(Manifest.permission.READ_SMS)
                         != PackageManager.PERMISSION_GRANTED)
@@ -149,8 +189,15 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d("myPerm", "AA onActivityResult resultCode "+resultCode);
-        if (resultCode == C.REQUEST_CODE_SKIP_AUTH) finish();
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("qqqqq", "AA onActivityResult resultCode "+resultCode);
+
+        if (requestCode == C.REQUEST_CODE_ACTIVITY_CONTACTS) {
+            if (resultCode == Activity.RESULT_CANCELED) {
+                finish();
+            }
+        }
+
     }
 
     /*@Override

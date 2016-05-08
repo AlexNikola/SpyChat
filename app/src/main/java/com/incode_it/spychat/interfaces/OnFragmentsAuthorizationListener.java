@@ -2,9 +2,9 @@ package com.incode_it.spychat.interfaces;
 
 public interface OnFragmentsAuthorizationListener {
 
-    void onLogIn();
+    void onLogIn(String phone);
 
-    void onSignUp();
+    void onSignUp(String phone);
 
     void onAuthorizationSuccess(String accessToken, String refreshToken, String myPhoneNumber);
 

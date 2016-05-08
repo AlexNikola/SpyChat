@@ -29,4 +29,12 @@ public final class MReaderContract
         public static final String PHONE_NUMBER = "phone_number";
     }
 
+    public static abstract class Countries implements BaseColumns {
+        public static final String TABLE_NAME = "countries";
+        public static final String CODE_ISO = "code";
+        public static final String NAME = "name";
+        public static final String NATIVE = "native";
+        public static final String CODE_PHONE = "phone";
+    }
+
 }

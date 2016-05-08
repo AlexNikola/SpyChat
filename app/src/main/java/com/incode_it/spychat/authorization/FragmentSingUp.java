@@ -1,5 +1,6 @@
 package com.incode_it.spychat.authorization;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -19,6 +20,7 @@ import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.country_selection.ActivitySelectCountry;
 import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
 
 import org.json.JSONException;
@@ -30,7 +32,6 @@ import java.net.URLEncoder;
 
 public class FragmentSingUp extends Fragment
 {
-    private View view;
     private static final String TAG = "myhttp";
     private Context context;
 
@@ -46,8 +47,12 @@ public class FragmentSingUp extends Fragment
     private View signUpBtnText;
     private View progressBarView;
     private View signUpBtn;
+    private View selectCountryBtnView;
+    private TextView countryCodeTextView;
 
-    private String myPhoneNumber = "";
+    private String myPhoneNumber;
+    private String countryCode = "+....";
+    private String countryISO = "";
 
 
     public FragmentSingUp() {
@@ -68,15 +73,36 @@ public class FragmentSingUp extends Fragment
     }
 
     @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d("qqqqq", "FL onActivityResult resultCode "+resultCode);
+        if (requestCode == C.REQUEST_CODE_SELECT_COUNTRY) {
+            if (resultCode == Activity.RESULT_OK) {
+                countryCode = data.getStringExtra(C.EXTRA_COUNTRY_CODE);
+                countryISO = data.getStringExtra(C.EXTRA_COUNTRY_ISO);
+                countryCodeTextView.setText(countryCode);
+            }
+        }
+    }
+
+    @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if (view != null) return view;
 
-        view = inflater.inflate(R.layout.fragment_sign_up, container, false);
+        View view = inflater.inflate(R.layout.fragment_sign_up, container, false);
+
+        if (countryCode.equals("+...."))
+        {
+            if (ActivityAuth.myCountryCode != null) countryCode = ActivityAuth.myCountryCode;
+        }
+        if (countryISO.equals(""))
+        {
+            if (ActivityAuth.myCountryISO != null) countryISO = ActivityAuth.myCountryISO;
+        }
 
         initPhoneInputLayout(view);
         initPassInputLayout(view);
         initPassConfInputLayout(view);
+        initSelectCountryView(view);
 
         errorPhoneTextView = (TextView) view.findViewById(R.id.error_phone);
         errorPassTextView = (TextView) view.findViewById(R.id.error_pass);
@@ -127,18 +153,41 @@ public class FragmentSingUp extends Fragment
 
                 if (!isValid) return;
 
-                fragmentListener.onLogIn();
-                new SignUpTask().execute(myPhoneNumber, password);
+                fragmentListener.onLogIn(countryCode + myPhoneNumber);
+                //new SignUpTask().execute(myPhoneNumber, password);
             }
         });
 
         return view;
     }
 
+    private void initSelectCountryView(View view)
+    {
+        selectCountryBtnView = view.findViewById(R.id.select_country_btn_view);
+        selectCountryBtnView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), ActivitySelectCountry.class);
+                intent.putExtra(C.EXTRA_COUNTRY_ISO, countryISO);
+                startActivityForResult(intent, C.REQUEST_CODE_SELECT_COUNTRY);
+            }
+        });
+
+        countryCodeTextView = (TextView) view.findViewById(R.id.country_code);
+        countryCodeTextView.setText(countryCode);
+    }
+
     private void initPhoneInputLayout(View view)
     {
         phoneET = (TextInputEditText) view.findViewById(R.id.edit_text_phone);
-        phoneET.setText(ActivityAuth.myPhoneNumber);
+        if (ActivityAuth.myPhoneNumber != null)
+        {
+            if (ActivityAuth.myPhoneNumber.startsWith(countryCode))
+            {
+                String ph = ActivityAuth.myPhoneNumber.substring(countryCode.length());
+                phoneET.setText(ph);
+            }
+        }
 
         view.findViewById(R.id.edit_text_clear_phone).setOnClickListener(new View.OnClickListener() {
             @Override

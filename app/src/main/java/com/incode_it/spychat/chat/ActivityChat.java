@@ -117,7 +117,7 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
     @Override
     public void onSecurityClose() {
         Intent intent = new Intent();
-        setResult(C.SECURITY_EXIT, intent);
+        setResult(C.REQUEST_CODE_SECURITY_EXIT, intent);
         finish();
     }
 
@@ -128,7 +128,7 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
         startActivity(intent);
 
         intent = new Intent();
-        setResult(C.SECURITY_EXIT, intent);
+        setResult(C.REQUEST_CODE_SECURITY_EXIT, intent);
         finish();
     }
 

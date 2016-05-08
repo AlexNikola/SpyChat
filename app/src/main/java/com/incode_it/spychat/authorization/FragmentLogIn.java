@@ -1,21 +1,21 @@
 package com.incode_it.spychat.authorization;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.incode_it.spychat.contacts.ActivityMain;
+import com.incode_it.spychat.country_selection.ActivitySelectCountry;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.R;
@@ -27,12 +27,12 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Locale;
 
 public class FragmentLogIn extends Fragment
 {
     private static final String TAG = "myhttp";
     private Context context;
-    private View view;
 
     private OnFragmentsAuthorizationListener fragmentListener;
     private TextInputEditText phoneET;
@@ -44,8 +44,13 @@ public class FragmentLogIn extends Fragment
     private View logInBtnText;
     private View progressBarView;
     private View logInBtnView;
+    private View selectCountryBtnView;
 
-    private String myPhoneNumber = "";
+    private TextView countryCodeTextView;
+
+    private String myPhoneNumber;
+    private String countryCode = "+....";
+    private String countryISO = "";
 
     public FragmentLogIn() {
         // Required empty public constructor
@@ -68,10 +73,23 @@ public class FragmentLogIn extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        view = inflater.inflate(R.layout.fragment_log_in, container, false);
+        View view = inflater.inflate(R.layout.fragment_log_in, container, false);
+
+        if (countryCode.equals("+...."))
+        {
+            if (ActivityAuth.myCountryCode != null) countryCode = ActivityAuth.myCountryCode;
+        }
+        if (countryISO.equals(""))
+        {
+            if (ActivityAuth.myCountryISO != null) countryISO = ActivityAuth.myCountryISO;
+        }
+
 
         initPhoneInputLayout(view);
         initPassInputLayout(view);
+        initSelectCountryView(view);
+
+
 
         errorPhoneTextView = (TextView) view.findViewById(R.id.error_phone);
         errorPassTextView = (TextView) view.findViewById(R.id.error_pass);
@@ -86,9 +104,19 @@ public class FragmentLogIn extends Fragment
                 myPhoneNumber = phoneET.getText().toString();
                 String password = passET.getText().toString();
                 boolean isValid = true;
-                if (myPhoneNumber.length() < 1)
+                if ((myPhoneNumber.length() < 1 && countryCode.equals("+....")) || myPhoneNumber.length() < 1)
                 {
                     errorPhoneTextView.setText(R.string.enter_phone_number);
+                    isValid = false;
+                }
+                else if (countryCode.equals("+...."))
+                {
+                    errorPhoneTextView.setText(R.string.enter_country_code);
+                    isValid = false;
+                }
+                else if (!countryCode.startsWith("+"))
+                {
+                    errorPhoneTextView.setText(R.string.enter_country_code);
                     isValid = false;
                 }
                 else errorPhoneTextView.setText("");
@@ -102,18 +130,53 @@ public class FragmentLogIn extends Fragment
                 else errorPassTextView.setText("");
                 if (!isValid) return;
 
-                fragmentListener.onLogIn();
-                new LogInTask().execute(myPhoneNumber, password);
+                fragmentListener.onLogIn(countryCode + myPhoneNumber);
+                //new LogInTask().execute(myPhoneNumber, password);
             }
         });
 
         return view;
     }
 
+    private void initSelectCountryView(View view)
+    {
+        selectCountryBtnView = view.findViewById(R.id.select_country_btn_view);
+        selectCountryBtnView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), ActivitySelectCountry.class);
+                intent.putExtra(C.EXTRA_COUNTRY_ISO, countryISO);
+                startActivityForResult(intent, C.REQUEST_CODE_SELECT_COUNTRY);
+            }
+        });
+
+        countryCodeTextView = (TextView) view.findViewById(R.id.country_code);
+        countryCodeTextView.setText(countryCode);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d("qqqqq", "FL onActivityResult resultCode "+resultCode);
+        if (requestCode == C.REQUEST_CODE_SELECT_COUNTRY) {
+            if (resultCode == Activity.RESULT_OK) {
+                countryCode = data.getStringExtra(C.EXTRA_COUNTRY_CODE);
+                countryISO = data.getStringExtra(C.EXTRA_COUNTRY_ISO);
+                countryCodeTextView.setText(countryCode);
+            }
+        }
+    }
+
     private void initPhoneInputLayout(View view)
     {
         phoneET = (TextInputEditText) view.findViewById(R.id.edit_text_phone);
-        phoneET.setText(ActivityAuth.myPhoneNumber);
+        if (ActivityAuth.myPhoneNumber != null)
+        {
+            if (ActivityAuth.myPhoneNumber.startsWith(countryCode))
+            {
+                String ph = ActivityAuth.myPhoneNumber.substring(countryCode.length());
+                phoneET.setText(ph);
+            }
+        }
 
         view.findViewById(R.id.edit_text_clear_phone).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -126,7 +189,6 @@ public class FragmentLogIn extends Fragment
     private void initPassInputLayout(View view)
     {
         passET = (TextInputEditText) view.findViewById(R.id.edit_text_pass);
-
         view.findViewById(R.id.edit_text_clear_pass).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -70,7 +70,7 @@ public class ActivityMain extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setResult(C.REQUEST_CODE_SKIP_AUTH);
+        setResult(C.REQUEST_CODE_ACTIVITY_CONTACTS);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         requestPin = getIntent().getBooleanExtra(C.REQUEST_PIN, true);
 

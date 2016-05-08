@@ -12,8 +12,38 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin">
 
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/auth_edit_text_margin_top"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
         <FrameLayout
-            android:layout_marginTop="@dimen/auth_edit_text_margin_top"
+            android:id="@+id/select_country_btn_view"
+            android:background="@drawable/bg_phone_input"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="@dimen/auth_bg_edit_text_margin_bottom"
+            android:layout_marginRight="@dimen/auth_bg_edit_text_margin_bottom"
+            android:layout_marginEnd="@dimen/auth_bg_edit_text_margin_bottom"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/auth_bg_edit_text_height">
+
+            <TextView
+                android:id="@+id/country_code"
+                android:paddingLeft="@dimen/auth_edit_text_padding"
+                android:paddingStart="@dimen/auth_edit_text_padding"
+                android:paddingRight="@dimen/auth_edit_text_padding"
+                android:paddingEnd="@dimen/auth_edit_text_padding"
+                android:gravity="center"
+                android:text="+380"
+                android:textColor="#000000"
+                android:textSize="20sp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+        </FrameLayout>
+
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -59,6 +89,10 @@
             </FrameLayout>
 
         </FrameLayout>
+
+    </LinearLayout>
+
+
 
         <TextView
             android:id="@+id/error_phone"

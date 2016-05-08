@@ -28,6 +28,8 @@
 
     <!--errors-->
     <string name="enter_phone_number">Enter phone number</string>
+    <string name="enter_country_code">Enter country code</string>
+    <string name="incorrect_country_code">Incorrect country code</string>
     <string name="passwords_not_match">Passwords do not match</string>
     <string name="enter_password">Enter password</string>
     <string name="short_password">Password is too short (minimum is 6 characters)</string>
@@ -42,6 +44,8 @@
     <string name="settings_dialog_title">SETTINGS</string>
     <string name="success_dialog">Settings</string>
     <string name="error_dialog">Settings</string>
+
+    <string name="select_country">Select country</string>
 
     <string-array name="success_massage_dialog">
         <item>Set time</item>
