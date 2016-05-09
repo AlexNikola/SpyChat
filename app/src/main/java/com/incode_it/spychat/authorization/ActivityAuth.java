@@ -1,12 +1,12 @@
 package com.incode_it.spychat.authorization;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
@@ -16,7 +16,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -26,9 +25,9 @@ import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
-import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.country_selection.Country;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
@@ -51,7 +50,8 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
         {
             Intent intent = new Intent(this, ActivityMain.class);
             intent.putExtra(C.REQUEST_PIN, true);
-            startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_CONTACTS);
+            startActivity(intent);
+            finish();
             return;
         }
         else
@@ -91,14 +91,14 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     {
         Log.i(TAG, "onLogIn");
         hideKeyBoard();
-        showPhone(phone);
+        //showPhone(phone);
     }
 
     @Override
     public void onSignUp(String phone) {
         Log.i(TAG, "onSignUp");
         hideKeyBoard();
-        showPhone(phone);
+        //showPhone(phone);
     }
 
     private void showPhone(String phone)
@@ -143,7 +143,8 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
                 .apply();
         Intent intent = new Intent(this, ActivityMain.class);
         intent.putExtra(C.REQUEST_PIN, false);
-        startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_CONTACTS);
+        startActivity(intent);
+        finish();
     }
 
     @Override
@@ -191,12 +192,6 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("qqqqq", "AA onActivityResult resultCode "+resultCode);
-
-        if (requestCode == C.REQUEST_CODE_ACTIVITY_CONTACTS) {
-            if (resultCode == Activity.RESULT_CANCELED) {
-                finish();
-            }
-        }
 
     }
 

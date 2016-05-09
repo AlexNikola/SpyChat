@@ -3,20 +3,16 @@ package com.incode_it.spychat.contacts;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
@@ -24,28 +20,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.incode_it.spychat.chat.ActivityChat;
 import com.incode_it.spychat.C;
-import com.incode_it.spychat.ContactsComparator;
-import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.R;
-import com.incode_it.spychat.data_base.MyDbHelper;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.concurrent.TimeUnit;
 
 
 public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContactRecyclerViewAdapter.ViewHolder> {
@@ -62,7 +46,9 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         this.mContacts = mContacts;
         typeface = Typeface.createFromAsset(context.getAssets(), "fonts/OpenSans-Light.ttf");
 
-        noPhotoBitmap = BitmapFactory.decodeResource(this.context.getResources(), R.drawable.profile);
+        noPhotoBitmap = C.getNoPhotoBitmap(context);
+        Log.d("myPerm", "noPhotoBitmap "+noPhotoBitmap);
+
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;
         mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
@@ -149,8 +135,8 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                     if (mContact.isRegistered)
                     {
                         Intent intent = new Intent(context, ActivityChat.class);
-                        intent.putExtra(C.PHONE_NUMBER, mContact.phoneNumber);
-                        ((Activity)context).startActivityForResult(intent, 0);
+                        intent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, mContact.phoneNumber);
+                        ((Activity)context).startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_CHAT);
                     }
                     else
                     {

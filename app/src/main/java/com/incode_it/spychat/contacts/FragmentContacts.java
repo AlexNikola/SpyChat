@@ -41,6 +41,8 @@ import java.util.Collections;
 
 public class FragmentContacts extends Fragment {
 
+    public static final String FRAGMENT_CONTACTS = "fr_con";
+
     private RecyclerView recyclerView;
     private ArrayList<MyContacts.Contact> mContacts = new ArrayList<>();
     private MyContactRecyclerViewAdapter adapter;
@@ -80,15 +82,15 @@ public class FragmentContacts extends Fragment {
     {
 
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
-        loadMyContacts();
-        initRecyclerView();
+        mContacts = MyContacts.getContactsList(getContext());
         localUpdateContactList();
         updateContacts();
+        initRecyclerView();
 
         return recyclerView;
     }
 
-    private void loadMyContacts()
+    /*private void loadMyContacts()
     {
         Log.d("lodl", "loadMyContacts");
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
@@ -105,9 +107,9 @@ public class FragmentContacts extends Fragment {
 
         }
 
-    }
+    }*/
 
-    @Override
+    /*@Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         Log.d("lodl", "onRequestPermissionsResult " + requestCode);
         if (requestCode == C.READ_CONTACTS_CODE)
@@ -126,7 +128,7 @@ public class FragmentContacts extends Fragment {
                         Toast.LENGTH_SHORT).show();
             }
         }
-    }
+    }*/
 
     private void localUpdateContactList()
     {
@@ -146,7 +148,6 @@ public class FragmentContacts extends Fragment {
         }
 
         Collections.sort(mContacts, new ContactsComparator());
-        adapter.notifyDataSetChanged();
         Log.d("lodl", "mContacts "+mContacts.size());
     }
 
@@ -228,7 +229,6 @@ public class FragmentContacts extends Fragment {
                     }
                 }
                 Collections.sort(mContacts, new ContactsComparator());
-                adapter.notifyDataSetChanged();
                 Log.d("lodl", "mContacts "+mContacts.size());
             }
             else
@@ -237,7 +237,6 @@ public class FragmentContacts extends Fragment {
                 Context context = getContext();
                 if (context != null)
                 {
-                    adapter.notifyDataSetChanged();
                     Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show();
                 }
 
@@ -355,11 +354,6 @@ public class FragmentContacts extends Fragment {
 
         return true;
     }
-
-
-
-
-
 
     @Override
     public void onStop() {

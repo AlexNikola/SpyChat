@@ -3,6 +3,7 @@ package com.incode_it.spychat.contacts;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,11 +12,14 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
@@ -35,13 +39,12 @@ import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 import java.util.Timer;
 
 public class ActivityMain extends AppCompatActivity implements
-        TimePickerDialog.OnTimeSetListener, FragmentPin.FragmentPinListener
+        TimePickerDialog.OnTimeSetListener, FragmentPin.FragmentPinListener, GestureDetector.OnGestureListener
 
 {
     private static final String TAG = "debb";
 
     public static final String IS_NAV_OPEN = "is_nav_open";
-    public static final String FRAGMENT_CONTACTS = "fr_con";
 
     private static final int DURATION_SLIDE = 300;
     private static final int DURATION_SCALE = 150;
@@ -70,7 +73,6 @@ public class ActivityMain extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setResult(C.REQUEST_CODE_ACTIVITY_CONTACTS);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         requestPin = getIntent().getBooleanExtra(C.REQUEST_PIN, true);
 
@@ -79,7 +81,8 @@ public class ActivityMain extends AppCompatActivity implements
             isNavMenuOpen = savedInstanceState.getBoolean(IS_NAV_OPEN, false);
         }
 
-        contentContainer = findViewById(R.id.content_container);
+        initContentContainer();
+
         View navContainer = findViewById(R.id.nav_container);
         assert navContainer != null;
         ViewGroup.LayoutParams layoutParams = navContainer.getLayoutParams();
@@ -111,18 +114,100 @@ public class ActivityMain extends AppCompatActivity implements
     }
 
 
+    float xDown = 0;
+    private void initContentContainer()
+    {
+        contentContainer = findViewById(R.id.content_container);
+        /*contentContainer.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                Log.d("mytou", "onTouch");
+                switch (event.getActionMasked())
+                {
+                    case MotionEvent.ACTION_DOWN:
+                        if (contentContainer.getAnimation() != null)contentContainer.getAnimation().cancel();
+                        xDown = event.getX();
+                        break;
 
+                    case MotionEvent.ACTION_MOVE:
+                        float translation;
+                        if ((event.getRawX() - xDown) > 200)
+                        {
+                            translation = 200;
+                        }
+                        else if ((event.getRawX() - xDown) < 0)
+                        {
+                            translation = 0;
+                        }
+                        else translation = event.getRawX() - xDown;
+
+                        contentContainer.setTranslationX(translation);
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                        if ((event.getRawX() - xDown) < 100)
+                        {
+                            contentContainer.animate().translationX(0).setDuration(100).start();
+                        }
+                        else
+                        {
+                            contentContainer.animate().translationX(200).setDuration(100).start();
+                        }
+                        break;
+                }
+                return false;
+            }
+        });*/
+    }
+
+    /*@Override
+    public boolean onTouchEvent(MotionEvent event) {
+        switch (event.getActionMasked())
+        {
+            case MotionEvent.ACTION_DOWN:
+                if (contentContainer.getAnimation() != null)contentContainer.getAnimation().cancel();
+                xDown = event.getX();
+                break;
+
+            case MotionEvent.ACTION_MOVE:
+                float translation;
+                if ((event.getRawX() - xDown) > 200)
+                {
+                    translation = 200;
+                }
+                else if ((event.getRawX() - xDown) < 0)
+                {
+                    translation = 0;
+                }
+                else translation = event.getRawX() - xDown;
+
+                contentContainer.setTranslationX(translation);
+                break;
+
+            case MotionEvent.ACTION_UP:
+                if ((event.getRawX() - xDown) < 100)
+                {
+                    contentContainer.animate().translationX(0).setDuration(100).start();
+                }
+                else
+                {
+                    contentContainer.animate().translationX(200).setDuration(100).start();
+                }
+                break;
+        }
+        return true;
+    }*/
 
     private void setupFragment()
     {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        Fragment fragment = fragmentManager.findFragmentByTag(FRAGMENT_CONTACTS);
+        Fragment fragment = fragmentManager.findFragmentByTag(FragmentContacts.FRAGMENT_CONTACTS);
         if (fragment == null)
         {
             FragmentContacts fragmentContacts = FragmentContacts.newInstance();
-            fragmentTransaction.replace(R.id.fragments_container, fragmentContacts, FRAGMENT_CONTACTS);
+            fragmentTransaction.replace(R.id.fragments_container, fragmentContacts, FragmentContacts.FRAGMENT_CONTACTS);
             fragmentTransaction.commit();
         }
     }
@@ -147,9 +232,11 @@ public class ActivityMain extends AppCompatActivity implements
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         requestPin = false;
         Log.d("lifes", "onActivityResult");
-        if (resultCode == C.REQUEST_CODE_SECURITY_EXIT)
-        {
-            finish();
+        if (requestCode == C.REQUEST_CODE_ACTIVITY_CHAT) {
+             if (resultCode == C.RESULT_EXIT)
+            {
+                finish();
+            }
         }
     }
 
@@ -472,7 +559,7 @@ public class ActivityMain extends AppCompatActivity implements
     @Override
     public void onSecurityLogOut() {
         sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
-        Intent intent = new Intent(this, ActivityAuth.class);
+        Intent intent = new Intent(ActivityMain.this, ActivityAuth.class);
         startActivity(intent);
         finish();
     }
@@ -499,4 +586,33 @@ public class ActivityMain extends AppCompatActivity implements
 
     }
 
+    @Override
+    public boolean onDown(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+        return false;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent e) {
+
+    }
+
+    @Override
+    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        return false;
+    }
 }

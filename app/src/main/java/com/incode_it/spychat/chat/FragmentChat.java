@@ -85,7 +85,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public static FragmentChat newInstance(String phone) {
         FragmentChat fragment = new FragmentChat();
         Bundle bundle = new Bundle();
-        bundle.putString(C.PHONE_NUMBER, phone);
+        bundle.putString(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -123,7 +123,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
         if (getArguments() != null) {
-            opponentPhone = getArguments().getString(C.PHONE_NUMBER);
+            opponentPhone = getArguments().getString(C.EXTRA_OPPONENT_PHONE_NUMBER);
         }
     }
 
@@ -204,6 +204,11 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     {
         if (myPhoneNumber == null)
         {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+            myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, null);
+        }
+        /*if (myPhoneNumber == null)
+        {
             if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                     getContext().checkSelfPermission(Manifest.permission.READ_SMS)
                             != PackageManager.PERMISSION_GRANTED)
@@ -216,11 +221,11 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 TelephonyManager tm = (TelephonyManager)getContext().getSystemService(Context.TELEPHONY_SERVICE);
                 myPhoneNumber = tm.getLine1Number();
             }
-        }
+        }*/
 
     }
 
-    @Override
+    /*@Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (requestCode == C.READ_SMS_CODE)
         {
@@ -252,7 +257,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                         Toast.LENGTH_SHORT).show();
             }
         }
-    }
+    }*/
 
     private void loadMessages()
     {
@@ -385,7 +390,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             public void onReceive(Context context, Intent intent)
             {
                 String textMessage = intent.getStringExtra(C.MESSAGE);
-                String phone = intent.getStringExtra(C.PHONE_NUMBER);
+                String phone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
                 if (!phone.equals(contact.phoneNumber)) return;
                 Message message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_SUCCESS);
                 messageArrayList.add(message);

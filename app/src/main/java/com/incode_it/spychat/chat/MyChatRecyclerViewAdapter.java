@@ -1,9 +1,13 @@
 package com.incode_it.spychat.chat;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
+import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -13,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.MyTimerTask;
@@ -47,10 +52,11 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         this.contactBitmap = contactBitmap;
         this.listener = listener;
         this.chatAdapterListener = chatAdapterListener;
-        noPhotoBitmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.profile);
-        TelephonyManager tm = (TelephonyManager)((Context)listener).getSystemService(Context.TELEPHONY_SERVICE);
-        myPhoneNumber = tm.getLine1Number();
-        if (myPhoneNumber == null) myPhoneNumber = "";
+
+        noPhotoBitmap = C.getNoPhotoBitmap(context);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, null);
     }
 
     @Override

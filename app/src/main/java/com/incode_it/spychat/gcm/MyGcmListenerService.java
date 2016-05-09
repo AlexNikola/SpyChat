@@ -53,7 +53,7 @@ public class MyGcmListenerService extends GcmListenerService {
 
         MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), new Message(message, phone, myPhoneNumber, Message.STATE_SUCCESS));
         Intent intent = new Intent(QuickstartPreferences.RECEIVE_MESSAGE);
-        intent.putExtra(C.PHONE_NUMBER, phone);
+        intent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
         intent.putExtra(C.MESSAGE, message);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
@@ -73,7 +73,7 @@ public class MyGcmListenerService extends GcmListenerService {
      */
     private void sendNotification(String message, String phone) {
         Intent intent = new Intent(this, ActivityChat.class);
-        intent.putExtra(C.PHONE_NUMBER, phone);
+        intent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
                 PendingIntent.FLAG_ONE_SHOT);

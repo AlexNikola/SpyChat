@@ -7,11 +7,7 @@ public final class MReaderContract
     public MReaderContract() {
     }
 
-    /*public static abstract class Contact implements BaseColumns {
-        public static final String TABLE_NAME = "contact";
-        public static final String PHONE_NUMBER = "phone_number";
-        public static final String CHAT_ID = "chat_id";
-    }*/
+
 
     public static abstract class Chat implements BaseColumns {
         public static final String TABLE_NAME = "chat";
@@ -31,10 +27,15 @@ public final class MReaderContract
 
     public static abstract class Countries implements BaseColumns {
         public static final String TABLE_NAME = "countries";
-        public static final String CODE_ISO = "code";
+        public static final String CODE = "code";
         public static final String NAME = "name";
         public static final String NATIVE = "native";
-        public static final String CODE_PHONE = "phone";
+        public static final String PHONE = "phone";
+        public static final String CONTINENT = "continent";
+        public static final String CAPITAL = "capital";
+        public static final String CURRENCY = "currency";
+        public static final String LANGUAGES = "languages";
+
     }
 
 }

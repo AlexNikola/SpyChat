@@ -36,10 +36,19 @@ public class ActivitySelectCountry extends AppCompatActivity
         selectedISO = getIntent().getStringExtra(C.EXTRA_COUNTRY_ISO);
         countryArrayList = MyDbHelper.readCountries(new MyDbHelper(this).getReadableDatabase());
 
+        int position = 0;
+        for (int i = 0; i < countryArrayList.size(); i++)
+        {
+            if (countryArrayList.get(i).codeISO.equalsIgnoreCase(selectedISO))
+            {
+                position = i;
+            }
+        }
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
         CountryAdapter adapter = new CountryAdapter();
         assert recyclerView != null;
         recyclerView.addItemDecoration(new DividerItemDecoration(this, R.drawable.country_list_divider));
+        recyclerView.scrollToPosition(position);
         recyclerView.setAdapter(adapter);
 
 
@@ -91,7 +100,7 @@ public class ActivitySelectCountry extends AppCompatActivity
             }
             else
             {
-                holder.nameNative.setTextColor(Color.BLACK);
+                holder.nameNative.setTextColor(Color.DKGRAY);
                 holder.code.setTextColor(Color.BLACK);
             }
             holder.code.setText(code);

@@ -48,7 +48,7 @@ public class FragmentLogIn extends Fragment
 
     private TextView countryCodeTextView;
 
-    private String myPhoneNumber;
+    private String myPhoneNumber = "";
     private String countryCode = "+....";
     private String countryISO = "";
 
@@ -83,7 +83,7 @@ public class FragmentLogIn extends Fragment
         {
             if (ActivityAuth.myCountryISO != null) countryISO = ActivityAuth.myCountryISO;
         }
-
+        if (ActivityAuth.myPhoneNumber != null) myPhoneNumber = ActivityAuth.myPhoneNumber;
 
         initPhoneInputLayout(view);
         initPassInputLayout(view);
@@ -131,7 +131,7 @@ public class FragmentLogIn extends Fragment
                 if (!isValid) return;
 
                 fragmentListener.onLogIn(countryCode + myPhoneNumber);
-                //new LogInTask().execute(myPhoneNumber, password);
+                new LogInTask().execute(countryCode + myPhoneNumber, password);
             }
         });
 
@@ -171,9 +171,9 @@ public class FragmentLogIn extends Fragment
         phoneET = (TextInputEditText) view.findViewById(R.id.edit_text_phone);
         if (ActivityAuth.myPhoneNumber != null)
         {
-            if (ActivityAuth.myPhoneNumber.startsWith(countryCode))
+            if (myPhoneNumber.startsWith(countryCode))
             {
-                String ph = ActivityAuth.myPhoneNumber.substring(countryCode.length());
+                String ph = myPhoneNumber.substring(countryCode.length());
                 phoneET.setText(ph);
             }
         }
@@ -254,7 +254,7 @@ public class FragmentLogIn extends Fragment
                         String accessToken = jsonResponse.getString("accessToken");
                         String refreshToken = jsonResponse.getString("refreshToken");
 
-                        fragmentListener.onAuthorizationSuccess(accessToken, refreshToken, myPhoneNumber);
+                        fragmentListener.onAuthorizationSuccess(accessToken, refreshToken, countryCode + myPhoneNumber);
 
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");

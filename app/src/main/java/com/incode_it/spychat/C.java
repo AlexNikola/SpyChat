@@ -1,9 +1,10 @@
 package com.incode_it.spychat;
 
 
-import com.incode_it.spychat.country_selection.Country;
-
-import java.util.ArrayList;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 
 public class C
 {
@@ -13,8 +14,8 @@ public class C
 
     public static final String EXTRA_COUNTRY_CODE = "country_code";
     public static final String EXTRA_COUNTRY_ISO = "country_iso";
+    public static final String EXTRA_OPPONENT_PHONE_NUMBER = "phone_number";
 
-    public static final String PHONE_NUMBER = "phone_number";
     public static final String MESSAGE = "massage";
 
     public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
@@ -34,6 +35,10 @@ public class C
     public static final int REQUEST_CODE_SECURITY_EXIT = 2;
     public static final int REQUEST_CODE_ACTIVITY_CONTACTS = 3;
     public static final int REQUEST_CODE_SELECT_COUNTRY = 4;
+    public static final int REQUEST_CODE_ACTIVITY_CHAT = 5;
+
+    public static final int RESULT_EXIT = 2;
+    public static final int RESULT_LOG_OUT = 3;
 
     public static final int READ_SMS_CODE = 0;
     public static final int READ_CONTACTS_CODE = 1;
@@ -43,28 +48,16 @@ public class C
         return (int) System.currentTimeMillis();
     }
 
-    /*public static ArrayList<Country> getCountryList()
+    public static Bitmap getNoPhotoBitmap(Context context)
     {
-        ArrayList<Country> arr = new ArrayList<>();
-        arr.add(new Country("India", "India", "+91", "IN"));
-        arr.add(new Country("Brasil", "Brazil", "+55", "BR"));
-        arr.add(new Country("España", "Spain", "+34", "ES"));
-        arr.add(new Country("Deutschland", "Germany", "+49", "DE"));
-        arr.add(new Country("Mexico", "Mexico", "+52", "MX"));
-        arr.add(new Country("Italia", "Italy", "+39", "IT"));
-        arr.add(new Country("Aland", "Aland Islands", "+358", "AX"));
-        arr.add(new Country("American Samoa", "American Samoa", "+1", "AS"));
-        arr.add(new Country("Andorra", "Andorra", "+376", "AD"));
-        arr.add(new Country("Angola", "Angola", "+244", "AO"));
-        arr.add(new Country("Anguilla", "Anguilla", "+1", "AI"));
-        arr.add(new Country("Antarctica", "Antarctica", "+672", "AQ"));
-        arr.add(new Country("Antigua and Barbuda", "Antigua and Barbuda", "+1", "AG"));
-        arr.add(new Country("Argentina", "Argentina", "+54", "AR"));
-        arr.add(new Country("Aruba", "Aruba", "+297", "AW"));
-        arr.add(new Country("Ascension Island", "Ascension Island", "+247", "SH-AC"));
-        arr.add(new Country("Australia", "Australia", "+61", "AU"));
-        arr.add(new Country("Україна", "Ukraine", "+380", "UA"));
+        Drawable drawable = context.getResources().getDrawable(R.drawable.profile);
+        Canvas canvas = new Canvas();
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap);
+        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        drawable.draw(canvas);
 
-        return arr;
-    }*/
+        return bitmap;
+    }
+
 }

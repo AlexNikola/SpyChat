@@ -37,10 +37,10 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-
+        setResult(RESULT_OK);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
-        phone = getIntent().getStringExtra(C.PHONE_NUMBER);
+        phone = getIntent().getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
@@ -116,19 +116,16 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
 
     @Override
     public void onSecurityClose() {
-        Intent intent = new Intent();
-        setResult(C.REQUEST_CODE_SECURITY_EXIT, intent);
+        setResult(C.RESULT_EXIT);
         finish();
     }
 
     @Override
     public void onSecurityLogOut() {
+        setResult(C.RESULT_EXIT);
         sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
         Intent intent = new Intent(this, ActivityAuth.class);
         startActivity(intent);
-
-        intent = new Intent();
-        setResult(C.REQUEST_CODE_SECURITY_EXIT, intent);
         finish();
     }
 

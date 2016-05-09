@@ -98,6 +98,7 @@ public class FragmentSingUp extends Fragment
         {
             if (ActivityAuth.myCountryISO != null) countryISO = ActivityAuth.myCountryISO;
         }
+        if (ActivityAuth.myPhoneNumber != null) myPhoneNumber = ActivityAuth.myPhoneNumber;
 
         initPhoneInputLayout(view);
         initPassInputLayout(view);
@@ -154,7 +155,7 @@ public class FragmentSingUp extends Fragment
                 if (!isValid) return;
 
                 fragmentListener.onLogIn(countryCode + myPhoneNumber);
-                //new SignUpTask().execute(myPhoneNumber, password);
+                new SignUpTask().execute(countryCode + myPhoneNumber, password);
             }
         });
 
@@ -182,9 +183,9 @@ public class FragmentSingUp extends Fragment
         phoneET = (TextInputEditText) view.findViewById(R.id.edit_text_phone);
         if (ActivityAuth.myPhoneNumber != null)
         {
-            if (ActivityAuth.myPhoneNumber.startsWith(countryCode))
+            if (myPhoneNumber.startsWith(countryCode))
             {
-                String ph = ActivityAuth.myPhoneNumber.substring(countryCode.length());
+                String ph = myPhoneNumber.substring(countryCode.length());
                 phoneET.setText(ph);
             }
         }
@@ -290,7 +291,7 @@ public class FragmentSingUp extends Fragment
                         String accessToken = jsonResponse.getString("accessToken");
                         String refreshToken = jsonResponse.getString("refreshToken");
 
-                        fragmentListener.onAuthorizationSuccess(accessToken, refreshToken, myPhoneNumber);
+                        fragmentListener.onAuthorizationSuccess(accessToken, refreshToken, countryCode + myPhoneNumber);
 
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");
