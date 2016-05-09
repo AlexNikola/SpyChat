@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -24,7 +25,8 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
     private SharedPreferences sharedPreferences;
     private ImageView btnCancel;
     private Button btnClear;
-    private TextView pinTextView;
+    private TextView pinText_0, pinText_1, pinText_2, pinText_3;
+    private int currentPinText;
     private String enteredPinCode = "";
     private Button logOutBtn;
 
@@ -50,7 +52,10 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
         getDialog().getWindow().setDimAmount(0.95f);
         setCancelable(false);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        pinTextView = (TextView) view.findViewById(R.id.pin_text);
+        pinText_0 = (TextView) view.findViewById(R.id.pin_text_0);
+        pinText_1 = (TextView) view.findViewById(R.id.pin_text_1);
+        pinText_2 = (TextView) view.findViewById(R.id.pin_text_2);
+        pinText_3 = (TextView) view.findViewById(R.id.pin_text_3);
         logOutBtn = (Button) view.findViewById(R.id.security_log_out);
         logOutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,9 +68,16 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
         btnClear.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                currentPinText = 0;
                 enteredPinCode = "";
-                pinTextView.setTextColor(Color.WHITE);
-                pinTextView.setText(enteredPinCode);
+                pinText_0.setText("");
+                pinText_1.setText("");
+                pinText_2.setText("");
+                pinText_3.setText("");
+                pinText_0.setBackgroundResource(R.drawable.bg_pin_confirm_normal);
+                pinText_1.setBackgroundResource(R.drawable.bg_pin_confirm_normal);
+                pinText_2.setBackgroundResource(R.drawable.bg_pin_confirm_normal);
+                pinText_3.setBackgroundResource(R.drawable.bg_pin_confirm_normal);
             }
         });
         btnCancel = (ImageView) view.findViewById(R.id.btn_cancel);
@@ -127,22 +139,45 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
                 number = "0";
                 break;
         }
-        if (enteredPinCode.length() < 4)
+        if (currentPinText == 0)
         {
+            pinText_0.setText("*");
             enteredPinCode += number;
-            pinTextView.setText(enteredPinCode);
-            String pin = sharedPreferences.getString(C.PIN, "1111");
+        }
+        else if (currentPinText == 1)
+        {
+            pinText_1.setText("*");
+            enteredPinCode += number;
+        }
+        else if (currentPinText == 2)
+        {
+            pinText_2.setText("*");
+            enteredPinCode += number;
+        }
+        else if (currentPinText == 3)
+        {
+            pinText_3.setText("*");
+            enteredPinCode += number;
+        }
+
+        if (currentPinText == 3)
+        {
+            String pin = sharedPreferences.getString(C.SHARED_PIN, "0000");
             if (enteredPinCode.equals(pin))
             {
                 getDialog().dismiss();
             }
-            else if (enteredPinCode.length() == 4)
+            else
             {
-                pinTextView.setTextColor(Color.RED);
+                pinText_0.setBackgroundResource(R.drawable.bg_pin_confirm_error);
+                pinText_1.setBackgroundResource(R.drawable.bg_pin_confirm_error);
+                pinText_2.setBackgroundResource(R.drawable.bg_pin_confirm_error);
+                pinText_3.setBackgroundResource(R.drawable.bg_pin_confirm_error);
             }
 
         }
 
+        currentPinText ++;
 
     }
 

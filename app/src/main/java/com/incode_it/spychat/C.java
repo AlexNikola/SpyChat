@@ -11,6 +11,7 @@ public class C
     public static final String SHARED_ACCESS_TOKEN = "access_token";
     public static final String SHARED_REFRESH_TOKEN = "refresh_token";
     public static final String SHARED_MY_PHONE_NUMBER = "my_phone_number";
+    public static final String SHARED_PIN = "my_pin";
 
     public static final String EXTRA_COUNTRY_CODE = "country_code";
     public static final String EXTRA_COUNTRY_ISO = "country_iso";
@@ -28,7 +29,7 @@ public class C
     public static final String SETTING_VIBRATE = "is_vibrate_on";
     public static final String SETTING_PIN = "is_pin_on";
 
-    public static final String PIN = "my_pin";
+
 
     public static final String REQUEST_PIN = "request_pin";
 
@@ -36,6 +37,7 @@ public class C
     public static final int REQUEST_CODE_ACTIVITY_CONTACTS = 3;
     public static final int REQUEST_CODE_SELECT_COUNTRY = 4;
     public static final int REQUEST_CODE_ACTIVITY_CHAT = 5;
+    public static final int REQUEST_CODE_ACTIVITY_SETTINGS = 6;
 
     public static final int RESULT_EXIT = 2;
     public static final int RESULT_LOG_OUT = 3;

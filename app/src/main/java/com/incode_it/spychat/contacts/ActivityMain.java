@@ -3,7 +3,6 @@ package com.incode_it.spychat.contacts;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,7 +11,6 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -26,6 +24,7 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.incode_it.spychat.settings.ActivitySettings;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyTimerTask;
 import com.incode_it.spychat.R;
@@ -238,6 +237,24 @@ public class ActivityMain extends AppCompatActivity implements
                 finish();
             }
         }
+
+        timerImageView.setAlpha(0f);
+        timerImageView.setScaleX(0f);
+        timerImageView.setScaleY(0f);
+
+        settingsImageView.setAlpha(0f);
+        settingsImageView.setScaleX(0f);
+        settingsImageView.setScaleY(0f);
+
+        logOutImageView.setAlpha(0f);
+        logOutImageView.setScaleX(0f);
+        logOutImageView.setScaleY(0f);
+
+        contentContainer.setTranslationX(0f);
+        contentContainer.setScaleX(1f);
+        contentContainer.setScaleY(1f);
+        isNavMenuOpen = false;
+        toolbar.setNavigationIcon(R.drawable.nav_menu);
     }
 
 
@@ -291,8 +308,9 @@ public class ActivityMain extends AppCompatActivity implements
         settingsImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                startSettingsDialog();
+                Intent intent = new Intent(ActivityMain.this, ActivitySettings.class);
+                startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_SETTINGS);
+                //startSettingsDialog();
             }
         });
         logOutImageView.setOnClickListener(new View.OnClickListener() {

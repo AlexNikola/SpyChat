@@ -39,7 +39,7 @@ public class FragmentSettings extends DialogFragment implements CompoundButton.O
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
 
         pinInput = (EditText) view.findViewById(R.id.pin_editText);
-        String pin = sharedPreferences.getString(C.PIN, "");
+        String pin = sharedPreferences.getString(C.SHARED_PIN, "");
         pinInput.setText(pin);
         pinSave = (Button) view.findViewById(R.id.pin_save);
         pinSave.setOnClickListener(new View.OnClickListener() {
@@ -48,7 +48,7 @@ public class FragmentSettings extends DialogFragment implements CompoundButton.O
                 String pin = pinInput.getText().toString();
                 if (pin.length() == 4)
                 {
-                    sharedPreferences.edit().putString(C.PIN, pin).apply();
+                    sharedPreferences.edit().putString(C.SHARED_PIN, pin).apply();
                     Toast.makeText(getContext(), R.string.pin_saved, Toast.LENGTH_SHORT).show();
                 }
                 else

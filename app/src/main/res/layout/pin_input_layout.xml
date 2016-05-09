@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center">
+
+    <EditText
+        android:gravity="center"
+        android:maxLength="1"
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:layout_margin="5dp"
+        android:background="@drawable/selector_pin_input"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/pin_editText_0" />
+
+    <EditText
+        android:gravity="center"
+        android:maxLength="1"
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:layout_margin="5dp"
+        android:background="@drawable/selector_pin_input"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/pin_editText_1" />
+
+    <EditText
+        android:gravity="center"
+        android:maxLength="1"
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:layout_margin="5dp"
+        android:background="@drawable/selector_pin_input"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/pin_editText_2" />
+
+    <EditText
+        android:gravity="center"
+        android:maxLength="1"
+        android:padding="5dp"
+        android:textSize="20sp"
+        android:layout_margin="5dp"
+        android:background="@drawable/selector_pin_input"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:inputType="number"
+        android:ems="10"
+        android:id="@+id/pin_editText_3" />
+
+</LinearLayout>

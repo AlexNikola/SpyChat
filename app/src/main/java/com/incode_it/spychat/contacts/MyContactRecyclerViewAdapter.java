@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -72,9 +71,33 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
 
         if (holder.mContact.isRegistered)
         {
-            holder.verifyView.setVisibility(View.VISIBLE);
+            holder.verifyView.setImageResource(R.drawable.verified_user_24dp);
         }
-        else holder.verifyView.setVisibility(View.INVISIBLE);
+        else holder.verifyView.setImageResource(R.drawable.add_circle_outline);
+
+
+        if (position == 0)
+        {
+            String sep = String.valueOf(holder.mContact.name.charAt(0));
+            holder.alphabeticalText.setText(sep);
+            holder.alphabeticalSeparator.setVisibility(View.VISIBLE);
+        }
+        else if (position > 0)
+        {
+            String curr = String.valueOf(holder.mContact.name.charAt(0));
+            String prev = String.valueOf(mContacts.get(position - 1).name.charAt(0));
+            if (curr.equalsIgnoreCase(prev))
+            {
+                holder.alphabeticalSeparator.setVisibility(View.GONE);
+            }
+            else
+            {
+                String sep = String.valueOf(holder.mContact.name.charAt(0));
+                holder.alphabeticalText.setText(sep);
+                holder.alphabeticalSeparator.setVisibility(View.VISIBLE);
+            }
+        }
+
 
         /*String name = mContacts.get(position).name;
         final SpannableStringBuilder sb = new SpannableStringBuilder(name);
@@ -116,7 +139,9 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         public final TextView mNumberView;
         public final ImageView mImage;
         public MyContacts.Contact mContact;
-        public View verifyView;
+        public ImageView verifyView;
+        public TextView alphabeticalText;
+        public View alphabeticalSeparator;
 
         public ViewHolder(View view) {
             super(view);
@@ -124,9 +149,11 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             mNameView = (TextView) view.findViewById(R.id.name);
             mNumberView = (TextView) view.findViewById(R.id.number);
             mImage = (ImageView) view.findViewById(R.id.image);
-            verifyView = view.findViewById(R.id.verify);
+            verifyView = (ImageView) view.findViewById(R.id.verify);
             mNameView.setTypeface(typeface, Typeface.BOLD);
             mNumberView.setTypeface(typeface);
+            alphabeticalText = (TextView) view.findViewById(R.id.alphabetical_text);
+            alphabeticalSeparator = view.findViewById(R.id.alphabetical_separator);
 
             mView.setOnClickListener(new View.OnClickListener() {
                 @Override

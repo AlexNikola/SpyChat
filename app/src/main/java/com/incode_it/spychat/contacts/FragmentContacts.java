@@ -229,11 +229,11 @@ public class FragmentContacts extends Fragment {
                     }
                 }
                 Collections.sort(mContacts, new ContactsComparator());
+                if (adapter != null) adapter.notifyDataSetChanged();
                 Log.d("lodl", "mContacts "+mContacts.size());
             }
             else
             {
-
                 Context context = getContext();
                 if (context != null)
                 {
