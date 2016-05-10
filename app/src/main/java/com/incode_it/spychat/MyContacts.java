@@ -75,6 +75,7 @@ public class MyContacts
         public String phoneNumber;
         public Uri photoURI;
         public boolean isRegistered;
+        public int countUnread;
 
 
         public Contact(String name, String phoneNumber, Uri photoURI) {

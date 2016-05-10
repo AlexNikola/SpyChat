@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
@@ -21,6 +22,8 @@ import com.incode_it.spychat.R;
 
 public class FragmentPin extends DialogFragment implements View.OnClickListener {
     public static final String TAG = "FragmentPin";
+    private Vibrator vibrator;
+    private long vibrationTime = 50;
 
     private SharedPreferences sharedPreferences;
     private ImageView btnCancel;
@@ -51,6 +54,7 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
         // remove background dim
         getDialog().getWindow().setDimAmount(0.95f);
         setCancelable(false);
+        vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         pinText_0 = (TextView) view.findViewById(R.id.pin_text_0);
         pinText_1 = (TextView) view.findViewById(R.id.pin_text_1);
@@ -143,21 +147,26 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
         {
             pinText_0.setText("*");
             enteredPinCode += number;
+            vibrator.vibrate(vibrationTime);
+
         }
         else if (currentPinText == 1)
         {
             pinText_1.setText("*");
             enteredPinCode += number;
+            vibrator.vibrate(vibrationTime);
         }
         else if (currentPinText == 2)
         {
             pinText_2.setText("*");
             enteredPinCode += number;
+            vibrator.vibrate(vibrationTime);
         }
         else if (currentPinText == 3)
         {
             pinText_3.setText("*");
             enteredPinCode += number;
+            vibrator.vibrate(vibrationTime);
         }
 
         if (currentPinText == 3)

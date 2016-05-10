@@ -1,34 +1,29 @@
 package com.incode_it.spychat.chat;
 
 
-import android.Manifest;
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -67,7 +62,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private ArrayList<Message> messageArrayList;
 
     private BroadcastReceiver mBroadcastReceiver;
-    private boolean isReceiverRegistered;
+    private boolean isMessageReceiverRegistered;
     private boolean isDeleteMessagesReceiverRegistered;
     private OnFragmentChatInteractionListener fragmentChatInteractionListener;
 
@@ -99,7 +94,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     @Override
     public void onPause() {
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver);
-        isReceiverRegistered = false;
+        isMessageReceiverRegistered = false;
 
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDeleteMessagesReceiver);
         isDeleteMessagesReceiverRegistered = false;
@@ -131,9 +126,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
-
+        cancelNotification();
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         findContactByNumber();
+        updateUnreadState();
         initMyPhoneNumber();
         loadOpponentBitmap();
         loadMessages();
@@ -147,6 +143,15 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         return view;
     }
 
+    private void cancelNotification()
+    {
+        NotificationManager notificationManager =
+                (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        long longId = Long.parseLong(opponentPhone.substring(1));
+        int id = (int) longId;
+        notificationManager.cancel(id);
+    }
+
     private void initFakeToolbar(View view)
     {
         FakeToolbar fakeToolbar = (FakeToolbar) view.findViewById(R.id.toolbar_fake_layout);
@@ -156,6 +161,12 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             @Override
             public void onClick(View v) {
                 openPhotoCamera();
+            }
+        });
+        fakeToolbar.setOnBackClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().finish();
             }
         });
 
@@ -185,9 +196,15 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
     }
 
+    private void updateUnreadState()
+    {
+        MyDbHelper.updateAllMessagesState(new MyDbHelper(getContext()).getWritableDatabase(), contact);
+    }
+
     private void loadMyContacts()
     {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+        myContactsArrayList = MyContacts.getContactsList(getContext());
+        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 getContext().checkSelfPermission(Manifest.permission.READ_CONTACTS)
                         != PackageManager.PERMISSION_GRANTED)
         {
@@ -197,7 +214,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         else
         {
             myContactsArrayList = MyContacts.getContactsList(getContext());
-        }
+        }*/
     }
 
     private void initMyPhoneNumber()
@@ -294,7 +311,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     @Override
     public void onReSendMessage(Message message) {
         message.state = Message.STATE_ADDED;
-        MyDbHelper.insertMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
+        MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
         adapter.notifyDataSetChanged();
         new SendMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
     }
@@ -335,7 +352,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             {
                 //Toast.makeText(getContext(), "Connection error", Toast.LENGTH_SHORT).show();
                 message.state = Message.STATE_ERROR;
-                MyDbHelper.insertMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
+                MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
                 adapter.notifyDataSetChanged();
             }
             else
@@ -343,13 +360,13 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 if (result.equals("success"))
                 {
                     message.state = Message.STATE_SUCCESS;
-                    MyDbHelper.insertMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
+                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
                     adapter.notifyDataSetChanged();
                 }
                 else if (result.equals("error"))
                 {
                     message.state = Message.STATE_ERROR;
-                    MyDbHelper.insertMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
+                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
                     adapter.notifyDataSetChanged();
                 }
             }
@@ -389,6 +406,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             @Override
             public void onReceive(Context context, Intent intent)
             {
+                cancelNotification();
+                //MyDbHelper.updateMessageState(new MyDbHelper(context).getWritableDatabase(), );
                 String textMessage = intent.getStringExtra(C.MESSAGE);
                 String phone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
                 if (!phone.equals(contact.phoneNumber)) return;
@@ -404,10 +423,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     }
 
     private void registerMessageReceiver(){
-        if(!isReceiverRegistered) {
+        if(!isMessageReceiverRegistered) {
             LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver,
                     new IntentFilter(QuickstartPreferences.RECEIVE_MESSAGE));
-            isReceiverRegistered = true;
+            isMessageReceiverRegistered = true;
         }
     }
 
@@ -418,10 +437,20 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             @Override
             public void onReceive(Context context, Intent intent)
             {
-                ArrayList<Message> arrayList = MyDbHelper.readContactMessages(new MyDbHelper(context).getReadableDatabase(), contact);
-                messageArrayList.clear();
-                messageArrayList.addAll(arrayList);
-                adapter.notifyDataSetChanged();
+                int idToDelete = intent.getIntExtra(C.ID_TO_DELETE, 0);
+                for (int i = 0; i < messageArrayList.size(); i++)
+                {
+                    int messageId = messageArrayList.get(i).getmId();
+                    if (messageId == idToDelete)
+                    {
+                        if (adapter != null)
+                        {
+                            messageArrayList.remove(i);
+                            adapter.notifyItemRemoved(i);
+                            break;
+                        }
+                    }
+                }
 
             }
         };

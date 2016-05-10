@@ -13,6 +13,7 @@ public class Message
     public static final int STATE_ADDED = 0;
     public static final int STATE_SUCCESS = 1;
     public static final int STATE_ERROR = 2;
+    public static final int STATE_UNREAD = 3;
 
     public static final int NOT_MY_MESSAGE = 0;
     public static final int MY_MESSAGE = 1;

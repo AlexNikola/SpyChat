@@ -212,7 +212,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         //db.close();
     }
 
-    public static synchronized void insertMessageState(SQLiteDatabase db, Message message)
+    public static synchronized void updateMessageState(SQLiteDatabase db, Message message)
     {
         ContentValues values = new ContentValues();
 
@@ -222,7 +222,20 @@ public class MyDbHelper extends SQLiteOpenHelper
         int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
-        Log.d(LOG_TAG, "insertMessageState numbers: "+num);
+        Log.d(LOG_TAG, "updateMessageState numbers: "+num);
+    }
+
+    public static synchronized void updateAllMessagesState(SQLiteDatabase db, MyContacts.Contact contact)
+    {
+        ContentValues values = new ContentValues();
+
+        String whereClause = Chat.SENDER_PHONE_NUMBER + " LIKE '%" + contact.phoneNumber + "%'";
+        Log.d(LOG_TAG, "contact.phoneNumber : "+contact.phoneNumber);
+        values.put(Chat.STATE, Message.STATE_SUCCESS);
+        int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
+        db.close();
+
+        Log.d(LOG_TAG, "updateAllMessagesState numbers: "+num);
     }
 
     public static synchronized void updateMessageTimer(SQLiteDatabase db, long mId, long removalTime)

@@ -16,6 +16,8 @@ public class C
     public static final String EXTRA_COUNTRY_CODE = "country_code";
     public static final String EXTRA_COUNTRY_ISO = "country_iso";
     public static final String EXTRA_OPPONENT_PHONE_NUMBER = "phone_number";
+    public static final String EXTRA_REQUEST_PIN = "request_pin";
+    public static final String EXTRA_IS_FROM_NOTIFICATION = "is_from_notification";
 
     public static final String MESSAGE = "massage";
 
@@ -31,7 +33,7 @@ public class C
 
 
 
-    public static final String REQUEST_PIN = "request_pin";
+
 
     public static final int REQUEST_CODE_SECURITY_EXIT = 2;
     public static final int REQUEST_CODE_ACTIVITY_CONTACTS = 3;

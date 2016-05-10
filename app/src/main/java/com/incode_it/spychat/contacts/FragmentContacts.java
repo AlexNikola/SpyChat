@@ -1,7 +1,10 @@
 package com.incode_it.spychat.contacts;
 
 import android.Manifest;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -10,6 +13,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -24,8 +28,10 @@ import android.widget.Toast;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.ContactsComparator;
+import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.MyContacts;
+import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.data_base.MyDbHelper;
 
@@ -48,6 +54,9 @@ public class FragmentContacts extends Fragment {
     private MyContactRecyclerViewAdapter adapter;
 
     private UpdateContactsTask updateContactsTask;
+
+    private boolean isMessageReceiverRegistered;
+    private BroadcastReceiver mBroadcastReceiver;
 
     public static FragmentContacts newInstance() {
         FragmentContacts fragment = new FragmentContacts();
@@ -77,17 +86,67 @@ public class FragmentContacts extends Fragment {
     }
 
     @Override
+    public void onPause() {
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver);
+        isMessageReceiverRegistered = false;
+        super.onPause();
+        Log.d("vnvnv", "onPause");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("vnvnv", "onResume");
+        initMessageReceiver();
+        if (adapter != null) adapter.notifyDataSetChanged();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-
+        Log.d("vnvnv", "onCreateView");
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
         mContacts = MyContacts.getContactsList(getContext());
+        updateNumbersOfUnreadMessages();
         localUpdateContactList();
         updateContacts();
         initRecyclerView();
 
         return recyclerView;
+    }
+
+    private void initMessageReceiver()
+    {
+        mBroadcastReceiver = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent)
+            {
+                String phone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
+                for(int i = 0; i < mContacts.size(); i++)
+                {
+                    MyContacts.Contact contact = mContacts.get(i);
+                    if (contact.phoneNumber.equals(phone))
+                    {
+                        contact.countUnread ++;
+                        if (adapter != null) adapter.notifyItemChanged(i);
+                        break;
+                    }
+                }
+            }
+        };
+
+        // Registering BroadcastReceiver
+        registerMessageReceiver();
+    }
+
+    private void registerMessageReceiver(){
+        if(!isMessageReceiverRegistered) {
+            LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver,
+                    new IntentFilter(QuickstartPreferences.RECEIVE_MESSAGE));
+            isMessageReceiverRegistered = true;
+        }
     }
 
     /*private void loadMyContacts()
@@ -129,6 +188,20 @@ public class FragmentContacts extends Fragment {
             }
         }
     }*/
+
+    private void updateNumbersOfUnreadMessages()
+    {
+        for(MyContacts.Contact contact: mContacts)
+        {
+            ArrayList<Message> messages = MyDbHelper.readContactMessages(new MyDbHelper(getContext()).getReadableDatabase(), contact);
+            int count = 0;
+            for (Message message: messages)
+            {
+                if (message.state == Message.STATE_UNREAD) count++;
+            }
+            contact.countUnread = count;
+        }
+    }
 
     private void localUpdateContactList()
     {

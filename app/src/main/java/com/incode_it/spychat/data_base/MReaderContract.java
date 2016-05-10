@@ -7,8 +7,6 @@ public final class MReaderContract
     public MReaderContract() {
     }
 
-
-
     public static abstract class Chat implements BaseColumns {
         public static final String TABLE_NAME = "chat";
         public static final String MESSAGE = "message";

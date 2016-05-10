@@ -2,6 +2,7 @@ package com.incode_it.spychat.chat;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -29,8 +30,8 @@ import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFragmentChatInteractionListener, FragmentPin.FragmentPinListener {
 
     private SharedPreferences sharedPreferences;
-    private boolean requestPin = false;
-    String phone;
+    private boolean requestPin;
+    private String phone;
 
 
     @Override
@@ -39,7 +40,7 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
         setContentView(R.layout.activity_chat);
         setResult(RESULT_OK);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-
+        requestPin = getIntent().getBooleanExtra(C.EXTRA_REQUEST_PIN, false);
         phone = getIntent().getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
@@ -52,6 +53,8 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
             fragmentTransaction.add(R.id.fragment_chat_container, fragment, FragmentChat.TAG_FRAGMENT);
             fragmentTransaction.commit();
         }
+
+
     }
 
 

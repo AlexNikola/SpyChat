@@ -49,7 +49,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
         if (checkIsLoggedIn())
         {
             Intent intent = new Intent(this, ActivityMain.class);
-            intent.putExtra(C.REQUEST_PIN, true);
+            intent.putExtra(C.EXTRA_REQUEST_PIN, true);
             startActivity(intent);
             finish();
             return;
@@ -142,7 +142,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
                 .putString(C.SHARED_MY_PHONE_NUMBER, myPhoneNumber)
                 .apply();
         Intent intent = new Intent(this, ActivityMain.class);
-        intent.putExtra(C.REQUEST_PIN, false);
+        intent.putExtra(C.EXTRA_REQUEST_PIN, false);
         startActivity(intent);
         finish();
     }

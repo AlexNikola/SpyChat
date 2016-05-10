@@ -75,6 +75,16 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         }
         else holder.verifyView.setImageResource(R.drawable.add_circle_outline);
 
+        if (holder.mContact.countUnread > 0)
+        {
+            holder.countUnreadTextView.setVisibility(View.VISIBLE);
+            holder.countUnreadTextView.setText("+"+holder.mContact.countUnread);
+        }
+        else
+        {
+            holder.countUnreadTextView.setVisibility(View.INVISIBLE);
+        }
+
 
         if (position == 0)
         {
@@ -142,6 +152,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         public ImageView verifyView;
         public TextView alphabeticalText;
         public View alphabeticalSeparator;
+        public TextView countUnreadTextView;
 
         public ViewHolder(View view) {
             super(view);
@@ -154,6 +165,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             mNumberView.setTypeface(typeface);
             alphabeticalText = (TextView) view.findViewById(R.id.alphabetical_text);
             alphabeticalSeparator = view.findViewById(R.id.alphabetical_separator);
+            countUnreadTextView = (TextView) view.findViewById(R.id.count_unread);
 
             mView.setOnClickListener(new View.OnClickListener() {
                 @Override

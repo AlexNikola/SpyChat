@@ -3,6 +3,7 @@ package com.incode_it.spychat.contacts;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -24,6 +25,7 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.incode_it.spychat.chat.ActivityChat;
 import com.incode_it.spychat.settings.ActivitySettings;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyTimerTask;
@@ -31,7 +33,6 @@ import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
 import com.incode_it.spychat.authorization.ActivityAuth;
 import com.incode_it.spychat.pin.FragmentPin;
-import com.incode_it.spychat.settings.FragmentSettings;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
@@ -57,6 +58,7 @@ public class ActivityMain extends AppCompatActivity implements
     private MyTimerTask timerTask;
     private Toolbar toolbar;
     private float translationX;
+    private View navContainer;
 
     private boolean requestPin = true;
     private SharedPreferences sharedPreferences;
@@ -71,9 +73,18 @@ public class ActivityMain extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (getIntent().getBooleanExtra(C.EXTRA_IS_FROM_NOTIFICATION, false))
+        {
+            getIntent().putExtra(C.EXTRA_IS_FROM_NOTIFICATION, false);
+            String phoneNumber = getIntent().getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
+            Intent intent = new Intent(this, ActivityChat.class);
+            intent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phoneNumber);
+            intent.putExtra(C.EXTRA_REQUEST_PIN, true);
+            startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_CHAT);
+        }
         setContentView(R.layout.activity_main);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        requestPin = getIntent().getBooleanExtra(C.REQUEST_PIN, true);
+        requestPin = getIntent().getBooleanExtra(C.EXTRA_REQUEST_PIN, true);
 
         if (savedInstanceState != null)
         {
@@ -82,7 +93,7 @@ public class ActivityMain extends AppCompatActivity implements
 
         initContentContainer();
 
-        View navContainer = findViewById(R.id.nav_container);
+        navContainer = findViewById(R.id.nav_container);
         assert navContainer != null;
         ViewGroup.LayoutParams layoutParams = navContainer.getLayoutParams();
         translationX = layoutParams.width;
@@ -258,8 +269,6 @@ public class ActivityMain extends AppCompatActivity implements
     }
 
 
-
-
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         requestPin = false;
@@ -294,7 +303,7 @@ public class ActivityMain extends AppCompatActivity implements
         }
         else
         {
-            contentContainer.setTranslationX(200f);
+            contentContainer.setTranslationX(translationX);
             contentContainer.setScaleX(0.95f);
             contentContainer.setScaleY(0.95f);
         }
@@ -310,7 +319,6 @@ public class ActivityMain extends AppCompatActivity implements
             public void onClick(View v) {
                 Intent intent = new Intent(ActivityMain.this, ActivitySettings.class);
                 startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_SETTINGS);
-                //startSettingsDialog();
             }
         });
         logOutImageView.setOnClickListener(new View.OnClickListener() {
@@ -381,13 +389,6 @@ public class ActivityMain extends AppCompatActivity implements
         {
             globalTimerTextView.setText("00:00:00");
         }
-    }
-
-    private void startSettingsDialog()
-    {
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        FragmentSettings newFragment = FragmentSettings.newInstance();
-        newFragment.show(ft, FragmentSettings.TAG);
     }
 
     private void initToolbar()

@@ -1,14 +1,17 @@
 package com.incode_it.spychat.settings;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -26,6 +29,7 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
     private EditText pinInput_0, pinInput_1, pinInput_2, pinInput_3;
     private Button pinSave, pinClear;
     private View container;
+    private Toolbar toolbar;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,6 +37,8 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         container = findViewById(R.id.container);
+
+        initToolbar();
 
         initSoundSettings();
         initVibrationSettings();
@@ -128,13 +134,20 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
         assert pinClear != null;
         pinClear.setOnClickListener(this);
 
-        String pinCode = sharedPreferences.getString(C.SHARED_PIN, "");
-        if (pinCode.length() == 4)
+        String pinCode = sharedPreferences.getString(C.SHARED_PIN, "0000");
+        if (pinCode.equals("0000"))
         {
-            pinInput_0.setText(String.valueOf(pinCode.charAt(0)));
-            pinInput_1.setText(String.valueOf(pinCode.charAt(1)));
-            pinInput_2.setText(String.valueOf(pinCode.charAt(2)));
-            pinInput_3.setText(String.valueOf(pinCode.charAt(3)));
+            pinInput_0.setText("0");
+            pinInput_1.setText("0");
+            pinInput_2.setText("0");
+            pinInput_3.setText("0");
+        }
+        else
+        {
+            pinInput_0.setText("*");
+            pinInput_1.setText("*");
+            pinInput_2.setText("*");
+            pinInput_3.setText("*");
         }
 
         switchPin.setChecked(isPinSecured);
@@ -169,6 +182,7 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
         switch (v.getId())
         {
             case R.id.pin_save:
+                hideKeyBoard();
                 savePin();
                 break;
 
@@ -190,10 +204,6 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
         {
             sharedPreferences.edit().putString(C.SHARED_PIN, pinCode).apply();
             showSnackBar(R.string.pin_saved, Color.GREEN);
-            pinInput_0.clearFocus();
-            pinInput_1.clearFocus();
-            pinInput_2.clearFocus();
-            pinInput_3.clearFocus();
         }
         else
         {
@@ -226,5 +236,27 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
         pinInput_3.setEnabled(isEnabled);
         pinSave.setEnabled(isEnabled);
         pinClear.setEnabled(isEnabled);
+    }
+
+    private void initToolbar()
+    {
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        assert toolbar != null;
+        toolbar.setTitle(R.string.settings);
+        toolbar.setNavigationIcon(R.drawable.arrow_back_24dp);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
+    }
+
+    public void hideKeyBoard() {
+        View view = getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 }

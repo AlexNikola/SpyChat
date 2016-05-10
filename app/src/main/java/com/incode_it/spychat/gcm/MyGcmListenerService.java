@@ -10,14 +10,15 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
-import com.incode_it.spychat.chat.ActivityChat;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
+import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
@@ -43,6 +44,11 @@ public class MyGcmListenerService extends GcmListenerService {
 
         // [START_EXCLUDE]
         /**
+         * In some cases it may be useful to show a notification indicating to the user
+         * that a message was received.
+         */
+        sendNotification(message, phone);
+        /**
          * Production applications would usually process the message here.
          * Eg: - Syncing with server.
          *     - Store message in local database.
@@ -51,17 +57,13 @@ public class MyGcmListenerService extends GcmListenerService {
         TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         String myPhoneNumber = tm.getLine1Number();
 
-        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), new Message(message, phone, myPhoneNumber, Message.STATE_SUCCESS));
+        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), new Message(message, phone, myPhoneNumber, Message.STATE_UNREAD));
         Intent intent = new Intent(QuickstartPreferences.RECEIVE_MESSAGE);
         intent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
         intent.putExtra(C.MESSAGE, message);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
-        /**
-         * In some cases it may be useful to show a notification indicating to the user
-         * that a message was received.
-         */
-        sendNotification(message, phone);
+
         // [END_EXCLUDE]
     }
     // [END receive_message]
@@ -72,11 +74,21 @@ public class MyGcmListenerService extends GcmListenerService {
      * @param message GCM message received.
      */
     private void sendNotification(String message, String phone) {
-        Intent intent = new Intent(this, ActivityChat.class);
-        intent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_ONE_SHOT);
+
+        Intent resultIntent = new Intent(this, ActivityMain.class);
+        resultIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
+        resultIntent.putExtra(C.EXTRA_IS_FROM_NOTIFICATION, true);
+        resultIntent.putExtra(C.EXTRA_REQUEST_PIN, false);
+
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(ActivityMain.class);
+        stackBuilder.addNextIntent(resultIntent);
+        /*Intent intentAuth = stackBuilder.editIntentAt(0);
+        intentAuth.putExtra(C.EXTRA_REQUEST_PIN, false);*/
+
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
@@ -84,7 +96,7 @@ public class MyGcmListenerService extends GcmListenerService {
                 .setContentTitle("Spy Message")
                 .setContentText(message)
                 .setAutoCancel(true)
-                .setContentIntent(pendingIntent);
+                .setContentIntent(resultPendingIntent);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean isSoundOn = sharedPreferences.getBoolean(C.SETTING_SOUND, true);
@@ -96,6 +108,10 @@ public class MyGcmListenerService extends GcmListenerService {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        notificationManager.notify(0 /* ID of notification */, notificationBuilder.build());
+        long longId = Long.parseLong(phone.substring(1));
+        Log.d(TAG, "longId: " + longId);
+        int id = (int) longId;
+        Log.d(TAG, "id: " + id);
+        notificationManager.notify(id /* ID of notification */, notificationBuilder.build());
     }
 }

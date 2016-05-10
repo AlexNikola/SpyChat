@@ -62,6 +62,7 @@
                 android:layout_height="match_parent">
 
                 <android.support.design.widget.TextInputEditText
+                    android:textSize="20sp"
                     android:id="@+id/edit_text_phone"
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/auth_edit_text_height"

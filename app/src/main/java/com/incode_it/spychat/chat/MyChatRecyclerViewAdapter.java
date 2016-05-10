@@ -172,13 +172,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         @Override
         public void onDeleteMessage() {
             MyDbHelper.removeMessage(new MyDbHelper(context).getWritableDatabase(), messages.get(getAdapterPosition()).getmId());
+            AlarmReceiverIndividual alarmReceiverIndividual = new AlarmReceiverIndividual();
+            alarmReceiverIndividual.cancelAlarm(context, messages.get(getAdapterPosition()).getmId());
             messages.remove(getAdapterPosition());
             if (timerTask != null && timerTask.isRunning)
             {
                 timerTask.cancel();
             }
-            AlarmReceiverIndividual alarmReceiverIndividual = new AlarmReceiverIndividual();
-            alarmReceiverIndividual.cancelAlarm(context, messages.get(getAdapterPosition()).getmId());
+
             notifyItemRemoved(getAdapterPosition());
         }
 
