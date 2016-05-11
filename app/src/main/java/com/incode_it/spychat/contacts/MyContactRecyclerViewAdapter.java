@@ -6,12 +6,16 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.support.v7.widget.RecyclerView;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
@@ -34,15 +38,13 @@ import java.util.ArrayList;
 public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContactRecyclerViewAdapter.ViewHolder> {
 
     private static final String TAG = "myhttp";
-    private ArrayList<MyContacts.Contact> mContacts;
     private Context context;
     private Bitmap noPhotoBitmap;
     private LruCache<String, Bitmap> mMemoryCache;
     private Typeface typeface;
 
-    public MyContactRecyclerViewAdapter(Context context, ArrayList<MyContacts.Contact> mContacts) {
+    public MyContactRecyclerViewAdapter(Context context) {
         this.context = context;
-        this.mContacts = mContacts;
         typeface = Typeface.createFromAsset(context.getAssets(), "fonts/OpenSans-Light.ttf");
 
         noPhotoBitmap = C.getNoPhotoBitmap(context);
@@ -67,7 +69,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.mContact = mContacts.get(position);
+        holder.mContact = ActivityMain.mContacts.get(position);
 
         if (holder.mContact.isRegistered)
         {
@@ -95,7 +97,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         else if (position > 0)
         {
             String curr = String.valueOf(holder.mContact.name.charAt(0));
-            String prev = String.valueOf(mContacts.get(position - 1).name.charAt(0));
+            String prev = String.valueOf(ActivityMain.mContacts.get(position - 1).name.charAt(0));
             if (curr.equalsIgnoreCase(prev))
             {
                 holder.alphabeticalSeparator.setVisibility(View.GONE);
@@ -108,25 +110,34 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             }
         }
 
-
-        /*String name = mContacts.get(position).name;
-        final SpannableStringBuilder sb = new SpannableStringBuilder(name);
-        int start, end;
-        start = name.toLowerCase().indexOf(holder.mContact.subString.toLowerCase());
-        end = start + holder.mContact.subString.length();
-        if (start != -1)
+        if (holder.mContact.searchableSubString.length() > 0)
         {
-            final ForegroundColorSpan fcs = new ForegroundColorSpan(context.getResources().getColor(R.color.colorPrimary));
-            sb.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            //holder.mNameView.setTextColor(Color.rgb(158, 158, 158));
-            holder.mNameView.setText(sb);
+            String name = holder.mContact.name;
+            final SpannableStringBuilder sb = new SpannableStringBuilder(name);
+            int start, end;
+            start = name.toLowerCase().indexOf(holder.mContact.searchableSubString.toLowerCase());
+            end = start + holder.mContact.searchableSubString.length();
+            Log.d("sear", "start "+start);
+            Log.d("sear", "end "+end);
+            if (start != -1)
+            {
+                final ForegroundColorSpan fcs = new ForegroundColorSpan(context.getResources().getColor(R.color.colorPrimary));
+                sb.setSpan(fcs, start, end, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+                holder.mNameView.setTextColor(Color.rgb(158, 158, 158));
+                holder.mNameView.setText(sb);
+            }
+
         }
-        else*/
+        else
+        {
+            holder.mNameView.setTextColor(Color.BLACK);
+            holder.mNameView.setText(ActivityMain.mContacts.get(position).name);
+        }
 
-        holder.mNameView.setText(mContacts.get(position).name);
-        holder.mNumberView.setText(mContacts.get(position).phoneNumber);
 
-        Uri uri = mContacts.get(position).photoURI;
+        holder.mNumberView.setText(ActivityMain.mContacts.get(position).phoneNumber);
+
+        Uri uri = ActivityMain.mContacts.get(position).photoURI;
         if (uri != null)
         {
             loadBitmap(uri, holder.mImage);
@@ -140,7 +151,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
 
     @Override
     public int getItemCount() {
-        return mContacts.size();
+        return ActivityMain.mContacts.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
@@ -179,13 +190,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                     }
                     else
                     {
-                        /*Intent smsIntent = new Intent(Intent.ACTION_VIEW);
-                        smsIntent.setData(Uri.parse("sms:"));
-                        smsIntent.setType("vnd.android-dir/mms-sms");
-                        smsIntent.putExtra("sms_body", "sms test");
-                        smsIntent.putExtra("address", mContact.phoneNumber);
-                        context.startActivity(smsIntent);*/
-
                         Intent intent = new Intent(Intent.ACTION_SENDTO);
                         intent.setData(Uri.parse("smsto:" + Uri.encode(mContact.phoneNumber)));
                         intent.putExtra("sms_body", "sms test");

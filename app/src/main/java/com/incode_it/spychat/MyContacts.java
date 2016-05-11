@@ -6,11 +6,9 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 
 public class MyContacts
 {
@@ -70,7 +68,7 @@ public class MyContacts
 
     public static class Contact
     {
-        public String subString = "";
+        public String searchableSubString = "";
         public String name;
         public String phoneNumber;
         public Uri photoURI;
@@ -84,9 +82,9 @@ public class MyContacts
             this.photoURI = photoURI;
         }
 
-        public void setSubString(String subString)
+        public void setSearchableSubString(String searchableSubString)
         {
-            this.subString = subString;
+            this.searchableSubString = searchableSubString;
         }
 
     }

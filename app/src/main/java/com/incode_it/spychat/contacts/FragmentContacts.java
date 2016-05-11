@@ -1,19 +1,16 @@
 package com.incode_it.spychat.contacts;
 
-import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
@@ -50,7 +47,6 @@ public class FragmentContacts extends Fragment {
     public static final String FRAGMENT_CONTACTS = "fr_con";
 
     private RecyclerView recyclerView;
-    private ArrayList<MyContacts.Contact> mContacts = new ArrayList<>();
     private MyContactRecyclerViewAdapter adapter;
 
     private UpdateContactsTask updateContactsTask;
@@ -58,12 +54,20 @@ public class FragmentContacts extends Fragment {
     private boolean isMessageReceiverRegistered;
     private BroadcastReceiver mBroadcastReceiver;
 
+    private boolean isExpanded;
+    private ArrayList<MyContacts.Contact> searchableContacts = new ArrayList<>();
+
     public static FragmentContacts newInstance() {
         FragmentContacts fragment = new FragmentContacts();
         return fragment;
     }
 
     public FragmentContacts() {
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -96,7 +100,7 @@ public class FragmentContacts extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        Log.d("vnvnv", "onResume");
+        Log.d("vnvnv", "onResume "+adapter);
         initMessageReceiver();
         if (adapter != null) adapter.notifyDataSetChanged();
     }
@@ -107,10 +111,9 @@ public class FragmentContacts extends Fragment {
     {
         Log.d("vnvnv", "onCreateView");
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
-        mContacts = MyContacts.getContactsList(getContext());
         updateNumbersOfUnreadMessages();
         localUpdateContactList();
-        updateContacts();
+        serverUpdateContacts();
         initRecyclerView();
 
         return recyclerView;
@@ -124,9 +127,9 @@ public class FragmentContacts extends Fragment {
             public void onReceive(Context context, Intent intent)
             {
                 String phone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
-                for(int i = 0; i < mContacts.size(); i++)
+                for(int i = 0; i < ActivityMain.mContacts.size(); i++)
                 {
-                    MyContacts.Contact contact = mContacts.get(i);
+                    MyContacts.Contact contact = ActivityMain.mContacts.get(i);
                     if (contact.phoneNumber.equals(phone))
                     {
                         contact.countUnread ++;
@@ -179,7 +182,7 @@ public class FragmentContacts extends Fragment {
                 mContacts.clear();
                 mContacts.addAll(arr);
                 localUpdateContactList();
-                updateContacts();
+                serverUpdateContacts();
             }
             else
             {
@@ -191,7 +194,7 @@ public class FragmentContacts extends Fragment {
 
     private void updateNumbersOfUnreadMessages()
     {
-        for(MyContacts.Contact contact: mContacts)
+        for(MyContacts.Contact contact: ActivityMain.mContacts)
         {
             ArrayList<Message> messages = MyDbHelper.readContactMessages(new MyDbHelper(getContext()).getReadableDatabase(), contact);
             int count = 0;
@@ -208,7 +211,7 @@ public class FragmentContacts extends Fragment {
         Log.d("lodl", "localUpdateContactList");
         ArrayList<String> registeredContacts;
         registeredContacts = MyDbHelper.readRegisteredContacts(new MyDbHelper(getContext()).getReadableDatabase());
-        for (MyContacts.Contact contact: mContacts)
+        for (MyContacts.Contact contact: ActivityMain.mContacts)
         {
             for (String registeredPhone: registeredContacts)
             {
@@ -220,15 +223,15 @@ public class FragmentContacts extends Fragment {
             }
         }
 
-        Collections.sort(mContacts, new ContactsComparator());
-        Log.d("lodl", "mContacts "+mContacts.size());
+        Collections.sort(ActivityMain.mContacts, new ContactsComparator());
+        Log.d("lodl", "mContacts "+ActivityMain.mContacts.size());
     }
 
-    private void updateContacts()
+    private void serverUpdateContacts()
     {
-        Log.d("lodl", "updateContacts");
+        Log.d("lodl", "serverUpdateContacts");
         ArrayList<String> contactsNumbers = new ArrayList<>();
-        for (MyContacts.Contact contact: mContacts)
+        for (MyContacts.Contact contact: ActivityMain.mContacts)
         {
             contactsNumbers.add(contact.phoneNumber);
         }
@@ -289,7 +292,7 @@ public class FragmentContacts extends Fragment {
         protected void onPostExecute(ArrayList<String> regContacts) {
             if (regContacts != null)
             {
-                for (MyContacts.Contact mContact: mContacts)
+                for (MyContacts.Contact mContact: ActivityMain.mContacts)
                 {
                     mContact.isRegistered = false;
                     for (String regPhoneNumber: regContacts)
@@ -301,9 +304,9 @@ public class FragmentContacts extends Fragment {
                         }
                     }
                 }
-                Collections.sort(mContacts, new ContactsComparator());
+                Collections.sort(ActivityMain.mContacts, new ContactsComparator());
                 if (adapter != null) adapter.notifyDataSetChanged();
-                Log.d("lodl", "mContacts "+mContacts.size());
+                Log.d("lodl", "mContacts "+ActivityMain.mContacts.size());
             }
             else
             {
@@ -351,7 +354,7 @@ public class FragmentContacts extends Fragment {
     private void initRecyclerView()
     {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new MyContactRecyclerViewAdapter(getContext(), mContacts);
+        adapter = new MyContactRecyclerViewAdapter(getContext());
         recyclerView.setAdapter(adapter);
     }
 
@@ -362,55 +365,71 @@ public class FragmentContacts extends Fragment {
         Log.d("qwew", "onCreateOptionsMenu");
         inflater.inflate(R.menu.contacts, menu);
         MenuItem actionMenuItem = menu.findItem(R.id.action_search);
-        //if (isExpanded) actionMenuItem.expandActionView();
-        /*MenuItemCompat.setOnActionExpandListener(actionMenuItem, new MenuItemCompat.OnActionExpandListener() {
+        if (isExpanded) actionMenuItem.expandActionView();
+        MenuItemCompat.setOnActionExpandListener(actionMenuItem, new MenuItemCompat.OnActionExpandListener() {
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
                 isExpanded = true;
+                searchableContacts.clear();
+                searchableContacts.addAll(ActivityMain.mContacts);
+                Log.d("qwew", "isExpanded true");
                 return true;
             }
 
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
                 isExpanded = false;
+                /*searchableContacts.clear();
+                searchableContacts.addAll(ActivityMain.mContacts);*/
+                Log.d("qwew", "isExpanded false");
                 return true;
             }
         });
-*/
-        SearchView searchView = (SearchView) actionMenuItem.getActionView();
+        final SearchView searchView = (SearchView) actionMenuItem.getActionView();
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 callSearch(query);
+                Log.d("qwew", "onQueryTextSubmit");
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
-//              if (searchView.isExpanded() && TextUtils.isEmpty(newText)) {
-                //callSearch(newText);
-//              }
+                callSearch(newText);
+                Log.d("qwew", "onQueryTextChange");
+              /*if (searchView.isExpanded() && TextUtils.isEmpty(newText)) {
+                callSearch(newText);
+              }*/
                 return true;
             }
 
             public void callSearch(String query)
             {
-                /*ArrayList<MyContacts.Contact> arrayList = adapter.mContacts;
-                ArrayList<MyContacts.Contact> newArrayList = new ArrayList<>();
+                ActivityMain.mContacts.clear();
                 if (query.length() > 0)
                 {
-                    for (MyContacts.Contact contact: arrayList)
+                    for (MyContacts.Contact contact: searchableContacts)
                     {
                         if (contact.name.toLowerCase().contains(query.toLowerCase()))
                         {
-                            contact.setSubString(query);
-                            newArrayList.add(contact);
+                            contact.setSearchableSubString(query);
+                            ActivityMain.mContacts.add(contact);
+
                         }
                     }
-                    adapter.setContacts(newArrayList);
+                    adapter.notifyDataSetChanged();
                 }
-                else adapter.restoreContacts();*/
-
+                else
+                {
+                    ActivityMain.mContacts.clear();
+                    ActivityMain.mContacts.addAll(searchableContacts);
+                    for (MyContacts.Contact contact: ActivityMain.mContacts)
+                    {
+                        contact.searchableSubString = "";
+                    }
+                    adapter.notifyDataSetChanged();
+                }
             }
         });
     }

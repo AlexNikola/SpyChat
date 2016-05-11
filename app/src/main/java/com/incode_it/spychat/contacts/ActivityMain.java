@@ -3,10 +3,10 @@ package com.incode_it.spychat.contacts;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -25,6 +25,7 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.chat.ActivityChat;
 import com.incode_it.spychat.settings.ActivitySettings;
 import com.incode_it.spychat.C;
@@ -36,6 +37,7 @@ import com.incode_it.spychat.pin.FragmentPin;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
+import java.util.ArrayList;
 import java.util.Timer;
 
 public class ActivityMain extends AppCompatActivity implements
@@ -54,6 +56,7 @@ public class ActivityMain extends AppCompatActivity implements
     private boolean isNavMenuOpen;
     private View contentContainer;
     private ImageView timerImageView, settingsImageView, logOutImageView;
+    private TextView timerTextView, settingsTextView, logOutTextView;
     private TextView globalTimerTextView;
     private MyTimerTask timerTask;
     private Toolbar toolbar;
@@ -62,6 +65,15 @@ public class ActivityMain extends AppCompatActivity implements
 
     private boolean requestPin = true;
     private SharedPreferences sharedPreferences;
+
+    public static ArrayList<MyContacts.Contact> mContacts;
+
+    private AnimatorSet animatorSetContainerClose;
+    private AnimatorSet animatorSetContainerOpen;
+    private AnimatorSet animatorSetIconsOpen;
+    private AnimatorSet animatorSetIconsClose;
+    private AnimatorSet animatorSetTextOpen;
+    private AnimatorSet animatorSetTextClose;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -73,6 +85,7 @@ public class ActivityMain extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mContacts = MyContacts.getContactsList(this);
         if (getIntent().getBooleanExtra(C.EXTRA_IS_FROM_NOTIFICATION, false))
         {
             getIntent().putExtra(C.EXTRA_IS_FROM_NOTIFICATION, false);
@@ -104,6 +117,10 @@ public class ActivityMain extends AppCompatActivity implements
         setupFragment();
         startTimer();
 
+        initCloseContainerAnimations();
+        initOpenContainerAnimations();
+        initOpenIconsAnimations();
+        initCloseIconsAnimations();
     }
 
     @Override
@@ -222,8 +239,6 @@ public class ActivityMain extends AppCompatActivity implements
         }
     }
 
-
-
     @Override
     protected void onPause() {
         requestPin = true;
@@ -240,6 +255,7 @@ public class ActivityMain extends AppCompatActivity implements
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         requestPin = false;
         Log.d("lifes", "onActivityResult");
         if (requestCode == C.REQUEST_CODE_ACTIVITY_CHAT) {
@@ -249,25 +265,12 @@ public class ActivityMain extends AppCompatActivity implements
             }
         }
 
-        timerImageView.setAlpha(0f);
-        timerImageView.setScaleX(0f);
-        timerImageView.setScaleY(0f);
-
-        settingsImageView.setAlpha(0f);
-        settingsImageView.setScaleX(0f);
-        settingsImageView.setScaleY(0f);
-
-        logOutImageView.setAlpha(0f);
-        logOutImageView.setScaleX(0f);
-        logOutImageView.setScaleY(0f);
-
         contentContainer.setTranslationX(0f);
         contentContainer.setScaleX(1f);
         contentContainer.setScaleY(1f);
         isNavMenuOpen = false;
         toolbar.setNavigationIcon(R.drawable.nav_menu);
     }
-
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -279,6 +282,8 @@ public class ActivityMain extends AppCompatActivity implements
     private void initNavIcons()
     {
         globalTimerTextView = (TextView) findViewById(R.id.global_timer_tv);
+        Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/digital.ttf");
+        globalTimerTextView.setTypeface(typeface);
 
         timerImageView = (ImageView) findViewById(R.id.timer_global);
         assert timerImageView != null;
@@ -287,25 +292,15 @@ public class ActivityMain extends AppCompatActivity implements
         logOutImageView = (ImageView) findViewById(R.id.log_out);
         assert logOutImageView != null;
 
-        if (!isNavMenuOpen)
-        {
-            timerImageView.setAlpha(0f);
-            timerImageView.setScaleX(0f);
-            timerImageView.setScaleY(0f);
+        timerTextView = (TextView) findViewById(R.id.timer_text);
+        settingsTextView = (TextView) findViewById(R.id.settings_text);
+        logOutTextView = (TextView) findViewById(R.id.log_out_text);
 
-            settingsImageView.setAlpha(0f);
-            settingsImageView.setScaleX(0f);
-            settingsImageView.setScaleY(0f);
-
-            logOutImageView.setAlpha(0f);
-            logOutImageView.setScaleX(0f);
-            logOutImageView.setScaleY(0f);
-        }
-        else
+        if (isNavMenuOpen)
         {
             contentContainer.setTranslationX(translationX);
-            contentContainer.setScaleX(0.95f);
-            contentContainer.setScaleY(0.95f);
+            contentContainer.setScaleX(0.93f);
+            contentContainer.setScaleY(0.93f);
         }
 
         timerImageView.setOnClickListener(new View.OnClickListener() {
@@ -424,61 +419,62 @@ public class ActivityMain extends AppCompatActivity implements
     private void openNavMenu()
     {
         isNavMenuOpen = true;
-        ObjectAnimator translation = ObjectAnimator.ofFloat(contentContainer, "translationX", 0, translationX);
-        translation.setDuration(DURATION_SLIDE);
 
-        ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(contentContainer, "scaleX", 0.95f);
-        ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(contentContainer, "scaleY", 0.95f);
-        scaleDownX.setDuration(DURATION_SCALE);
-        scaleDownY.setDuration(DURATION_SCALE);
+        animatorSetContainerOpen.start();
+        animatorSetIconsOpen.start();
+        animatorSetTextOpen.start();
+    }
 
+    private void closeNavMenu()
+    {
+        isNavMenuOpen = false;
 
-        ObjectAnimator contactsImageViewAlpha = ObjectAnimator.ofFloat(timerImageView, "alpha", 0f, 1f);
-        contactsImageViewAlpha.setDuration(DURATION_NAV_ICONS);
-        ObjectAnimator settingsImageViewViewAlpha = ObjectAnimator.ofFloat(settingsImageView, "alpha", 0f, 1f);
-        settingsImageViewViewAlpha.setDuration(DURATION_NAV_ICONS);
-        settingsImageViewViewAlpha.setStartDelay(DELAY_NAV_ICONS);
-        ObjectAnimator logOutImageViewAlpha = ObjectAnimator.ofFloat(logOutImageView, "alpha", 0f, 1f);
-        logOutImageViewAlpha.setDuration(DURATION_NAV_ICONS);
-        logOutImageViewAlpha.setStartDelay(DELAY_NAV_ICONS);
+        animatorSetContainerClose.start();
+        animatorSetIconsClose.start();
+    }
 
-        ObjectAnimator contactsImageViewScaleX = ObjectAnimator.ofFloat(timerImageView, "scaleX", 0f, 1f);
-        contactsImageViewScaleX.setDuration(DURATION_NAV_ICONS);
-        ObjectAnimator contactsImageViewScaleY = ObjectAnimator.ofFloat(timerImageView, "scaleY", 0f, 1f);
-        contactsImageViewScaleY.setDuration(DURATION_NAV_ICONS);
+    private void initOpenIconsAnimations()
+    {
+
+        ObjectAnimator timerImageViewScaleX = ObjectAnimator.ofFloat(timerImageView, "scaleX", 0f, 1f);
+        ObjectAnimator timerImageViewScaleY = ObjectAnimator.ofFloat(timerImageView, "scaleY", 0f, 1f);
         ObjectAnimator settingsImageViewViewScaleX = ObjectAnimator.ofFloat(settingsImageView, "scaleX", 0f, 1f);
-        settingsImageViewViewScaleX.setDuration(DURATION_NAV_ICONS);
-        settingsImageViewViewScaleX.setStartDelay(DELAY_NAV_ICONS);
         ObjectAnimator settingsImageViewViewScaleY = ObjectAnimator.ofFloat(settingsImageView, "scaleY", 0f, 1f);
-        settingsImageViewViewScaleY.setDuration(DURATION_NAV_ICONS);
-        settingsImageViewViewScaleY.setStartDelay(DELAY_NAV_ICONS);
         ObjectAnimator logOutImageViewScaleX = ObjectAnimator.ofFloat(logOutImageView, "scaleX", 0f, 1f);
-        logOutImageViewScaleX.setDuration(DURATION_NAV_ICONS);
-        logOutImageViewScaleX.setStartDelay(DELAY_NAV_ICONS);
         ObjectAnimator logOutImageViewScaleY = ObjectAnimator.ofFloat(logOutImageView, "scaleY", 0f, 1f);
-        logOutImageViewScaleY.setDuration(DURATION_NAV_ICONS);
-        logOutImageViewScaleY.setStartDelay(DELAY_NAV_ICONS);
 
-        AnimatorSet animatorSetIconsAlpha = new AnimatorSet();
-        animatorSetIconsAlpha.play(settingsImageViewViewAlpha).with(logOutImageViewAlpha).with(contactsImageViewAlpha);
 
-        AnimatorSet animatorSetIconsScaleX = new AnimatorSet();
-        animatorSetIconsScaleX.play(settingsImageViewViewScaleX).with(logOutImageViewScaleX).with(contactsImageViewScaleX);
+        AnimatorSet asTimerImage = new AnimatorSet();
+        asTimerImage.setDuration(DURATION_NAV_ICONS);
+        asTimerImage.play(timerImageViewScaleX).with(timerImageViewScaleY);
 
-        AnimatorSet animatorSetIconsScaleY = new AnimatorSet();
-        animatorSetIconsScaleY.play(settingsImageViewViewScaleY).with(logOutImageViewScaleY).with(contactsImageViewScaleY);
+        AnimatorSet asSettingsImage = new AnimatorSet();
+        asSettingsImage.setDuration(DURATION_NAV_ICONS);
+        asSettingsImage.setStartDelay(DELAY_NAV_ICONS);
+        asSettingsImage.play(settingsImageViewViewScaleX).with(settingsImageViewViewScaleY);
 
-        AnimatorSet animatorSetContainer = new AnimatorSet();
-        animatorSetContainer.play(scaleDownX).with(scaleDownY).with(translation);
-        animatorSetContainer.addListener(new Animator.AnimatorListener() {
+        AnimatorSet asLogOutImage = new AnimatorSet();
+        asLogOutImage.setDuration(DURATION_NAV_ICONS);
+        asLogOutImage.setStartDelay(DELAY_NAV_ICONS*2);
+        asLogOutImage.play(logOutImageViewScaleX).with(logOutImageViewScaleY);
+
+
+        animatorSetIconsOpen = new AnimatorSet();
+        animatorSetIconsOpen.setInterpolator(new OvershootInterpolator(3f));
+        animatorSetIconsOpen.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
-
+                timerImageView.setScaleX(0f);
+                timerImageView.setScaleY(0f);
+                settingsImageView.setScaleX(0f);
+                settingsImageView.setScaleY(0f);
+                logOutImageView.setScaleX(0f);
+                logOutImageView.setScaleY(0f);
             }
 
             @Override
             public void onAnimationEnd(Animator animation) {
-                toolbar.setNavigationIcon(R.drawable.arrow_back_24dp);
+
             }
 
             @Override
@@ -491,18 +487,68 @@ public class ActivityMain extends AppCompatActivity implements
 
             }
         });
-        animatorSetContainer.start();
+        animatorSetIconsOpen.setStartDelay(DELAY_NAV_ICONS);
+        animatorSetIconsOpen.play(asTimerImage).with(asSettingsImage).with(asLogOutImage);
 
-        AnimatorSet animatorSetIcons = new AnimatorSet();
-        animatorSetIcons.play(animatorSetIconsAlpha).with(animatorSetIconsScaleX).with(animatorSetIconsScaleY);
-        animatorSetIcons.setStartDelay(80);
-        animatorSetIcons.setInterpolator(new OvershootInterpolator(3f));
-        animatorSetIcons.start();
+
+        ObjectAnimator timerTextViewScaleX = ObjectAnimator.ofFloat(timerTextView, "translationX", -translationX, 0f);
+        ObjectAnimator settingsTextViewScaleX = ObjectAnimator.ofFloat(settingsTextView, "translationX", -translationX, 0f);
+        ObjectAnimator logOutTextViewScaleX = ObjectAnimator.ofFloat(logOutTextView, "translationX", -translationX, 0f);
+
+        animatorSetTextOpen = new AnimatorSet();
+        animatorSetTextOpen.setDuration(DURATION_NAV_ICONS);
+        animatorSetTextOpen.play(timerTextViewScaleX)
+                .with(settingsTextViewScaleX)
+                .with(logOutTextViewScaleX);
     }
 
-    private void closeNavMenu()
+    private void initCloseIconsAnimations()
     {
-        isNavMenuOpen = false;
+        ObjectAnimator timerImageViewScaleX = ObjectAnimator.ofFloat(timerImageView, "translationX", 0f, -translationX);
+        ObjectAnimator settingsImageViewViewScaleX = ObjectAnimator.ofFloat(settingsImageView, "translationX", 0f, -translationX);
+        ObjectAnimator logOutImageViewScaleX = ObjectAnimator.ofFloat(logOutImageView, "translationX", 0f, -translationX);
+
+        ObjectAnimator timerTextViewScaleX = ObjectAnimator.ofFloat(timerTextView, "translationX", 0f, -translationX);
+        ObjectAnimator settingsTextViewScaleX = ObjectAnimator.ofFloat(settingsTextView, "translationX", 0f, -translationX);
+        ObjectAnimator logOutTextViewScaleX = ObjectAnimator.ofFloat(logOutTextView, "translationX", 0f, -translationX);
+
+
+        animatorSetIconsClose = new AnimatorSet();
+        animatorSetIconsClose.setDuration(DURATION_SLIDE);
+        animatorSetIconsClose.play(timerImageViewScaleX)
+                .with(settingsImageViewViewScaleX)
+                .with(logOutImageViewScaleX)
+                .with(timerTextViewScaleX)
+                .with(settingsTextViewScaleX)
+                .with(logOutTextViewScaleX);
+
+        animatorSetIconsClose.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                timerImageView.setTranslationX(0f);
+                settingsImageView.setTranslationX(0f);
+                logOutImageView.setTranslationX(0f);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+    }
+
+    private void initCloseContainerAnimations()
+    {
         ObjectAnimator translation = ObjectAnimator.ofFloat(contentContainer, "translationX", translationX, 0f);
         translation.setDuration(DURATION_SLIDE);
 
@@ -511,38 +557,9 @@ public class ActivityMain extends AppCompatActivity implements
         scaleDownX.setDuration(DURATION_SCALE);
         scaleDownY.setDuration(DURATION_SCALE);
 
-        ObjectAnimator contactsImageViewAlpha = ObjectAnimator.ofFloat(timerImageView, "alpha", 0f);
-        contactsImageViewAlpha.setDuration(DURATION_NAV_ICONS);
-        ObjectAnimator settingsImageViewViewAlpha = ObjectAnimator.ofFloat(timerImageView, "alpha", 0f);
-        settingsImageViewViewAlpha.setDuration(DURATION_NAV_ICONS);
-        ObjectAnimator logOutImageViewAlpha = ObjectAnimator.ofFloat(timerImageView, "alpha", 0f);
-        logOutImageViewAlpha.setDuration(DURATION_NAV_ICONS);
-
-        ObjectAnimator contactsImageViewScaleX = ObjectAnimator.ofFloat(timerImageView, "scaleX", 0f);
-        contactsImageViewScaleX.setDuration(DURATION_NAV_ICONS);
-        ObjectAnimator contactsImageViewScaleY = ObjectAnimator.ofFloat(timerImageView, "scaleY", 0f);
-        contactsImageViewScaleY.setDuration(DURATION_NAV_ICONS);
-        ObjectAnimator settingsImageViewViewScaleX = ObjectAnimator.ofFloat(settingsImageView, "scaleX", 0f);
-        settingsImageViewViewScaleX.setDuration(DURATION_NAV_ICONS);
-        ObjectAnimator settingsImageViewViewScaleY = ObjectAnimator.ofFloat(settingsImageView, "scaleY", 0f);
-        settingsImageViewViewScaleY.setDuration(DURATION_NAV_ICONS);
-        ObjectAnimator logOutImageViewScaleX = ObjectAnimator.ofFloat(logOutImageView, "scaleX", 0f);
-        logOutImageViewScaleX.setDuration(DURATION_NAV_ICONS);
-        ObjectAnimator logOutImageViewScaleY = ObjectAnimator.ofFloat(logOutImageView, "scaleY", 0f);
-        logOutImageViewScaleY.setDuration(DURATION_NAV_ICONS);
-
-        AnimatorSet animatorSetIconsAlpha = new AnimatorSet();
-        animatorSetIconsAlpha.play(settingsImageViewViewAlpha).with(logOutImageViewAlpha).with(contactsImageViewAlpha);
-
-        AnimatorSet animatorSetIconsScaleX = new AnimatorSet();
-        animatorSetIconsScaleX.play(settingsImageViewViewScaleX).with(logOutImageViewScaleX).with(contactsImageViewScaleX);
-
-        AnimatorSet animatorSetIconsScaleY = new AnimatorSet();
-        animatorSetIconsScaleY.play(settingsImageViewViewScaleY).with(logOutImageViewScaleY).with(contactsImageViewScaleY);
-
-        AnimatorSet animatorSetContainer = new AnimatorSet();
-        animatorSetContainer.play(scaleDownX).with(scaleDownY).with(translation);
-        animatorSetContainer.addListener(new Animator.AnimatorListener() {
+        animatorSetContainerClose = new AnimatorSet();
+        animatorSetContainerClose.play(scaleDownX).with(scaleDownY).with(translation);
+        animatorSetContainerClose.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
 
@@ -563,11 +580,41 @@ public class ActivityMain extends AppCompatActivity implements
 
             }
         });
-        animatorSetContainer.start();
+    }
 
-        AnimatorSet animatorSetIcons = new AnimatorSet();
-        animatorSetIcons.play(animatorSetIconsAlpha).with(animatorSetIconsScaleX).with(animatorSetIconsScaleY);
-        animatorSetIcons.start();
+    private void initOpenContainerAnimations()
+    {
+        ObjectAnimator translation = ObjectAnimator.ofFloat(contentContainer, "translationX", 0, translationX);
+        translation.setDuration(DURATION_SLIDE);
+
+        ObjectAnimator scaleDownX = ObjectAnimator.ofFloat(contentContainer, "scaleX", 0.93f);
+        ObjectAnimator scaleDownY = ObjectAnimator.ofFloat(contentContainer, "scaleY", 0.93f);
+        scaleDownX.setDuration(DURATION_SCALE);
+        scaleDownY.setDuration(DURATION_SCALE);
+
+        animatorSetContainerOpen = new AnimatorSet();
+        animatorSetContainerOpen.play(scaleDownX).with(scaleDownY).with(translation);
+        animatorSetContainerOpen.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                toolbar.setNavigationIcon(R.drawable.arrow_back_24dp);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
     }
 
     @Override

@@ -3,6 +3,7 @@ package com.incode_it.spychat.chat;
 import android.app.Service;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -75,6 +76,8 @@ public class FakeToolbar extends FrameLayout {
         takeVideo = (ImageView) findViewById(R.id.take_video);
         openGallery = (ImageView) findViewById(R.id.open_gallery);
         globalTimerTextView = (TextView) findViewById(R.id.global_timer_text);
+        Typeface typeface = Typeface.createFromAsset(getContext().getAssets(), "fonts/digital.ttf");
+        globalTimerTextView.setTypeface(typeface);
     }
 
     private void showPopup()

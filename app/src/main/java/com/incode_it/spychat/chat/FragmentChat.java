@@ -31,6 +31,7 @@ import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 
@@ -68,7 +69,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
 
     private MyContacts.Contact contact;
-    ArrayList<MyContacts.Contact> myContactsArrayList;
+
 
 
     private SharedPreferences sharedPreferences;
@@ -129,7 +130,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         cancelNotification();
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         findContactByNumber();
-        updateUnreadState();
+        updateUnreadStateInDB();
         initMyPhoneNumber();
         loadOpponentBitmap();
         loadMessages();
@@ -184,12 +185,13 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     {
         if (contact == null)
         {
-            loadMyContacts();
-            for (MyContacts.Contact contact: myContactsArrayList)
+            //loadMyContacts();
+            for (MyContacts.Contact contact: ActivityMain.mContacts)
             {
                 if (contact.phoneNumber.equals(opponentPhone))
                 {
                     this.contact = contact;
+                    updateUnreadState();
                     break;
                 }
             }
@@ -198,13 +200,18 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     private void updateUnreadState()
     {
+        contact.countUnread = 0;
+    }
+
+    private void updateUnreadStateInDB()
+    {
         MyDbHelper.updateAllMessagesState(new MyDbHelper(getContext()).getWritableDatabase(), contact);
     }
 
-    private void loadMyContacts()
+    /*private void loadMyContacts()
     {
         myContactsArrayList = MyContacts.getContactsList(getContext());
-        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
+        *//*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 getContext().checkSelfPermission(Manifest.permission.READ_CONTACTS)
                         != PackageManager.PERMISSION_GRANTED)
         {
@@ -214,8 +221,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         else
         {
             myContactsArrayList = MyContacts.getContactsList(getContext());
-        }*/
-    }
+        }*//*
+    }*/
 
     private void initMyPhoneNumber()
     {
@@ -279,7 +286,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private void loadMessages()
     {
         if (messageArrayList == null)
+        {
             messageArrayList = MyDbHelper.readContactMessages(new MyDbHelper(getContext()).getReadableDatabase(), contact);
+        }
+
     }
 
     private void initSendMessageView(View view)
@@ -407,7 +417,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             public void onReceive(Context context, Intent intent)
             {
                 cancelNotification();
-                //MyDbHelper.updateMessageState(new MyDbHelper(context).getWritableDatabase(), );
+                MyDbHelper.updateAllMessagesState(new MyDbHelper(context).getWritableDatabase(), contact);
                 String textMessage = intent.getStringExtra(C.MESSAGE);
                 String phone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
                 if (!phone.equals(contact.phoneNumber)) return;
@@ -437,17 +447,27 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             @Override
             public void onReceive(Context context, Intent intent)
             {
+                Log.d("recr", "onReceive");
                 int idToDelete = intent.getIntExtra(C.ID_TO_DELETE, 0);
-                for (int i = 0; i < messageArrayList.size(); i++)
+                if (idToDelete == 0)
                 {
-                    int messageId = messageArrayList.get(i).getmId();
-                    if (messageId == idToDelete)
+                    ArrayList<Message> arrayList = MyDbHelper.readContactMessages(new MyDbHelper(context).getReadableDatabase(), contact);
+                    messageArrayList.clear();
+                    messageArrayList.addAll(arrayList);
+                    adapter.notifyDataSetChanged();
+                }
+                else {
+                    for (int i = 0; i < messageArrayList.size(); i++)
                     {
-                        if (adapter != null)
+                        int messageId = messageArrayList.get(i).getmId();
+                        if (messageId == idToDelete)
                         {
-                            messageArrayList.remove(i);
-                            adapter.notifyItemRemoved(i);
-                            break;
+                            if (adapter != null)
+                            {
+                                messageArrayList.remove(i);
+                                adapter.notifyItemRemoved(i);
+                                break;
+                            }
                         }
                     }
                 }
