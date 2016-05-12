@@ -10,8 +10,10 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
@@ -38,16 +40,21 @@ import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.OnChatAdapterListener {
 
-    static final int REQUEST_IMAGE_CAPTURE = 1;
+    static final int REQUEST_IMAGE_CAPTURE = 11;
+    static final int REQUEST_VIDEO_CAPTURE = 12;
+
 
     private static final int SEND_MESSAGE_DELAY = 500;
     private static final String TAG = "chatm";
@@ -69,6 +76,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
 
     private MyContacts.Contact contact;
+    private String mCurrentPhotoPath;
 
 
 
@@ -103,15 +111,81 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         super.onPause();
     }
 
+    private void openVideoCamera()
+    {
+        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        if (takeVideoIntent.resolveActivity(getContext().getPackageManager()) != null) {
+            startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
+        }
+    }
+
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            Log.d("lifes", "FragmentChat onActivityResult REQUEST_IMAGE_CAPTURE RESULT_OK");
             /*Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
-            mImageView.setImageBitmap(imageBitmap);*/
+            Bitmap imageBitmap = (Bitmap) extras.get("data");*/
+            //mImageView.setImageBitmap(imageBitmap);
+
+            final Message message = new Message(mCurrentPhotoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_SUCCESS, Message.MY_MESSAGE_IMAGE);
+            messageArrayList.add(message);
+            adapter.notifyItemInserted(messageArrayList.size() - 1);
+            recyclerView.scrollToPosition(messageArrayList.size() - 1);
+            MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
 
         }
+        else if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == Activity.RESULT_OK)
+        {
+            Uri videoUri = data.getData();
+            final Message message = new Message(videoUri.toString(), myPhoneNumber, contact.phoneNumber, Message.STATE_SUCCESS, Message.MY_MESSAGE_VIDEO);
+            messageArrayList.add(message);
+            adapter.notifyItemInserted(messageArrayList.size() - 1);
+            recyclerView.scrollToPosition(messageArrayList.size() - 1);
+            MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
+        }
+    }
+
+    private void openPhotoCamera()
+    {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, true);
+        if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
+
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+               ex.printStackTrace();
+            }
+
+            if (photoFile != null) {
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(photoFile));
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+    }
+
+
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        /*File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);*/
+        File storageDir = getContext().getExternalFilesDir(null);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = "" + image.getAbsolutePath();
+        /*Log.d("lifes", "mCurrentPhotoPath "+mCurrentPhotoPath);
+        Log.d("lifes", "getExternalStorageDirectory "+Environment.getExternalStorageDirectory());
+        Log.d("lifes", "getExternalStorageDirectory "+Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES));*/
+        return image;
     }
 
     @Override
@@ -164,6 +238,12 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 openPhotoCamera();
             }
         });
+        fakeToolbar.setOnVideoClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openVideoCamera();
+            }
+        });
         fakeToolbar.setOnBackClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -173,13 +253,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     }
 
-    private void openPhotoCamera()
-    {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-        }
-    }
+
 
     private void findContactByNumber()
     {
@@ -301,7 +375,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 editText.setText("");
                 if (textMessage.length() > 0)
                 {
-                    final Message message = new Message(textMessage, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED);
+                    final Message message = new Message(textMessage, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_TEXT);
                     messageArrayList.add(message);
                     adapter.notifyItemInserted(messageArrayList.size() - 1);
                     recyclerView.scrollToPosition(messageArrayList.size() - 1);
@@ -416,15 +490,18 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             @Override
             public void onReceive(Context context, Intent intent)
             {
-                cancelNotification();
-                MyDbHelper.updateAllMessagesState(new MyDbHelper(context).getWritableDatabase(), contact);
-                String textMessage = intent.getStringExtra(C.MESSAGE);
                 String phone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
-                if (!phone.equals(contact.phoneNumber)) return;
-                Message message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_SUCCESS);
-                messageArrayList.add(message);
-                adapter.notifyItemInserted(messageArrayList.size() - 1);
-                recyclerView.scrollToPosition(messageArrayList.size() - 1);
+                if (phone.equals(contact.phoneNumber))
+                {
+                    cancelNotification();
+                    MyDbHelper.updateAllMessagesState(new MyDbHelper(context).getWritableDatabase(), contact);
+                    int messageId = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
+
+                    Message message = MyDbHelper.readMessage(new MyDbHelper(context).getReadableDatabase(), messageId);
+                    messageArrayList.add(message);
+                    adapter.notifyItemInserted(messageArrayList.size() - 1);
+                    recyclerView.scrollToPosition(messageArrayList.size() - 1);
+                }
             }
         };
 
@@ -459,7 +536,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 else {
                     for (int i = 0; i < messageArrayList.size(); i++)
                     {
-                        int messageId = messageArrayList.get(i).getmId();
+                        int messageId = messageArrayList.get(i).getMessageId();
                         if (messageId == idToDelete)
                         {
                             if (adapter != null)

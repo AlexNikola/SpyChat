@@ -37,17 +37,17 @@ public class MyGcmListenerService extends GcmListenerService {
     // [START receive_message]
     @Override
     public void onMessageReceived(String from, Bundle data) {
-        String message = data.getString("message");
+        String textMessage = data.getString("message");
         String phone = data.getString("phone");
         Log.d(TAG, "phone: " + phone);
-        Log.d(TAG, "message: " + message);
+        Log.d(TAG, "message: " + textMessage);
 
         // [START_EXCLUDE]
         /**
          * In some cases it may be useful to show a notification indicating to the user
          * that a message was received.
          */
-        sendNotification(message, phone);
+        sendNotification(textMessage, phone);
         /**
          * Production applications would usually process the message here.
          * Eg: - Syncing with server.
@@ -57,10 +57,11 @@ public class MyGcmListenerService extends GcmListenerService {
         TelephonyManager tm = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
         String myPhoneNumber = tm.getLine1Number();
 
-        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), new Message(message, phone, myPhoneNumber, Message.STATE_UNREAD));
+        Message message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_UNREAD, Message.NOT_MY_MESSAGE_TEXT);
+        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), message);
         Intent intent = new Intent(QuickstartPreferences.RECEIVE_MESSAGE);
         intent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
-        intent.putExtra(C.MESSAGE, message);
+        intent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
 

@@ -2,20 +2,25 @@ package com.incode_it.spychat.chat;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.media.MediaMetadataRetriever;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v7.widget.RecyclerView;
-import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.VideoView;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -25,8 +30,16 @@ import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverIndividual;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
+import com.sprylab.android.widget.TextureVideoView;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Timer;
 
 public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecyclerViewAdapter.MessageViewHolder>
@@ -38,7 +51,9 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     private OnChatAdapterListener chatAdapterListener;
     private String myPhoneNumber;
     private Bitmap noPhotoBitmap;
+    private Bitmap emptyImageMessageBitmap;
     private Context context;
+    private LruCache<String, Bitmap> mMemoryCache;
 
     public MyChatRecyclerViewAdapter(Context context,
                                      ArrayList<Message> messages,
@@ -54,74 +69,59 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         this.chatAdapterListener = chatAdapterListener;
 
         noPhotoBitmap = C.getNoPhotoBitmap(context);
+        emptyImageMessageBitmap = C.getEmptyImageMessageBitmap(context);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, null);
+
+
+        final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+        final int cacheSize = maxMemory / 8;
+        mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
+            @Override
+            protected int sizeOf(String key, Bitmap bitmap) {
+                return bitmap.getByteCount() / 1024;
+            }
+        };
     }
 
     @Override
     public MessageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view;
-        if (viewType == Message.MY_MESSAGE)
+        View view = null;
+        switch (viewType)
         {
-            view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.my_message_item, parent, false);
+            case Message.MY_MESSAGE_TEXT:
+                view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.my_message_text_item, parent, false);
+                return new MessageTextViewHolder(view);
+            case Message.NOT_MY_MESSAGE_TEXT:
+                view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.not_my_message_text_item, parent, false);
+                return new MessageTextViewHolder(view);
+            case Message.MY_MESSAGE_IMAGE:
+                view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.my_message_img_item, parent, false);
+                return new MessageImageViewHolder(view);
+            case Message.NOT_MY_MESSAGE_IMAGE:
+                view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.not_my_message_img_item, parent, false);
+                return new MessageImageViewHolder(view);
+            case Message.MY_MESSAGE_VIDEO:
+                view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.my_message_video_item, parent, false);
+                return new MessageVideoViewHolder(view);
+            case Message.NOT_MY_MESSAGE_VIDEO:
+                view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.not_my_message_video_item, parent, false);
+                return new MessageVideoViewHolder(view);
         }
-        else
-        {
-            view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.not_my_message_item, parent, false);
-        }
-        return new MessageViewHolder(view);
+
+        return null;
     }
 
     @Override
     public void onBindViewHolder(MessageViewHolder messageHolder, int position) {
-        Message message = messages.get(position);
-        messageHolder.text.setText(message.getMessage());
-        messageHolder.timeText.setText(message.getDate());
-
-        messageHolder.timerTextView.setText("");
-        messageHolder.startTimer();
-
-
-        if (!messages.get(position).getSenderPhoneNumber().equals(myPhoneNumber))
-        {
-            if (contactBitmap == null) messageHolder.imageView.setImageBitmap(noPhotoBitmap);
-            else messageHolder.imageView.setImageBitmap(contactBitmap);
-
-            messageHolder.textContainer.setBackgroundResource(R.drawable.bg_not_my_message);
-            messageHolder.iconSent.setVisibility(View.INVISIBLE);
-            messageHolder.progressBar.setVisibility(View.INVISIBLE);
-            messageHolder.text.setTextColor(Color.parseColor("#000000"));
-        }
-        else
-        {
-            messageHolder.imageView.setImageBitmap(noPhotoBitmap);
-            if (messages.get(position).state == Message.STATE_ADDED)
-            {
-                messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_added);
-                messageHolder.iconSent.setVisibility(View.INVISIBLE);
-                messageHolder.progressBar.setVisibility(View.VISIBLE);
-                messageHolder.text.setTextColor(Color.parseColor("#55000000"));
-            }
-            else if (messages.get(position).state == Message.STATE_SUCCESS)
-            {
-                messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_success);
-                messageHolder.iconSent.setVisibility(View.VISIBLE);
-                messageHolder.progressBar.setVisibility(View.INVISIBLE);
-                messageHolder.text.setTextColor(Color.parseColor("#000000"));
-            }
-            else if (messages.get(position).state == Message.STATE_ERROR)
-            {
-                messageHolder.textContainer.setBackgroundResource(R.drawable.bg_my_message_error);
-                messageHolder.iconSent.setVisibility(View.INVISIBLE);
-                messageHolder.progressBar.setVisibility(View.INVISIBLE);
-                messageHolder.text.setTextColor(Color.parseColor("#000000"));
-            }
-        }
-
-
+        messageHolder.bindViewHolder(messages.get(position));
     }
 
     @Override
@@ -129,30 +129,127 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         return messages.size();
     }
 
+    public static Bitmap getVideoFrame(Context context, String uri) {
+        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+        try {
+            File file = new File(uri);
+            FileInputStream inputStream = new FileInputStream(file.getAbsolutePath());
+            retriever.setDataSource(inputStream.getFD());
+            //retriever.setDataSource(""+uri);
+            return retriever.getFrameAtTime(1000);
+        } catch (RuntimeException ex) {
+            ex.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                retriever.release();
+            } catch (RuntimeException ex) {
+            }
+        }
+        return null;
+    }
+
+    public class MessageVideoViewHolder extends MessageViewHolder
+    {
+        public ImageView imageView;
+
+        public MessageVideoViewHolder(View itemView) {
+            super(itemView);
+            imageView = (ImageView) itemView.findViewById(R.id.video_message);
+        }
+
+        @Override
+        public void bindViewHolder(Message message) {
+            super.bindViewHolder(message);
+
+            String uri = message.getMessage();
+
+            Uri videoUri = Uri.parse(uri);
+
+            Bitmap bitmap = getVideoFrame(context, uri);
+            Log.d("vfrm", "uri "+uri);
+            Log.d("vfrm", "bitmap "+bitmap);
+            imageView.setImageBitmap(bitmap);
+            //videoView.setVideoURI(videoUri);
+            /*videoView.setVideoPath(uri);
+            videoView.setKeepScreenOn(true);
+            videoView.start();*/
+        }
+    }
+
+    public class MessageImageViewHolder extends MessageViewHolder
+    {
+        public ImageView imageMessage;
+
+        public MessageImageViewHolder(View itemView) {
+            super(itemView);
+
+            imageMessage = (ImageView) itemView.findViewById(R.id.image_message);
+        }
+
+        @Override
+        public void bindViewHolder(Message message) {
+            super.bindViewHolder(message);
+
+            String filePath = message.getMessage();
+            loadBitmap(filePath, imageMessage);
+        }
+    }
+
+    public class MessageTextViewHolder extends MessageViewHolder
+    {
+        public TextView textMessage;
+
+        public MessageTextViewHolder(View itemView) {
+            super(itemView);
+
+            textMessage = (TextView) itemView.findViewById(R.id.text_message);
+        }
+
+        @Override
+        public void bindViewHolder(Message message) {
+            super.bindViewHolder(message);
+            textMessage.setText(message.getMessage());
+
+            if (!message.getSenderPhoneNumber().equals(myPhoneNumber)) {
+                textMessage.setTextColor(Color.parseColor("#000000"));
+            } else {
+                switch (message.state)
+                {
+                    case Message.STATE_ADDED:
+                        textMessage.setTextColor(Color.parseColor("#55000000"));
+                        break;
+                    case Message.STATE_SUCCESS:
+                        textMessage.setTextColor(Color.parseColor("#000000"));
+                        break;
+                    case Message.STATE_ERROR:
+                        textMessage.setTextColor(Color.parseColor("#000000"));
+                        break;
+                }
+            }
+        }
+    }
+
     public class MessageViewHolder extends RecyclerView.ViewHolder implements OnMessageDialogListener {
-        public final View mView;
-        public final ImageView imageView;
-        public final TextView text;
-        public View textContainer;
-
+        public ImageView profileImageView;
+        public View messageContainer;
         public View progressBar;
-        public View iconSent;
         public TextView timeText;
-
         public TextView timerTextView;
         public MyTimerTask timerTask;
 
-        public MessageViewHolder(View view) {
-            super(view);
-            mView = view;
-            text = (TextView) view.findViewById(R.id.text_message);
-            timerTextView = (TextView) view.findViewById(R.id.timer_message_tv);
-            imageView = (ImageView) view.findViewById(R.id.image);
-            progressBar = view.findViewById(R.id.progressBar);
-            iconSent = view.findViewById(R.id.icon_sent);
-            timeText = (TextView) view.findViewById(R.id.time_tv);
-            textContainer = view.findViewById(R.id.text_container);
-            textContainer.setOnLongClickListener(new View.OnLongClickListener() {
+        public MessageViewHolder(View itemView) {
+            super(itemView);
+
+            timerTextView = (TextView) itemView.findViewById(R.id.timer_message_tv);
+            profileImageView = (ImageView) itemView.findViewById(R.id.profile_image);
+            progressBar = itemView.findViewById(R.id.progressBar);
+            timeText = (TextView) itemView.findViewById(R.id.time_tv);
+            messageContainer = itemView.findViewById(R.id.message_container);
+            messageContainer.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     Log.d("merr", "onLongClick state "+messages.get(getAdapterPosition()).state);
@@ -169,11 +266,47 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             });
         }
 
+        public void bindViewHolder(Message message)
+        {
+            timeText.setText(message.getDate());
+            timerTextView.setText("");
+            startTimer();
+
+            if (!message.getSenderPhoneNumber().equals(myPhoneNumber))
+            {
+                if (contactBitmap == null) profileImageView.setImageBitmap(noPhotoBitmap);
+                else profileImageView.setImageBitmap(contactBitmap);
+
+                messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+            else
+            {
+                profileImageView.setImageBitmap(noPhotoBitmap);
+
+                switch (message.state)
+                {
+                    case Message.STATE_ADDED:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_added);
+                        progressBar.setVisibility(View.VISIBLE);
+                        break;
+                    case Message.STATE_SUCCESS:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_success);
+                        progressBar.setVisibility(View.INVISIBLE);
+                        break;
+                    case Message.STATE_ERROR:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_error);
+                        progressBar.setVisibility(View.INVISIBLE);
+                        break;
+                }
+            }
+        }
+
         @Override
         public void onDeleteMessage() {
-            MyDbHelper.removeMessage(new MyDbHelper(context).getWritableDatabase(), messages.get(getAdapterPosition()).getmId());
+            MyDbHelper.removeMessage(new MyDbHelper(context).getWritableDatabase(), messages.get(getAdapterPosition()).getMessageId());
             AlarmReceiverIndividual alarmReceiverIndividual = new AlarmReceiverIndividual();
-            alarmReceiverIndividual.cancelAlarm(context, messages.get(getAdapterPosition()).getmId());
+            alarmReceiverIndividual.cancelAlarm(context, messages.get(getAdapterPosition()).getMessageId());
             messages.remove(getAdapterPosition());
             if (timerTask != null && timerTask.isRunning)
             {
@@ -201,14 +334,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             if (timer == 0)
             {
                 message.setRemovalTime(0);
-                MyDbHelper.updateMessageTimer(new MyDbHelper((Context) listener).getWritableDatabase(), message.getmId(), 0);
-                alarmReceiverIndividual.cancelAlarm((Context)listener, message.getmId());
+                MyDbHelper.updateMessageTimer(new MyDbHelper((Context) listener).getWritableDatabase(), message.getMessageId(), 0);
+                alarmReceiverIndividual.cancelAlarm((Context)listener, message.getMessageId());
             }
             else
             {
                 message.setRemovalTime(removalTime);
-                MyDbHelper.updateMessageTimer(new MyDbHelper((Context) listener).getWritableDatabase(), message.getmId(), removalTime);
-                alarmReceiverIndividual.setAlarm((Context)listener, removalTime, message.getmId());
+                MyDbHelper.updateMessageTimer(new MyDbHelper((Context) listener).getWritableDatabase(), message.getMessageId(), removalTime);
+                alarmReceiverIndividual.setAlarm((Context)listener, removalTime, message.getMessageId());
             }
 
             startTimer();
@@ -235,20 +368,166 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         }
     }
 
+
+
+
+
+
+
     @Override
     public int getItemViewType(int position) {
-        Message message = messages.get(position);
-        String senderPhone = message.getSenderPhoneNumber();
-        if (senderPhone.equals(myPhoneNumber))
-        {
-            return Message.MY_MESSAGE;
-        }
-        else return Message.NOT_MY_MESSAGE;
+        return messages.get(position).messageType;
     }
 
     public interface OnChatAdapterListener
     {
         void onReSendMessage(Message message);
+    }
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    public void loadBitmap(String filePath, ImageView imageView) {
+        if (cancelPotentialWork(filePath, imageView))
+        {
+            final Bitmap bitmap = getBitmapFromMemCache(filePath);
+            if (bitmap != null)
+            {
+                imageView.setImageBitmap(bitmap);
+            }
+            else
+            {
+                final BitmapWorkerTask task = new BitmapWorkerTask(imageView);
+                final AsyncDrawable asyncDrawable =
+                        new AsyncDrawable(context.getResources(), emptyImageMessageBitmap, task);
+                imageView.setImageDrawable(asyncDrawable);
+                //task.execute(uri);
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, filePath);
+            }
+        }
+    }
+
+    private static boolean cancelPotentialWork(String filePath, ImageView imageView) {
+        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
+
+        if (bitmapWorkerTask != null) {
+            final String bitmapFilePath = bitmapWorkerTask.imageFilePath;
+            // If bitmapData is not yet set or it differs from the new data
+            if (bitmapFilePath == null || !bitmapFilePath.equals(filePath)) {
+                // Cancel previous task
+                bitmapWorkerTask.cancel(true);
+            } else {
+                // The same work is already in progress
+                return false;
+            }
+        }
+        // No task associated with the ImageView, or an existing task was cancelled
+        return true;
+    }
+
+    private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView) {
+        if (imageView != null) {
+            final Drawable drawable = imageView.getDrawable();
+            if (drawable instanceof AsyncDrawable) {
+                final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
+                return asyncDrawable.getBitmapWorkerTask();
+            }
+        }
+        return null;
+    }
+
+    class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap>
+    {
+        private final WeakReference<ImageView> imageViewReference;
+        private String imageFilePath;
+
+        public BitmapWorkerTask(ImageView imageView) {
+            // Use a WeakReference to ensure the ImageView can be garbage collected
+            imageViewReference = new WeakReference<>(imageView);
+        }
+
+        // Decode image in background.
+        @Override
+        protected Bitmap doInBackground(String... resIds) {
+            //Log.d(TAG, "doInBackground");
+
+            imageFilePath = resIds[0];
+            Bitmap bitmap = null;
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(imageFilePath, options);
+            options.inJustDecodeBounds = false;
+            options.inSampleSize = calculateInSampleSize(options, 200, 200);
+            bitmap= BitmapFactory.decodeFile(imageFilePath, options);
+            if (bitmap != null) addBitmapToMemoryCache(imageFilePath, bitmap);
+            return bitmap;
+        }
+
+        // Once complete, see if ImageView is still around and set bitmap.
+        @Override
+        protected void onPostExecute(Bitmap bitmap) {
+            if (isCancelled()) {
+                bitmap = null;
+            }
+
+            if (imageViewReference != null && bitmap != null) {
+                final ImageView imageView = imageViewReference.get();
+                final BitmapWorkerTask bitmapWorkerTask =
+                        getBitmapWorkerTask(imageView);
+                if (this == bitmapWorkerTask && imageView != null) {
+                    imageView.setImageBitmap(bitmap);
+                }
+            }
+        }
+    }
+
+    static class AsyncDrawable extends BitmapDrawable
+    {
+        private final WeakReference<BitmapWorkerTask> bitmapWorkerTaskReference;
+
+        public AsyncDrawable(Resources res, Bitmap bitmap, BitmapWorkerTask bitmapWorkerTask)
+        {
+            super(res, bitmap);
+            bitmapWorkerTaskReference = new WeakReference<>(bitmapWorkerTask);
+        }
+
+        public BitmapWorkerTask getBitmapWorkerTask()
+        {
+            return bitmapWorkerTaskReference.get();
+        }
+    }
+
+    public void addBitmapToMemoryCache(String key, Bitmap bitmap) {
+        if (getBitmapFromMemCache(key) == null) {
+            mMemoryCache.put(key, bitmap);
+        }
+    }
+
+    public Bitmap getBitmapFromMemCache(String key) {
+        return mMemoryCache.get(key);
+    }
+
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+        Log.d("lifes", "height: "+ height +" width: " + width + " inSampleSize: " + inSampleSize);
+        return inSampleSize;
     }
 
 }

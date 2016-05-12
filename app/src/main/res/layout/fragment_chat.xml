@@ -12,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layoutManager="LinearLayoutManager"
-        tools:listitem="@layout/my_message_item"
         android:background="#e5f0ff"
         android:clipToPadding="false"
         android:paddingBottom="100dp"

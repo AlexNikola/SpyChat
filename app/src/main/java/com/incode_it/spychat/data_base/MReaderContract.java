@@ -14,8 +14,9 @@ public final class MReaderContract
         public static final String RECEIVER_PHONE_NUMBER = "receiver_phone_number";
         public static final String DATE = "date";
         public static final String STATE = "state";
-        public static final String MY_ID = "mId";
+        public static final String MESSAGE_ID = "message_id";
         public static final String REMOVAL_TIME = "removal_time";
+        public static final String MESSAGE_TYPE = "message_time";
     }
 
     public static abstract class RegisteredContact implements BaseColumns {

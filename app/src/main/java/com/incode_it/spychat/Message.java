@@ -15,36 +15,43 @@ public class Message
     public static final int STATE_ERROR = 2;
     public static final int STATE_UNREAD = 3;
 
-    public static final int NOT_MY_MESSAGE = 0;
-    public static final int MY_MESSAGE = 1;
+    public static final int NOT_MY_MESSAGE_TEXT = 0;
+    public static final int MY_MESSAGE_TEXT = 1;
+    public static final int NOT_MY_MESSAGE_IMAGE = 2;
+    public static final int MY_MESSAGE_IMAGE = 3;
+    public static final int NOT_MY_MESSAGE_VIDEO = 4;
+    public static final int MY_MESSAGE_VIDEO = 5;
     private String message;
     private String senderPhoneNumber;
     private String receiverPhoneNumber;
     private String date;
     public int state;
-    private int mId;
+    private int messageId;
     private long removalTime;
+    public int messageType;
 
-    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state)
+    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state, int messageType)
     {
         this.message = message;
         this.senderPhoneNumber = senderPhoneNumber;
         this.receiverPhoneNumber = receiverPhoneNumber;
         date = getDateTime();
         this.state = state;
-        mId = C.getMyId();
+        messageId = C.getMyId();
         removalTime = 0;
+        this.messageType = messageType;
     }
 
-    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, String date, int state, int mId, long removalTime)
+    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, String date, int state, int messageId, long removalTime, int messageType)
     {
         this.message = message;
         this.senderPhoneNumber = senderPhoneNumber;
         this.receiverPhoneNumber = receiverPhoneNumber;
         this.date = date;
         this.state = state;
-        this.mId = mId;
+        this.messageId = messageId;
         this.removalTime = removalTime;
+        this.messageType = messageType;
     }
 
     public void setRemovalTime(long removalTime) {
@@ -55,8 +62,8 @@ public class Message
         return removalTime;
     }
 
-    public int getmId() {
-        return mId;
+    public int getMessageId() {
+        return messageId;
     }
 
     public int getState() {

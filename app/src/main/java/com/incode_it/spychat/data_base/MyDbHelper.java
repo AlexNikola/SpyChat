@@ -40,8 +40,10 @@ public class MyDbHelper extends SQLiteOpenHelper
                     Chat.RECEIVER_PHONE_NUMBER + TYPE_TEXT + COMMA_SEP +
                     Chat.DATE + TYPE_TEXT + COMMA_SEP +
                     Chat.STATE + TYPE_INT + COMMA_SEP +
-                    Chat.MY_ID + TYPE_INT + COMMA_SEP +
-                    Chat.REMOVAL_TIME + TYPE_INT  +" )";
+                    Chat.MESSAGE_ID + TYPE_INT + COMMA_SEP +
+                    Chat.REMOVAL_TIME + TYPE_INT  + COMMA_SEP +
+                    Chat.MESSAGE_TYPE + TYPE_INT  +" )";
+
 
     private static final String SQL_DELETE_CHAT_TABLE =
             "DROP TABLE IF EXISTS " + Chat.TABLE_NAME;
@@ -61,7 +63,7 @@ public class MyDbHelper extends SQLiteOpenHelper
     private static final String SQL_DELETE_COUNTRIES_TABLE =
             "DROP TABLE IF EXISTS " + Countries.TABLE_NAME;
 
-    public static final int DATABASE_VERSION = 20;
+    public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "SpyChat.db";
 
     public MyDbHelper(Context context) {
@@ -98,8 +100,9 @@ public class MyDbHelper extends SQLiteOpenHelper
         values.put(Chat.RECEIVER_PHONE_NUMBER, message.getReceiverPhoneNumber());
         values.put(Chat.DATE, message.getDate());
         values.put(Chat.STATE, message.getState());
-        values.put(Chat.MY_ID, message.getmId());
+        values.put(Chat.MESSAGE_ID, message.getMessageId());
         values.put(Chat.REMOVAL_TIME, message.getRemovalTime());
+        values.put(Chat.MESSAGE_TYPE, message.messageType);
 
         db.insert(Chat.TABLE_NAME, null, values);
         db.close();
@@ -110,7 +113,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         ArrayList<TimeHolder> arrayList = new ArrayList<>();
 
         String sql = "SELECT " +
-                Chat.MY_ID + COMMA_SEP +
+                Chat.MESSAGE_ID + COMMA_SEP +
                 Chat.REMOVAL_TIME +
                 " FROM Chat";
 
@@ -138,7 +141,7 @@ public class MyDbHelper extends SQLiteOpenHelper
 
     public static synchronized void removeMessage(SQLiteDatabase db, long mId)
     {
-        String whereClause = Chat.MY_ID + "=" + mId;
+        String whereClause = Chat.MESSAGE_ID + "=" + mId;
         db.delete(Chat.TABLE_NAME, whereClause, null);
         db.close();
     }
@@ -161,9 +164,10 @@ public class MyDbHelper extends SQLiteOpenHelper
                 String receiverPhoneNumber = cursor.getString(3);
                 String date = cursor.getString(4);
                 int state = cursor.getInt(5);
-                int myId = cursor.getInt(6);
+                int messageId = cursor.getInt(6);
                 long removalTime = cursor.getLong(7);
-                Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, myId, removalTime);
+                int messageType = cursor.getInt(8);
+                Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType);
                 messagesArr.add(message);
             }
             while (cursor.moveToNext());
@@ -172,6 +176,28 @@ public class MyDbHelper extends SQLiteOpenHelper
         cursor.close();
         db.close();
         return messagesArr;
+    }
+
+    public static synchronized Message readMessage(SQLiteDatabase db, int messageId)
+    {
+        String sql = "SELECT * FROM Chat WHERE " + Chat.MESSAGE_ID + " = "+messageId;
+        Cursor cursor = db.rawQuery(sql, null);
+
+        cursor.moveToFirst();
+
+        String textMessage = cursor.getString(1);
+        String senderPhoneNumber = cursor.getString(2);
+        String receiverPhoneNumber = cursor.getString(3);
+        String date = cursor.getString(4);
+        int state = cursor.getInt(5);
+        messageId = cursor.getInt(6);
+        long removalTime = cursor.getLong(7);
+        int messageType = cursor.getInt(8);
+        Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType);
+
+        cursor.close();
+        db.close();
+        return message;
     }
 
     public static synchronized ArrayList<String> readRegisteredContacts(SQLiteDatabase db)
@@ -216,7 +242,7 @@ public class MyDbHelper extends SQLiteOpenHelper
     {
         ContentValues values = new ContentValues();
 
-        String whereClause = Chat.MY_ID + "=" + message.getmId();
+        String whereClause = Chat.MESSAGE_ID + "=" + message.getMessageId();
 
         values.put(Chat.STATE, message.state);
         int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
@@ -241,7 +267,7 @@ public class MyDbHelper extends SQLiteOpenHelper
     public static synchronized void updateMessageTimer(SQLiteDatabase db, long mId, long removalTime)
     {
         ContentValues values = new ContentValues();
-        String whereClause = Chat.MY_ID + "=" + mId;
+        String whereClause = Chat.MESSAGE_ID + "=" + mId;
 
         values.put(Chat.REMOVAL_TIME, removalTime);
 

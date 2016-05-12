@@ -18,8 +18,9 @@ public class C
     public static final String EXTRA_OPPONENT_PHONE_NUMBER = "phone_number";
     public static final String EXTRA_REQUEST_PIN = "request_pin";
     public static final String EXTRA_IS_FROM_NOTIFICATION = "is_from_notification";
+    public static final String EXTRA_MESSAGE_ID = "message_id";
 
-    public static final String MESSAGE = "massage";
+
 
     public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
 
@@ -55,6 +56,18 @@ public class C
     public static Bitmap getNoPhotoBitmap(Context context)
     {
         Drawable drawable = context.getResources().getDrawable(R.drawable.profile);
+        Canvas canvas = new Canvas();
+        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bitmap);
+        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        drawable.draw(canvas);
+
+        return bitmap;
+    }
+
+    public static Bitmap getEmptyImageMessageBitmap(Context context)
+    {
+        Drawable drawable = context.getResources().getDrawable(R.drawable.ic_photo_size_select_actual_black_24dp);
         Canvas canvas = new Canvas();
         Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
