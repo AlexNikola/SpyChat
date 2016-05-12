@@ -282,8 +282,8 @@ public class ActivityMain extends AppCompatActivity implements
     private void initNavIcons()
     {
         globalTimerTextView = (TextView) findViewById(R.id.global_timer_tv);
-        Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/digital.ttf");
-        globalTimerTextView.setTypeface(typeface);
+        //Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/digital.ttf");
+        //globalTimerTextView.setTypeface(typeface);
 
         timerImageView = (ImageView) findViewById(R.id.timer_global);
         assert timerImageView != null;
