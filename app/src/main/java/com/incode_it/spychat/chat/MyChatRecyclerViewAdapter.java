@@ -3,15 +3,19 @@ package com.incode_it.spychat.chat;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.LruCache;
@@ -132,17 +136,10 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     public static Bitmap getVideoFrame(Context context, String uri) {
         MediaMetadataRetriever retriever = new MediaMetadataRetriever();
         try {
-            File file = new File(uri);
-            FileInputStream inputStream = new FileInputStream(file.getAbsolutePath());
-            retriever.setDataSource(inputStream.getFD());
-            //retriever.setDataSource(""+uri);
-            return retriever.getFrameAtTime(1000);
+            retriever.setDataSource(uri);
+            return retriever.getFrameAtTime(0);
         } catch (RuntimeException ex) {
             ex.printStackTrace();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         } finally {
             try {
                 retriever.release();
@@ -165,14 +162,34 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         public void bindViewHolder(Message message) {
             super.bindViewHolder(message);
 
-            String uri = message.getMessage();
+            //String uri = message.getMessage();
 
-            Uri videoUri = Uri.parse(uri);
+            //Uri videoUri = Uri.parse(uri);
 
-            Bitmap bitmap = getVideoFrame(context, uri);
-            Log.d("vfrm", "uri "+uri);
-            Log.d("vfrm", "bitmap "+bitmap);
+
+            //Bitmap bitmap = getVideoFrame(context, uri);
+
+            String yourRealPath = null;
+
+            Uri uri = Uri.parse(message.getMessage());
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
+            Cursor cursor = context.getContentResolver().query(uri, filePathColumn, null, null, null);
+            if(cursor.moveToFirst()){
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                yourRealPath = cursor.getString(columnIndex);
+            } else {
+                //boooo, cursor doesn't have rows ...
+            }
+            cursor.close();
+
+            Log.d("vfrm", "yourRealPath "+yourRealPath);
+            //Bitmap bitmap = getVideoFrame(context, yourRealPath);
+
+            Bitmap bitmap = ThumbnailUtils.createVideoThumbnail(yourRealPath,
+                    MediaStore.Images.Thumbnails.MINI_KIND);
             imageView.setImageBitmap(bitmap);
+
+            //imageView.setImageBitmap(bitmap);
             //videoView.setVideoURI(videoUri);
             /*videoView.setVideoPath(uri);
             videoView.setKeepScreenOn(true);
