@@ -201,21 +201,30 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
-        cancelNotification();
+        messageArrayList = new ArrayList<>();
+
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         findContactByNumber();
-        updateUnreadStateInDB();
+
         initMyPhoneNumber();
         loadOpponentBitmap();
-        loadMessages();
+
         initRecyclerView(view);
         editText = (EditText) view.findViewById(R.id.edit_text);
         initFakeToolbar(view);
         initSendMessageView(view);
-        initMessageReceiver();
-        initDeleteMassagesReceiver();
 
         return view;
+    }
+
+    @Override
+    public void onResume() {
+        cancelNotification();
+        initMessageReceiver();
+        initDeleteMassagesReceiver();
+        updateUnreadStateInDB();
+        loadMessages();
+        super.onResume();
     }
 
     private void cancelNotification()
@@ -260,7 +269,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         if (contact == null)
         {
             //loadMyContacts();
-            for (MyContacts.Contact contact: ActivityMain.mContacts)
+            for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
             {
                 if (contact.phoneNumber.equals(opponentPhone))
                 {
@@ -359,11 +368,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     private void loadMessages()
     {
-        if (messageArrayList == null)
-        {
-            messageArrayList = MyDbHelper.readContactMessages(new MyDbHelper(getContext()).getReadableDatabase(), contact);
-        }
-
+        ArrayList<Message> arr = MyDbHelper.readContactMessages(new MyDbHelper(getContext()).getReadableDatabase(), contact);
+        messageArrayList.clear();
+        messageArrayList.addAll(arr);
+        adapter.notifyDataSetChanged();
     }
 
     private void initSendMessageView(View view)

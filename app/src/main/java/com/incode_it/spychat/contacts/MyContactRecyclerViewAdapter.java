@@ -69,7 +69,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.mContact = ActivityMain.mContacts.get(position);
+        holder.mContact = MyContacts.getContacts(context).get(position);
 
         if (holder.mContact.isRegistered)
         {
@@ -97,7 +97,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         else if (position > 0)
         {
             String curr = String.valueOf(holder.mContact.name.charAt(0));
-            String prev = String.valueOf(ActivityMain.mContacts.get(position - 1).name.charAt(0));
+            String prev = String.valueOf(MyContacts.getContacts(context).get(position - 1).name.charAt(0));
             if (curr.equalsIgnoreCase(prev))
             {
                 holder.alphabeticalSeparator.setVisibility(View.GONE);
@@ -131,13 +131,13 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         else
         {
             holder.mNameView.setTextColor(Color.BLACK);
-            holder.mNameView.setText(ActivityMain.mContacts.get(position).name);
+            holder.mNameView.setText(MyContacts.getContacts(context).get(position).name);
         }
 
 
-        holder.mNumberView.setText(ActivityMain.mContacts.get(position).phoneNumber);
+        holder.mNumberView.setText(MyContacts.getContacts(context).get(position).phoneNumber);
 
-        Uri uri = ActivityMain.mContacts.get(position).photoURI;
+        Uri uri = MyContacts.getContacts(context).get(position).photoURI;
         if (uri != null)
         {
             loadBitmap(uri, holder.mImage);
@@ -151,7 +151,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
 
     @Override
     public int getItemCount() {
-        return ActivityMain.mContacts.size();
+        return MyContacts.getContacts(context).size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

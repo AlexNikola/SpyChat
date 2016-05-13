@@ -99,10 +99,11 @@ public class FragmentContacts extends Fragment {
 
     @Override
     public void onResume() {
-        super.onResume();
         Log.d("vnvnv", "onResume "+adapter);
         initMessageReceiver();
+        updateNumbersOfUnreadMessages();
         if (adapter != null) adapter.notifyDataSetChanged();
+        super.onResume();
     }
 
     @Override
@@ -111,7 +112,6 @@ public class FragmentContacts extends Fragment {
     {
         Log.d("vnvnv", "onCreateView");
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
-        updateNumbersOfUnreadMessages();
         localUpdateContactList();
         serverUpdateContacts();
         initRecyclerView();
@@ -127,9 +127,9 @@ public class FragmentContacts extends Fragment {
             public void onReceive(Context context, Intent intent)
             {
                 String phone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
-                for(int i = 0; i < ActivityMain.mContacts.size(); i++)
+                for(int i = 0; i < MyContacts.getContacts(context).size(); i++)
                 {
-                    MyContacts.Contact contact = ActivityMain.mContacts.get(i);
+                    MyContacts.Contact contact = MyContacts.getContacts(context).get(i);
                     if (contact.phoneNumber.equals(phone))
                     {
                         contact.countUnread ++;
@@ -194,7 +194,7 @@ public class FragmentContacts extends Fragment {
 
     private void updateNumbersOfUnreadMessages()
     {
-        for(MyContacts.Contact contact: ActivityMain.mContacts)
+        for(MyContacts.Contact contact: MyContacts.getContacts(getContext()))
         {
             ArrayList<Message> messages = MyDbHelper.readContactMessages(new MyDbHelper(getContext()).getReadableDatabase(), contact);
             int count = 0;
@@ -211,7 +211,7 @@ public class FragmentContacts extends Fragment {
         Log.d("lodl", "localUpdateContactList");
         ArrayList<String> registeredContacts;
         registeredContacts = MyDbHelper.readRegisteredContacts(new MyDbHelper(getContext()).getReadableDatabase());
-        for (MyContacts.Contact contact: ActivityMain.mContacts)
+        for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
         {
             for (String registeredPhone: registeredContacts)
             {
@@ -223,15 +223,15 @@ public class FragmentContacts extends Fragment {
             }
         }
 
-        Collections.sort(ActivityMain.mContacts, new ContactsComparator());
-        Log.d("lodl", "mContacts "+ActivityMain.mContacts.size());
+        Collections.sort(MyContacts.getContacts(getContext()), new ContactsComparator());
+        Log.d("lodl", "mContacts "+MyContacts.getContacts(getContext()).size());
     }
 
     private void serverUpdateContacts()
     {
         Log.d("lodl", "serverUpdateContacts");
         ArrayList<String> contactsNumbers = new ArrayList<>();
-        for (MyContacts.Contact contact: ActivityMain.mContacts)
+        for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
         {
             contactsNumbers.add(contact.phoneNumber);
         }
@@ -292,7 +292,7 @@ public class FragmentContacts extends Fragment {
         protected void onPostExecute(ArrayList<String> regContacts) {
             if (regContacts != null)
             {
-                for (MyContacts.Contact mContact: ActivityMain.mContacts)
+                for (MyContacts.Contact mContact: MyContacts.getContacts(getContext()))
                 {
                     mContact.isRegistered = false;
                     for (String regPhoneNumber: regContacts)
@@ -304,9 +304,9 @@ public class FragmentContacts extends Fragment {
                         }
                     }
                 }
-                Collections.sort(ActivityMain.mContacts, new ContactsComparator());
+                Collections.sort(MyContacts.getContacts(getContext()), new ContactsComparator());
                 if (adapter != null) adapter.notifyDataSetChanged();
-                Log.d("lodl", "mContacts "+ActivityMain.mContacts.size());
+                Log.d("lodl", "mContacts "+MyContacts.getContacts(getContext()).size());
             }
             else
             {
@@ -371,7 +371,7 @@ public class FragmentContacts extends Fragment {
             public boolean onMenuItemActionExpand(MenuItem item) {
                 isExpanded = true;
                 searchableContacts.clear();
-                searchableContacts.addAll(ActivityMain.mContacts);
+                searchableContacts.addAll(MyContacts.getContacts(getContext()));
                 Log.d("qwew", "isExpanded true");
                 return true;
             }
@@ -406,7 +406,7 @@ public class FragmentContacts extends Fragment {
 
             public void callSearch(String query)
             {
-                ActivityMain.mContacts.clear();
+                MyContacts.getContacts(getContext()).clear();
                 if (query.length() > 0)
                 {
                     for (MyContacts.Contact contact: searchableContacts)
@@ -414,7 +414,7 @@ public class FragmentContacts extends Fragment {
                         if (contact.name.toLowerCase().contains(query.toLowerCase()))
                         {
                             contact.setSearchableSubString(query);
-                            ActivityMain.mContacts.add(contact);
+                            MyContacts.getContacts(getContext()).add(contact);
 
                         }
                     }
@@ -422,9 +422,9 @@ public class FragmentContacts extends Fragment {
                 }
                 else
                 {
-                    ActivityMain.mContacts.clear();
-                    ActivityMain.mContacts.addAll(searchableContacts);
-                    for (MyContacts.Contact contact: ActivityMain.mContacts)
+                    MyContacts.getContacts(getContext()).clear();
+                    MyContacts.getContacts(getContext()).addAll(searchableContacts);
+                    for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
                     {
                         contact.searchableSubString = "";
                     }

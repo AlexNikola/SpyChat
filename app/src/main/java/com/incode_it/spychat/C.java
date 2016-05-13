@@ -5,6 +5,15 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.provider.SyncStateContract;
+
+import com.amazon.clouddrive.AmazonCloudDriveClient;
+import com.amazon.clouddrive.auth.AmazonAuthorizationConnectionFactory;
+import com.amazon.clouddrive.configuration.AccountConfiguration;
+import com.amazon.clouddrive.configuration.ClientConfiguration;
+import com.amazon.clouddrive.model.DownloadFileRequest;
+
+import java.util.ArrayList;
 
 public class C
 {
@@ -76,5 +85,8 @@ public class C
 
         return bitmap;
     }
+
+
+
 
 }

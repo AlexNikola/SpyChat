@@ -66,8 +66,6 @@ public class ActivityMain extends AppCompatActivity implements
     private boolean requestPin = true;
     private SharedPreferences sharedPreferences;
 
-    public static ArrayList<MyContacts.Contact> mContacts;
-
     private AnimatorSet animatorSetContainerClose;
     private AnimatorSet animatorSetContainerOpen;
     private AnimatorSet animatorSetIconsOpen;
@@ -85,7 +83,6 @@ public class ActivityMain extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mContacts = MyContacts.getContactsList(this);
         if (getIntent().getBooleanExtra(C.EXTRA_IS_FROM_NOTIFICATION, false))
         {
             getIntent().putExtra(C.EXTRA_IS_FROM_NOTIFICATION, false);

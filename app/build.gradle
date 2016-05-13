@@ -32,6 +32,9 @@ dependencies {
     compile 'commons-io:commons-io:2.5'
     compile 'com.wdullaer:materialdatetimepicker:2.3.0'
     compile 'com.sprylab.android.texturevideoview:texturevideoview:1.0.2'
+    compile 'org.codehaus.jackson:jackson-core-asl:1.9.9'
+
+
 }
 
 

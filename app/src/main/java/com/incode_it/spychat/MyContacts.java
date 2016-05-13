@@ -12,46 +12,52 @@ import java.util.ArrayList;
 
 public class MyContacts
 {
-    public static ArrayList<Contact> getContactsList(Context context)
-    {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-        String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, null);
-        ArrayList<Contact> contactArrayList = new ArrayList<>();
-        Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
-        if (phones != null) {
-            while (phones.moveToNext())
-            {
-                String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
-                String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER));
-                String photoURI = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
-                Log.d("conterr", "phoneNumber "+phoneNumber+" "+"name "+name);
-                if (phoneNumber == null) continue;
-                Uri uri = null;
-                if (photoURI != null)
-                {
-                    uri = Uri.parse(photoURI);
-                }
-                boolean isAdded = false;
-                for (Contact contact: contactArrayList)
-                {
-                    if (contact.phoneNumber.equalsIgnoreCase(phoneNumber))
-                    {
-                        isAdded = true;
-                    }
+    private static ArrayList<Contact> mContacts;
 
-                    if (myPhoneNumber != null)
+    public static ArrayList<Contact> getContacts(Context context)
+    {
+        if (mContacts == null)
+        {
+            mContacts = new ArrayList<>();
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+            String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, null);
+            Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
+            if (phones != null) {
+                while (phones.moveToNext())
+                {
+                    String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                    String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER));
+                    String photoURI = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
+                    Log.d("conterr", "phoneNumber "+phoneNumber+" "+"name "+name);
+                    if (phoneNumber == null) continue;
+                    Uri uri = null;
+                    if (photoURI != null)
                     {
-                        if (myPhoneNumber.equalsIgnoreCase(phoneNumber))
-                        isAdded = true;
+                        uri = Uri.parse(photoURI);
                     }
+                    boolean isAdded = false;
+                    for (Contact contact: mContacts)
+                    {
+                        if (contact.phoneNumber.equalsIgnoreCase(phoneNumber))
+                        {
+                            isAdded = true;
+                        }
+
+                        if (myPhoneNumber != null)
+                        {
+                            if (myPhoneNumber.equalsIgnoreCase(phoneNumber))
+                                isAdded = true;
+                        }
+                    }
+                    if (!isAdded) mContacts.add(new Contact(name, phoneNumber, uri));
                 }
-                if (!isAdded) contactArrayList.add(new Contact(name, phoneNumber, uri));
+            }
+            if (phones != null) {
+                phones.close();
             }
         }
-        if (phones != null) {
-            phones.close();
-        }
-        return contactArrayList;
+
+        return mContacts;
     }
 
     /*public static ArrayList<Contact> getContactsList(Context context)
