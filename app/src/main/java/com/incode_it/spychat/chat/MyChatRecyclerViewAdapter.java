@@ -152,10 +152,12 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     public class MessageVideoViewHolder extends MessageViewHolder
     {
         public ImageView imageView;
+        //public VideoView videoView;
 
         public MessageVideoViewHolder(View itemView) {
             super(itemView);
             imageView = (ImageView) itemView.findViewById(R.id.video_message);
+            //videoView = (VideoView) itemView.findViewById(R.id.video_message);
         }
 
         @Override
@@ -165,9 +167,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             //String uri = message.getMessage();
 
             //Uri videoUri = Uri.parse(uri);
-
-
-            //Bitmap bitmap = getVideoFrame(context, uri);
 
             String yourRealPath = null;
 
@@ -183,15 +182,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             cursor.close();
 
             Log.d("vfrm", "yourRealPath "+yourRealPath);
-            //Bitmap bitmap = getVideoFrame(context, yourRealPath);
+
 
             Bitmap bitmap = ThumbnailUtils.createVideoThumbnail(yourRealPath,
                     MediaStore.Images.Thumbnails.MINI_KIND);
             imageView.setImageBitmap(bitmap);
 
-            //imageView.setImageBitmap(bitmap);
-            //videoView.setVideoURI(videoUri);
-            /*videoView.setVideoPath(uri);
+
+            /*videoView.setVideoURI(videoUri);
             videoView.setKeepScreenOn(true);
             videoView.start();*/
         }
