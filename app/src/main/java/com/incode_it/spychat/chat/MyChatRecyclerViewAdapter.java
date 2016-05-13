@@ -213,6 +213,22 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
             String filePath = message.getMessage();
             loadBitmap(filePath, imageMessage);
+
+
+            String yourRealPath = null;
+
+            /*Uri uri = Uri.parse(message.getMessage());
+            String[] filePathColumn = {MediaStore.Images.Media.DATA};
+            Cursor cursor = context.getContentResolver().query(uri, filePathColumn, null, null, null);
+            if(cursor.moveToFirst()){
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                yourRealPath = cursor.getString(columnIndex);
+            } else {
+                //boooo, cursor doesn't have rows ...
+            }
+            cursor.close();*/
+
+            Log.d("vfrm", "yourRealPath "+message.getMessage());
         }
     }
 

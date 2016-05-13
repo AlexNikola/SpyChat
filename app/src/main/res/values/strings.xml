@@ -118,4 +118,10 @@
     <string name="pref_title_vibrate">Vibrate</string>
 
 
+    <string name="description_1">Global timer settings determine the time after which all messages will be deleted.</string>
+
+    <string name="description_2">You can set time to delete each message individually by long pressing the message bubble.</string>
+
+    <string name="description_3">The SPYChat Contact List is synchronized with your smartphone - to add one simply add it to phone Contacts.</string>
+
 </resources>
