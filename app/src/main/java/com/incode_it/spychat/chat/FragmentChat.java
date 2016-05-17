@@ -13,7 +13,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
@@ -27,13 +26,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import com.amazonaws.mobile.UploadService;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
-import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 
@@ -69,14 +68,16 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     private ArrayList<Message> messageArrayList;
 
-    private BroadcastReceiver mBroadcastReceiver;
+    private BroadcastReceiver mMediaReceiver;
+    private boolean isMediaReceiverRegistered;
+    private BroadcastReceiver mMessageReceiver;
     private boolean isMessageReceiverRegistered;
     private boolean isDeleteMessagesReceiverRegistered;
     private OnFragmentChatInteractionListener fragmentChatInteractionListener;
 
 
     private MyContacts.Contact contact;
-    private String mCurrentPhotoPath;
+
 
 
 
@@ -102,7 +103,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     @Override
     public void onPause() {
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver);
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mMediaReceiver);
+        isMediaReceiverRegistered = false;
+
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mMessageReceiver);
         isMessageReceiverRegistered = false;
 
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDeleteMessagesReceiver);
@@ -126,11 +130,19 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             Bitmap imageBitmap = (Bitmap) extras.get("data");*/
             //mImageView.setImageBitmap(imageBitmap);
 
-            final Message message = new Message(mCurrentPhotoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_SUCCESS, Message.MY_MESSAGE_IMAGE);
+            String photoPath = sharedPreferences.getString(C.SHARED_NEW_PHOTO_PATH, "error");
+
+            final Message message = new Message(photoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_IMAGE);
             messageArrayList.add(message);
             adapter.notifyItemInserted(messageArrayList.size() - 1);
             recyclerView.scrollToPosition(messageArrayList.size() - 1);
             MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
+
+            Log.d("amaz_upload", "onActivityResult "+photoPath);
+            Intent serviceIntent = new Intent(getContext(), UploadService.class);
+            serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, photoPath);
+            serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+            getContext().getApplicationContext().startService(serviceIntent);
 
         }
         else if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == Activity.RESULT_OK)
@@ -181,7 +193,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         );
 
         // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = "" + image.getAbsolutePath();
+        sharedPreferences.edit().putString(C.SHARED_NEW_PHOTO_PATH, image.getAbsolutePath()).apply();
         /*Log.d("lifes", "mCurrentPhotoPath "+mCurrentPhotoPath);
         Log.d("lifes", "getExternalStorageDirectory "+Environment.getExternalStorageDirectory());
         Log.d("lifes", "getExternalStorageDirectory "+Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES));*/
@@ -221,6 +233,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public void onResume() {
         cancelNotification();
         initMessageReceiver();
+        initMediaReceiver();
         initDeleteMassagesReceiver();
         updateUnreadStateInDB();
         loadMessages();
@@ -491,13 +504,74 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         return result;
     }
 
-    private void initMessageReceiver()
+    private void initMediaReceiver()
     {
-        mBroadcastReceiver = new BroadcastReceiver()
+        mMediaReceiver = new BroadcastReceiver()
         {
             @Override
             public void onReceive(Context context, Intent intent)
             {
+                Message message = null;
+                int position = 0;
+                int idToUpdate = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
+                for (int i = 0; i < messageArrayList.size(); i++)
+                {
+                    int messageId = messageArrayList.get(i).getMessageId();
+                    if (messageId == idToUpdate)
+                    {
+                        message = messageArrayList.get(i);
+                        position = i;
+                    }
+                }
+
+                String status = intent.getStringExtra(C.EXTRA_MEDIA_STATE);
+                if (status.equals("s"))
+                {
+                    message.state = Message.STATE_SUCCESS;
+                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
+                    message.imageTotalProgress = 0;
+                    message.imageProgress = 0;
+                    adapter.notifyDataSetChanged();
+                }
+                else if (status.equals("p"))
+                {
+                    long progress = intent.getLongExtra(C.EXTRA_MEDIA_PROGRESS_CURRENT, 0);
+                    long totalProgress = intent.getLongExtra(C.EXTRA_MEDIA_PROGRESS_TOTAL, 0);
+                    message.imageProgress = progress;
+                    message.imageTotalProgress = totalProgress;
+                    adapter.notifyDataSetChanged();
+                }
+                else if (status.equals("e"))
+                {
+                    message.state = Message.STATE_ERROR;
+                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
+                    adapter.notifyDataSetChanged();
+                }
+
+
+            }
+        };
+
+        // Registering BroadcastReceiver
+        registerMediaReceiver();
+    }
+
+    private void registerMediaReceiver(){
+        if(!isMediaReceiverRegistered) {
+            LocalBroadcastManager.getInstance(getContext()).registerReceiver(mMediaReceiver,
+                    new IntentFilter(QuickstartPreferences.RECEIVE_MEDIA));
+            isMediaReceiverRegistered = true;
+        }
+    }
+
+    private void initMessageReceiver()
+    {
+        mMessageReceiver = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent)
+            {
+                Log.d("amaz_upload", "onReceive "+intent.getAction());
                 String phone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
                 if (phone.equals(contact.phoneNumber))
                 {
@@ -519,7 +593,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     private void registerMessageReceiver(){
         if(!isMessageReceiverRegistered) {
-            LocalBroadcastManager.getInstance(getContext()).registerReceiver(mBroadcastReceiver,
+            LocalBroadcastManager.getInstance(getContext()).registerReceiver(mMessageReceiver,
                     new IntentFilter(QuickstartPreferences.RECEIVE_MESSAGE));
             isMessageReceiverRegistered = true;
         }

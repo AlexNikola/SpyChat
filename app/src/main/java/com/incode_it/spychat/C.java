@@ -21,6 +21,7 @@ public class C
     public static final String SHARED_REFRESH_TOKEN = "refresh_token";
     public static final String SHARED_MY_PHONE_NUMBER = "my_phone_number";
     public static final String SHARED_PIN = "my_pin";
+    public static final String SHARED_NEW_PHOTO_PATH = "photo_path";
 
     public static final String EXTRA_COUNTRY_CODE = "country_code";
     public static final String EXTRA_COUNTRY_ISO = "country_iso";
@@ -28,6 +29,12 @@ public class C
     public static final String EXTRA_REQUEST_PIN = "request_pin";
     public static final String EXTRA_IS_FROM_NOTIFICATION = "is_from_notification";
     public static final String EXTRA_MESSAGE_ID = "message_id";
+    public static final String EXTRA_MEDIA_FILE_PATH = "media_file_path";
+
+    public static final String EXTRA_ID_TO_UPDATE_MEDIA = "id_to_update_media";
+    public static final String EXTRA_MEDIA_STATE = "media_state";
+    public static final String EXTRA_MEDIA_PROGRESS_TOTAL = "media_progress_total";
+    public static final String EXTRA_MEDIA_PROGRESS_CURRENT = "media_progress_current";
 
 
 

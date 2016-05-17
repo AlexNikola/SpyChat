@@ -29,6 +29,8 @@ public class Message
     private int messageId;
     private long removalTime;
     public int messageType;
+    public long imageProgress;
+    public long imageTotalProgress;
 
     public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state, int messageType)
     {

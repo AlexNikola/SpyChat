@@ -23,6 +23,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -181,6 +182,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             }
             cursor.close();
 
+            Log.d("vfrm", "Path "+message.getMessage());
             Log.d("vfrm", "yourRealPath "+yourRealPath);
 
 
@@ -198,11 +200,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     public class MessageImageViewHolder extends MessageViewHolder
     {
         public ImageView imageMessage;
+        public ProgressBar progressBar;
 
         public MessageImageViewHolder(View itemView) {
             super(itemView);
 
             imageMessage = (ImageView) itemView.findViewById(R.id.image_message);
+            progressBar = (ProgressBar) itemView.findViewById(R.id.progressBar_horizontal);
+
         }
 
         @Override
@@ -211,22 +216,16 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
             String filePath = message.getMessage();
             loadBitmap(filePath, imageMessage);
-
-
+            if (message.imageProgress > 0)
+            {
+                progressBar.setVisibility(View.VISIBLE);
+                progressBar.setProgress((int) message.imageProgress);
+                progressBar.setMax((int) message.imageTotalProgress);
+            }
             String yourRealPath = null;
 
-            /*Uri uri = Uri.parse(message.getMessage());
-            String[] filePathColumn = {MediaStore.Images.Media.DATA};
-            Cursor cursor = context.getContentResolver().query(uri, filePathColumn, null, null, null);
-            if(cursor.moveToFirst()){
-                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                yourRealPath = cursor.getString(columnIndex);
-            } else {
-                //boooo, cursor doesn't have rows ...
-            }
-            cursor.close();*/
-
-            Log.d("vfrm", "yourRealPath "+message.getMessage());
+            Log.d("vfrm", "Path "+message.getMessage());
+            Log.d("vfrm", "yourRealPath "+yourRealPath);
         }
     }
 

@@ -33,7 +33,10 @@ dependencies {
     compile 'com.wdullaer:materialdatetimepicker:2.3.0'
     compile 'com.sprylab.android.texturevideoview:texturevideoview:1.0.2'
     compile 'org.codehaus.jackson:jackson-core-asl:1.9.9'
-
+    compile('com.amazonaws:aws-android-sdk-core:2.2.11')
+    compile('com.amazonaws:aws-android-sdk-cognito:2.2.11')
+    compile('com.amazonaws:aws-android-sdk-s3:2.2.11')
+    compile 'com.android.support:multidex:1.0.1'
 
 }
 

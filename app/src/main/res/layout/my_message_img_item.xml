@@ -30,6 +30,14 @@
                 android:layout_height="200dp"
                 android:layout_gravity="end"/>
 
+            <ProgressBar
+                android:visibility="invisible"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/progressBar_horizontal"
+                android:layout_gravity="center_horizontal" />
+
             <FrameLayout
                 android:padding="4dp"
                 android:layout_gravity="end"
