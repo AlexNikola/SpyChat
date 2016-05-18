@@ -1,15 +1,24 @@
 package com.incode_it.spychat.authorization;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,6 +31,7 @@ import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.country_selection.ActivitySelectCountry;
 import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
+import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,8 +40,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class FragmentSingUp extends Fragment
-{
+public class FragmentSingUp extends Fragment implements OnDialogListener {
     private static final String TAG = "myhttp";
     private Context context;
 
@@ -53,6 +62,15 @@ public class FragmentSingUp extends Fragment
     private String myPhoneNumber;
     private String countryCode = "+....";
     private String countryISO = "";
+
+    private TextView questionTextView;
+    private TextInputEditText answerET;
+    private View clearAnswer;
+    private TextView errorAnswer;
+    private String [] questions;
+    private String currentQuestion;
+    private View selectQuestion;
+    private int questionPosition;
 
 
     public FragmentSingUp() {
@@ -119,6 +137,7 @@ public class FragmentSingUp extends Fragment
                 myPhoneNumber = phoneET.getText().toString();
                 String password = passET.getText().toString();
                 String passwordConf = passConfET.getText().toString();
+                String answer = answerET.getText().toString();
                 boolean isValid = true;
                 if (myPhoneNumber.length() < 1) {
                     errorPhoneTextView.setText(R.string.enter_phone_number);
@@ -152,10 +171,54 @@ public class FragmentSingUp extends Fragment
                     }
                 }
 
+                if (answer.length() < 1)
+                {
+                    errorAnswer.setText(R.string.enter_answer);
+                    isValid = false;
+                }
+                else
+                {
+                    errorAnswer.setText("");
+                }
+
                 if (!isValid) return;
 
                 fragmentListener.onLogIn(countryCode + myPhoneNumber);
-                new SignUpTask().execute(countryCode + myPhoneNumber, password);
+                new SignUpTask().execute(countryCode + myPhoneNumber, password, currentQuestion, answer);
+            }
+        });
+
+        questionTextView = (TextView) view.findViewById(R.id.question_tv);
+        answerET = (TextInputEditText) view.findViewById(R.id.edit_text_answer);
+        clearAnswer = view.findViewById(R.id.edit_text_clear_answer);
+        clearAnswer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                answerET.setText("");
+            }
+        });
+        errorAnswer = (TextView) view.findViewById(R.id.error_answer);
+
+        questions = getResources().getStringArray(R.array.questions);
+        if (currentQuestion == null) currentQuestion = questions[0];
+        questionTextView.setText(currentQuestion);
+
+        selectQuestion = view.findViewById(R.id.select_question);
+        selectQuestion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.e("wqwq", "onClick");
+                int currentOrientation = getResources().getConfiguration().orientation;
+                if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+                }
+                else {
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
+                }
+                FragmentManager fm = getActivity().getSupportFragmentManager();
+                SelectQuestionDialogFragment fragment = SelectQuestionDialogFragment.newInstance(questionPosition, FragmentSingUp.this);
+
+                fragment.show(fm, "fragment_select_question");
             }
         });
 
@@ -222,6 +285,13 @@ public class FragmentSingUp extends Fragment
         });
     }
 
+    @Override
+    public void onSelect(int position) {
+        questionPosition = position;
+        currentQuestion = questions[position];
+        questionTextView.setText(currentQuestion);
+    }
+
     private class SignUpTask extends AsyncTask<String, Void, String>
     {
 
@@ -240,27 +310,24 @@ public class FragmentSingUp extends Fragment
         protected String doInBackground(String... params) {
             String phoneNumber = params[0];
             String password = params[1];
+            String question = params[2];
+            String answer = params[3];
             String regToken;
 
             try {
                 phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
                 password = URLEncoder.encode(password, "UTF-8");
-                /*String urlParameters = "phone=" +
-                        phoneNumber +
-                        "&" +
-                        "password=" +
-                        password +
-                        "&" +
-                        "confirm=" +
-                        password;
+                question = URLEncoder.encode(question, "UTF-8");
+                answer = URLEncoder.encode(answer, "UTF-8");
 
-                URL url = new URL(C.BASE_URL + "api/v1/users/restorePassword/");*/
                 regToken = MyConnection.getRegToken(context);
 
                 String urlParameters =  "phone="    + phoneNumber   + "&" +
                                         "password=" + password      + "&" +
                                         "confirm="  + password      + "&" +
-                                        "regToken=" + regToken;
+                                        "regToken=" + regToken      + "&" +
+                                        "secret="   + question      + "&" +
+                                        "answer"    + answer;
 
                 URL url = new URL(C.BASE_URL + "api/v1/users/register/");
 
@@ -306,5 +373,53 @@ public class FragmentSingUp extends Fragment
 
         }
     }
+
+
+    public static class SelectQuestionDialogFragment extends DialogFragment {
+
+        public static final String TAG = "SelectQuestionDialogFragment";
+        private OnDialogListener listener;
+        private int position;
+
+        public static SelectQuestionDialogFragment newInstance(int position, OnDialogListener listener)
+        {
+            Log.e("wqwq", "newInstance");
+            SelectQuestionDialogFragment newFragment = new SelectQuestionDialogFragment();
+            newFragment.setListener(listener);
+            newFragment.setPosition(position);
+            return newFragment;
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            Log.e("wqwq", "onCreateDialog");
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.DialogCustom);
+            builder.setTitle(R.string.select_question)
+                    .setSingleChoiceItems(R.array.questions, position, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            listener.onSelect(which);
+                        }
+                    });
+
+            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+                }
+            });
+            return builder.create();
+        }
+
+        public void setListener(OnDialogListener listener) {
+            this.listener = listener;
+        }
+
+        public void setPosition(int position) {
+            this.position = position;
+        }
+    }
+
+
 
 }

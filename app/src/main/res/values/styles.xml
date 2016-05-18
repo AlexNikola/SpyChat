@@ -37,9 +37,15 @@
         <item name="colorControlActivated">@color/colorPrimaryAuth</item>-->
     </style>
 
+
+
     <style name="error_appearance" parent="@android:style/TextAppearance">
         <item name="android:textColor">#ff4343</item>
         <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="DialogCustom" parent="@android:style/Theme.DeviceDefault.Dialog">
+        <item name="android:background">#545454</item>
     </style>
 
 

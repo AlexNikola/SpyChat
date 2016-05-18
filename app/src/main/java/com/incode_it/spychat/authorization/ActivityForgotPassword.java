@@ -1,4 +1,4 @@
-package com.incode_it.spychat;
+package com.incode_it.spychat.authorization;
 
 import android.os.AsyncTask;
 import android.support.design.widget.TextInputEditText;
@@ -7,6 +7,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+
+import com.incode_it.spychat.C;
+import com.incode_it.spychat.MyConnection;
+import com.incode_it.spychat.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;

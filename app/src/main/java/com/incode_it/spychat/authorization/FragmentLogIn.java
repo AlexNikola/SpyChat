@@ -3,21 +3,17 @@ package com.incode_it.spychat.authorization;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
-import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.incode_it.spychat.ActivityForgotPassword;
 import com.incode_it.spychat.country_selection.ActivitySelectCountry;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
@@ -30,7 +26,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Locale;
 
 public class FragmentLogIn extends Fragment
 {
