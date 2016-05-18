@@ -26,13 +26,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
-import com.amazonaws.mobile.UploadService;
+import com.amazonaws.mobile.UploadServiceA;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.amazon.UploadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 

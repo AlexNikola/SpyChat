@@ -14,14 +14,14 @@ import com.incode_it.spychat.QuickstartPreferences;
 
 import java.io.File;
 
-public class UploadService extends IntentService {
+public class UploadServiceA extends IntentService {
 
     private String path;
     private File file;
     private int messageId;
 
-    public UploadService() {
-        super("UploadService");
+    public UploadServiceA() {
+        super("UploadServiceA");
     }
 
     @Override
@@ -54,7 +54,7 @@ public class UploadService extends IntentService {
                 Intent intent = new Intent(QuickstartPreferences.RECEIVE_MEDIA);
                 intent.putExtra(C.EXTRA_MESSAGE_ID, messageId);
                 intent.putExtra(C.EXTRA_MEDIA_STATE, "s");
-                LocalBroadcastManager.getInstance(UploadService.this).sendBroadcast(intent);
+                LocalBroadcastManager.getInstance(UploadServiceA.this).sendBroadcast(intent);
             }
 
             @Override
@@ -66,7 +66,7 @@ public class UploadService extends IntentService {
                 intent.putExtra(C.EXTRA_MEDIA_STATE, "p");
                 intent.putExtra(C.EXTRA_MEDIA_PROGRESS_TOTAL, bytesTotal);
                 intent.putExtra(C.EXTRA_MEDIA_PROGRESS_CURRENT, bytesCurrent);
-                LocalBroadcastManager.getInstance(UploadService.this).sendBroadcast(intent);
+                LocalBroadcastManager.getInstance(UploadServiceA.this).sendBroadcast(intent);
             }
 
             @Override
@@ -75,7 +75,7 @@ public class UploadService extends IntentService {
                 Intent intent = new Intent(QuickstartPreferences.RECEIVE_MEDIA);
                 intent.putExtra(C.EXTRA_MESSAGE_ID, messageId);
                 intent.putExtra(C.EXTRA_MEDIA_STATE, "e");
-                LocalBroadcastManager.getInstance(UploadService.this).sendBroadcast(intent);
+                LocalBroadcastManager.getInstance(UploadServiceA.this).sendBroadcast(intent);
             }
         });
     }

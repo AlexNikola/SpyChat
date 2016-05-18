@@ -20,6 +20,9 @@
     <string name="title_activity_activity_chat">ActivityChat</string>
 
 
+    <string name="change_password">Change password</string>
+    <string name="new_pass_hint">New password</string>
+    <string name="conf_new_pass_hint">Confirm new password</string>
     <string name="sign_up">Sign Up</string>
     <string name="log_in">LOG IN</string>
     <string name="conf_pass_hint">Confirm Password</string>
@@ -27,6 +30,8 @@
     <string name="phone_number_hint">Phone Number</string>
 
     <!--errors-->
+    <string name="enter_answer">Enter answer</string>
+
     <string name="enter_phone_number">Enter phone number</string>
     <string name="enter_country_code">Enter country code</string>
     <string name="incorrect_country_code">Incorrect country code</string>

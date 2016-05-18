@@ -3,8 +3,10 @@ package com.incode_it.spychat.authorization;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
@@ -15,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.incode_it.spychat.ActivityForgotPassword;
 import com.incode_it.spychat.country_selection.ActivitySelectCountry;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
@@ -52,6 +55,8 @@ public class FragmentLogIn extends Fragment
     private String countryCode = "+....";
     private String countryISO = "";
 
+    private View forgotPassView;
+
     public FragmentLogIn() {
         // Required empty public constructor
     }
@@ -70,7 +75,7 @@ public class FragmentLogIn extends Fragment
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_log_in, container, false);
@@ -89,7 +94,24 @@ public class FragmentLogIn extends Fragment
         initPassInputLayout(view);
         initSelectCountryView(view);
 
+        forgotPassView = view.findViewById(R.id.forgot);
+        forgotPassView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if ((myPhoneNumber.length() < 1 && countryCode.equals("+....")) || myPhoneNumber.length() < 1)
+                {
+                    errorPhoneTextView.setText(R.string.enter_phone_number);
+                }
+                else
+                {
+                    errorPhoneTextView.setText("");
+                    Intent intent = new Intent(getContext(), ActivityForgotPassword.class);
+                    intent.putExtra(C.EXTRA_MY_PHONE_NUMBER, myPhoneNumber);
+                    startActivity(intent);
+                }
 
+            }
+        });
 
         errorPhoneTextView = (TextView) view.findViewById(R.id.error_phone);
         errorPassTextView = (TextView) view.findViewById(R.id.error_pass);

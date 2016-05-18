@@ -25,7 +25,8 @@ public class C
 
     public static final String EXTRA_COUNTRY_CODE = "country_code";
     public static final String EXTRA_COUNTRY_ISO = "country_iso";
-    public static final String EXTRA_OPPONENT_PHONE_NUMBER = "phone_number";
+    public static final String EXTRA_OPPONENT_PHONE_NUMBER = "opponent_phone_number";
+    public static final String EXTRA_MY_PHONE_NUMBER = "my_phone_number";
     public static final String EXTRA_REQUEST_PIN = "request_pin";
     public static final String EXTRA_IS_FROM_NOTIFICATION = "is_from_notification";
     public static final String EXTRA_MESSAGE_ID = "message_id";
