@@ -6,7 +6,6 @@ import android.animation.ObjectAnimator;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -25,7 +24,6 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.chat.ActivityChat;
 import com.incode_it.spychat.settings.ActivitySettings;
 import com.incode_it.spychat.C;
@@ -37,7 +35,6 @@ import com.incode_it.spychat.pin.FragmentPin;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
-import java.util.ArrayList;
 import java.util.Timer;
 
 public class ActivityMain extends AppCompatActivity implements
@@ -351,28 +348,36 @@ public class ActivityMain extends AppCompatActivity implements
         AlarmReceiverGlobal alarmReceiverGlobal = new AlarmReceiverGlobal();
         if (timer == 0)
         {
-            long removalTimeOld = sharedPreferences.getLong(C.REMOVAL_GLOBAL_TIME, 0);
+            long id = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
             sharedPreferences.edit().putLong(C.REMOVAL_GLOBAL_TIME, 0).apply();
-            alarmReceiverGlobal.cancelAlarm(this, removalTimeOld);
+            sharedPreferences.edit().putLong(C.GLOBAL_TIMER, 0).apply();
+
+            alarmReceiverGlobal.cancelAlarm(this, 0);
         }
         else
         {
             sharedPreferences.edit().putLong(C.REMOVAL_GLOBAL_TIME, removalTime).apply();
-            alarmReceiverGlobal.setAlarm(this, removalTime);
+            sharedPreferences.edit().putLong(C.GLOBAL_TIMER, timer).apply();
+            alarmReceiverGlobal.cancelAlarm(this, 0);
+            alarmReceiverGlobal.setAlarm(this, removalTime, timer);
         }
         startTimer();
     }
 
     public void startTimer()
     {
+
         if (timerTask != null && timerTask.isRunning)
         {
             timerTask.cancel();
         }
         long removalTime = sharedPreferences.getLong(C.REMOVAL_GLOBAL_TIME, 0);
+        long timer = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
+        Log.d("timmmer", "startTimer M timer " + timer);
+        Log.d("timmmer", "startTimer M removalTime " + removalTime);
         if (removalTime > 0)
         {
-            timerTask = new MyTimerTask(removalTime, globalTimerTextView);
+            timerTask = new MyTimerTask(removalTime, globalTimerTextView, timer);
             timerTask.isRunning = true;
             Timer myTimer = new Timer();
             myTimer.schedule(timerTask, 0, 1000);

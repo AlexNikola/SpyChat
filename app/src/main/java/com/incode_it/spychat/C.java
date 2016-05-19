@@ -42,6 +42,7 @@ public class C
     public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
 
     public static final String REMOVAL_GLOBAL_TIME = "removal_global_time";
+    public static final String GLOBAL_TIMER = "added_global_time";
 
     public static final String ID_TO_DELETE = "id_to_delete";
 

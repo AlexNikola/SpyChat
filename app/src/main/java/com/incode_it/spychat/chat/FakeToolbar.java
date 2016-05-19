@@ -101,9 +101,12 @@ public class FakeToolbar extends FrameLayout {
         }
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         long removalTime = sharedPreferences.getLong(C.REMOVAL_GLOBAL_TIME, 0);
+        long timer = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
+        Log.d("timmmer", "startTimer timer " + timer);
+        Log.d("timmmer", "startTimer removalTime " + removalTime);
         if (removalTime > 0)
         {
-            timerTask = new MyTimerTask(removalTime, globalTimerTextView);
+            timerTask = new MyTimerTask(removalTime, globalTimerTextView, timer);
             timerTask.isRunning = true;
             Timer myTimer = new Timer();
             myTimer.schedule(timerTask, 0, 1000);

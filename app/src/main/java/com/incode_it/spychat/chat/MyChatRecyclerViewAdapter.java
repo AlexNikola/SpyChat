@@ -386,7 +386,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             }
             if (removalTime > 0)
             {
-                timerTask = new MyTimerTask(removalTime, timerTextView);
+                timerTask = new MyTimerTask(removalTime, timerTextView, -1);
                 timerTask.isRunning = true;
                 Timer myTimer = new Timer();
                 myTimer.schedule(timerTask, 0, 1000);

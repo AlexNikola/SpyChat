@@ -41,9 +41,10 @@ public class BootReceiver extends BroadcastReceiver {
     private void startGlobalAlarm(Context context, Intent intent)
     {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        long timer = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
         long removalTime = sharedPreferences.getLong(C.REMOVAL_GLOBAL_TIME, 0);
         if (removalTime == 0) return;
         AlarmReceiverGlobal alarm = new AlarmReceiverGlobal();
-        alarm.setAlarm(context, removalTime);
+        alarm.setAlarm(context, removalTime, timer);
     }
 }
