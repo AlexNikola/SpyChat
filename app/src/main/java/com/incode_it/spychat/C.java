@@ -71,28 +71,38 @@ public class C
         return (int) System.currentTimeMillis();
     }
 
+    public static Bitmap noPhotoBitmap;
+
     public static Bitmap getNoPhotoBitmap(Context context)
     {
-        Drawable drawable = context.getResources().getDrawable(R.drawable.profile);
-        Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        canvas.setBitmap(bitmap);
-        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
-        drawable.draw(canvas);
+        if (noPhotoBitmap == null)
+        {
+            Drawable drawable = context.getResources().getDrawable(R.drawable.profile);
+            Canvas canvas = new Canvas();
+            noPhotoBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            canvas.setBitmap(noPhotoBitmap);
+            drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+            drawable.draw(canvas);
+        }
 
-        return bitmap;
+        return noPhotoBitmap;
     }
+
+    public static Bitmap emptyImageBitmap;
 
     public static Bitmap getEmptyImageMessageBitmap(Context context)
     {
-        Drawable drawable = context.getResources().getDrawable(R.drawable.ic_photo_size_select_actual_black_24dp);
-        Canvas canvas = new Canvas();
-        Bitmap bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
-        canvas.setBitmap(bitmap);
-        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
-        drawable.draw(canvas);
+        if (emptyImageBitmap == null)
+        {
+            Drawable drawable = context.getResources().getDrawable(R.drawable.ic_photo_size_select_actual_black_24dp);
+            Canvas canvas = new Canvas();
+            emptyImageBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            canvas.setBitmap(emptyImageBitmap);
+            drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+            drawable.draw(canvas);
+        }
 
-        return bitmap;
+        return emptyImageBitmap;
     }
 
 

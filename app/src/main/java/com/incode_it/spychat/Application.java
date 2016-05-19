@@ -12,8 +12,6 @@ package com.incode_it.spychat;
 import android.support.multidex.MultiDexApplication;
 import android.util.Log;
 
-import com.amazonaws.mobile.AWSMobileClient;
-
 /**
  * Application class responsible for initializing singletons and other common components.
  */

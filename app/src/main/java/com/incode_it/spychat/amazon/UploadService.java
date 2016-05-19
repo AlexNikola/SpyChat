@@ -29,7 +29,7 @@ public class UploadService extends IntentService {
     private String path;
     private File file;
     private int messageId;
-    private ArrayList<TransferObserver> arrayList = new ArrayList<>();
+
     //private TransferObserver transferObserver;
     final CountDownLatch latch = new CountDownLatch(1);
 
@@ -65,7 +65,7 @@ public class UploadService extends IntentService {
 
         Log.d("amaz_upload", "onHandleIntent "+this.hashCode());
         try {
-            Thread.sleep(10000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -92,7 +92,7 @@ public class UploadService extends IntentService {
                 file       /* The file where the data to upload exists */
         );
 
-        arrayList.add(transferObserver);
+        //arrayList.add(transferObserver);
 
         transferObserver.setTransferListener(new TransferListener() {
             @Override
