@@ -50,19 +50,23 @@
             android:name=".country_selection.ActivitySelectCountry"
             android:theme="@style/AuthTheme" />
         <activity
+
+            android:name=".authorization.ActivityForgotPassword"
+            android:theme="@style/AuthTheme" />
+        <activity
             android:name=".contacts.ActivityMain"
             android:label="@string/app_name"
             android:theme="@style/AppTheme"
-            android:windowSoftInputMode="stateUnchanged">
+            android:windowSoftInputMode="stateUnchanged" />
 
-        </activity>
-
+        <activity
+            android:theme="@style/ChangePassTheme"
+            android:windowSoftInputMode="stateUnchanged"
+            android:name=".settings.ActivityChangePassword"/>
         <activity
             android:name=".chat.ActivityChat"
             android:label="@string/title_activity_activity_chat"
-            android:theme="@style/AppTheme">
-
-        </activity>
+            android:theme="@style/AppTheme" />
 
         <activity
             android:name=".authorization.ActivityAuth"

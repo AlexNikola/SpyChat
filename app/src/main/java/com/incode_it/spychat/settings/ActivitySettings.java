@@ -1,15 +1,22 @@
 package com.incode_it.spychat.settings;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
+import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -20,7 +27,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.incode_it.spychat.C;
+import com.incode_it.spychat.MyConnection;
+import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.authorization.ActivityAuth;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLEncoder;
 
 public class ActivitySettings extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener {
 
@@ -30,6 +47,11 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
     private Button pinSave, pinClear;
     private View container;
     private Toolbar toolbar;
+    private Button deleteAccountBtn;
+    private ProgressDialog pd;
+    private CoordinatorLayout coordinatorLayout;
+    private Button changePasswordBtn;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,12 +59,33 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         container = findViewById(R.id.container);
-
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator);
         initToolbar();
 
         initSoundSettings();
         initVibrationSettings();
         initPinSettings();
+        initDeleteAccountBtn();
+
+        changePasswordBtn = (Button) findViewById(R.id.change_password);
+        changePasswordBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ActivitySettings.this, ActivityChangePassword.class);
+                startActivity(intent);
+            }
+        });
+    }
+
+    private void initDeleteAccountBtn()
+    {
+        deleteAccountBtn = (Button) findViewById(R.id.delete_account);
+        deleteAccountBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new DeleteAccountTask().execute();
+            }
+        });
     }
 
     private void initSoundSettings()
@@ -258,5 +301,101 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
             InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
+    }
+
+    private class DeleteAccountTask extends AsyncTask<String, Void, String>
+    {
+        public DeleteAccountTask() {
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            OrientationUtils.lockOrientation(ActivitySettings.this);
+
+            pd = ProgressDialog.show(ActivitySettings.this, "Deleting account", "Wait...", true, false);
+            /*pd = new ProgressDialog(ActivitySettings.this);
+            pd.setTitle("Deleting account");
+            pd.setMessage("Wait...");
+            pd.setCancelable(false);
+            pd.show();*/
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            String result = null;
+            try
+            {
+                result = tryDeleteAccount();
+            }
+            catch (IOException | JSONException e)
+            {
+                e.printStackTrace();
+            }
+
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            OrientationUtils.unlockOrientation(ActivitySettings.this);
+            pd.dismiss();
+
+            if (result == null) {
+                shoeError("Connection error");
+            } else if (result.equals("success")){
+                sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
+                Intent intent = new Intent(ActivitySettings.this, ActivityAuth.class);
+                startActivity(intent);
+                setResult(C.RESULT_EXIT);
+                finish();
+            }
+
+        }
+
+        private String tryDeleteAccount() throws IOException, JSONException
+        {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(ActivitySettings.this);
+            String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, "");
+            URL url = new URL(C.BASE_URL + "api/v1/usersJob/dropAccount/");
+            String header = "Bearer "+accessToken;
+
+            String response = MyConnection.post(url, null, header);
+
+            String result = null;
+            if (response.equals("Access token is expired"))
+            {
+                if (MyConnection.sendRefreshToken(ActivitySettings.this))
+                    result = tryDeleteAccount();
+            }
+            else
+            {
+                JSONObject jsonResponse = new JSONObject(response);
+                result = jsonResponse.getString("result");
+            }
+
+            return result;
+        }
+    }
+
+    public void shoeError(String error) {
+        Snackbar snackbar = Snackbar.make(coordinatorLayout, error, Snackbar.LENGTH_INDEFINITE)
+                .setActionTextColor(Color.RED)
+                .setAction("OK", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                    }
+                });
+
+        TextView textView = (TextView) snackbar.getView().findViewById(android.support.design.R.id.snackbar_text);
+        textView.setTextColor(Color.YELLOW);
+        snackbar.show();
     }
 }

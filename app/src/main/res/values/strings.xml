@@ -31,6 +31,7 @@
 
     <!--errors-->
     <string name="enter_answer">Enter answer</string>
+    <string name="wrong_answer">Wrong answer</string>
 
     <string name="enter_phone_number">Enter phone number</string>
     <string name="enter_country_code">Enter country code</string>

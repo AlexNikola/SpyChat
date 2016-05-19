@@ -83,7 +83,7 @@ public class MyConnection
         httpURLConnection.connect();
 
         OutputStreamWriter outputWriter = new OutputStreamWriter(httpURLConnection.getOutputStream());
-        outputWriter.write(urlParameters);
+        if (urlParameters != null)outputWriter.write(urlParameters);
         outputWriter.flush();
         outputWriter.close();
 

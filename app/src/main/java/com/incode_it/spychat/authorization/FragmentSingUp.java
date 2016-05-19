@@ -327,7 +327,7 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
                                         "confirm="  + password      + "&" +
                                         "regToken=" + regToken      + "&" +
                                         "secret="   + question      + "&" +
-                                        "answer"    + answer;
+                                        "answer="    + answer;
 
                 URL url = new URL(C.BASE_URL + "api/v1/users/register/");
 

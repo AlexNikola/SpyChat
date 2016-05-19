@@ -19,6 +19,15 @@
         <item name="colorControlActivated">@color/colorPrimary</item>-->
     </style>
 
+    <style name="ChangePassTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimarySettings</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkSettings</item>
+        <item name="colorAccent">#000000</item>
+        <!--<item name="colorControlNormal">@color/colorPrimary</item>
+        <item name="colorControlActivated">@color/colorPrimary</item>-->
+    </style>
+
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>

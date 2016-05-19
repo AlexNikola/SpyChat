@@ -18,6 +18,9 @@
 
     <color name="errorColor">#ff1f1f</color>
 
+    <color name="delete_account_normal">#abff0000</color>
+    <color name="delete_account_pressed">#d5840000</color>
+
     <color name="color_text_message_added">#55000000</color>
 
     <color name="pin_cancel">#ec4a4a</color>

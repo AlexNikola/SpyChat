@@ -30,7 +30,7 @@ public class Application extends MultiDexApplication {
     }
 
     private void initializeApplication() {
-        AWSMobileClient.initializeMobileClientIfNecessary(getApplicationContext());
+        //AWSMobileClient.initializeMobileClientIfNecessary(getApplicationContext());
 
         // ...Put any application-specific initialization logic here...
     }

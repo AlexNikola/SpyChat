@@ -1,128 +1,165 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:id="@+id/container"
-    android:orientation="vertical"
+<android.support.design.widget.CoordinatorLayout
+    android:id="@+id/coordinator"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.support.design.widget.AppBarLayout
+    <LinearLayout
+        android:id="@+id/container"
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:layout_height="match_parent">
 
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay"/>
 
-    </android.support.design.widget.AppBarLayout>
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <LinearLayout
+        <android.support.design.widget.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:theme="@style/AppTheme.AppBarOverlay">
 
-            <Switch
+            <android.support.v7.widget.Toolbar
+                android:id="@+id/toolbar"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/setting_item_padding"
-                android:text="Sound"
-                android:id="@+id/sett_sound"/>
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                app:popupTheme="@style/AppTheme.PopupOverlay"/>
 
-            <Switch
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/setting_item_padding"
-                android:text="Vibration"
-                android:id="@+id/sett_vibrate"/>
+        </android.support.design.widget.AppBarLayout>
 
-            <View
-                android:layout_margin="16dp"
-                android:background="#5d000000"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"/>
-
-            <Switch
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="@dimen/setting_item_padding"
-                android:text="Pin security"
-                android:id="@+id/sett_pin"/>
-
-            <include layout="@layout/pin_input_layout"/>
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
             <LinearLayout
-                android:layout_margin="10dp"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:orientation="horizontal"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-                <Button
+                <Switch
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/setting_item_padding"
+                    android:text="Sound"
+                    android:id="@+id/sett_sound"/>
+
+                <Switch
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/setting_item_padding"
+                    android:text="Vibration"
+                    android:id="@+id/sett_vibrate"/>
+
+                <View
+                    android:layout_margin="16dp"
+                    android:background="#5d000000"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"/>
+
+                <Switch
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="@dimen/setting_item_padding"
+                    android:text="Pin security"
+                    android:id="@+id/sett_pin"/>
+
+                <include layout="@layout/pin_input_layout"/>
+
+                <LinearLayout
                     android:layout_margin="10dp"
                     android:layout_gravity="center"
-                    android:background="@drawable/selector_pin_save"
-                    android:id="@+id/pin_save"
-                    android:text="Save"
-                    android:textColor="#ffffff"
+                    android:gravity="center"
+                    android:orientation="horizontal"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content">
+
+                    <Button
+                        android:layout_margin="10dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/selector_pin_save"
+                        android:id="@+id/pin_save"
+                        android:text="Save"
+                        android:textColor="#ffffff"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <Button
+                        android:layout_margin="10dp"
+                        android:layout_gravity="center"
+                        android:background="@drawable/selector_pin_clear"
+                        android:id="@+id/pin_clear"
+                        android:text="Clear"
+                        android:textColor="#ffffff"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_margin="16dp"
+                    android:background="#5d000000"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"/>
 
                 <Button
-                    android:layout_margin="10dp"
-                    android:layout_gravity="center"
-                    android:background="@drawable/selector_pin_clear"
-                    android:id="@+id/pin_clear"
-                    android:text="Clear"
+                    android:id="@+id/delete_account"
                     android:textColor="#ffffff"
-                    android:layout_width="wrap_content"
+                    android:background="@drawable/bg_delete_account"
+                    android:text="Delete account"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
+
+                <View
+                    android:layout_margin="16dp"
+                    android:background="#5d000000"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"/>
+
+                <Button
+                    android:id="@+id/change_password"
+                    android:textColor="#ffffff"
+                    android:background="@drawable/bg_change_pass"
+                    android:text="Change password"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <View
+                    android:layout_margin="16dp"
+                    android:background="#5d000000"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"/>
+
+                <TextView
+                    android:layout_margin="10dp"
+                    android:textSize="16dp"
+                    android:text="@string/description_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:layout_margin="10dp"
+                    android:textSize="16dp"
+                    android:text="@string/description_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:layout_margin="10dp"
+                    android:textSize="16dp"
+                    android:text="@string/description_3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+
+
 
             </LinearLayout>
 
-            <View
-                android:layout_margin="16dp"
-                android:background="#5d000000"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"/>
-
-            <TextView
-                android:layout_margin="10dp"
-                android:textSize="16dp"
-                android:text="@string/description_1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:layout_margin="10dp"
-                android:textSize="16dp"
-                android:text="@string/description_2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:layout_margin="10dp"
-                android:textSize="16dp"
-                android:text="@string/description_3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+        </ScrollView>
 
 
 
+    </LinearLayout>
 
-        </LinearLayout>
-
-    </ScrollView>
-
-
-
-</LinearLayout>
+</android.support.design.widget.CoordinatorLayout>

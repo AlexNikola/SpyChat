@@ -93,7 +93,10 @@ public class FragmentLogIn extends Fragment
         forgotPassView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if ((myPhoneNumber.length() < 1 && countryCode.equals("+....")) || myPhoneNumber.length() < 1)
+
+                String phone = phoneET.getText().toString();
+                String code = (String) countryCodeTextView.getText();
+                if ((phone.length() < 1 && code.equals("+....")) || myPhoneNumber.length() < 1)
                 {
                     errorPhoneTextView.setText(R.string.enter_phone_number);
                 }
@@ -101,7 +104,7 @@ public class FragmentLogIn extends Fragment
                 {
                     errorPhoneTextView.setText("");
                     Intent intent = new Intent(getContext(), ActivityForgotPassword.class);
-                    intent.putExtra(C.EXTRA_MY_PHONE_NUMBER, myPhoneNumber);
+                    intent.putExtra(C.EXTRA_MY_PHONE_NUMBER, code + phone);
                     startActivity(intent);
                 }
 

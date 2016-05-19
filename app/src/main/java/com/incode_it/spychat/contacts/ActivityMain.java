@@ -255,7 +255,7 @@ public class ActivityMain extends AppCompatActivity implements
         super.onActivityResult(requestCode, resultCode, data);
         requestPin = false;
         Log.d("lifes", "onActivityResult");
-        if (requestCode == C.REQUEST_CODE_ACTIVITY_CHAT) {
+        if (requestCode == C.REQUEST_CODE_ACTIVITY_CHAT || requestCode == C.REQUEST_CODE_ACTIVITY_SETTINGS) {
              if (resultCode == C.RESULT_EXIT)
             {
                 finish();

@@ -1,6 +1,9 @@
 package com.incode_it.spychat.authorization;
 
+import android.graphics.Color;
 import android.os.AsyncTask;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,6 +23,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 public class ActivityForgotPassword extends AppCompatActivity implements View.OnClickListener {
+
+    private CoordinatorLayout coordinatorLayout;
 
     private TextView errorQuestionTextView;
     private TextView errorNewPassTextView;
@@ -41,6 +46,7 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
 
     private View questionBg;
     private View progressBarQuestion;
+    private TextView questionTextView;
 
     private TextView phoneTextView;
 
@@ -51,6 +57,7 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
 
         phoneNumber = getIntent().getStringExtra(C.EXTRA_MY_PHONE_NUMBER);
 
+        coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator);
 
         errorQuestionTextView = (TextView)findViewById(R.id.error_key_word);
         errorNewPassTextView = (TextView)findViewById(R.id.error_new_pass);
@@ -61,12 +68,17 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
         newPassConfET = (TextInputEditText)findViewById(R.id.et_new_pass_conf);
 
         changePassBtn = findViewById(R.id.change_password_button);
+        assert changePassBtn != null;
+        changePassBtn.setOnClickListener(this);
         changePassBtnText = findViewById(R.id.change_password_button_text);
         progressBarView = findViewById(R.id.progressBar);
 
         clearQuestion = findViewById(R.id.clear_key_word);
+        clearQuestion.setOnClickListener(this);
         clearNewPass = findViewById(R.id.clear_new_pass);
+        clearNewPass.setOnClickListener(this);
         clearNewPassConf = findViewById(R.id.clear_new_pass_conf);
+        clearNewPassConf.setOnClickListener(this);
 
         questionBg = findViewById(R.id.question_bg);
         progressBarQuestion = findViewById(R.id.progressBar_question);
@@ -74,6 +86,7 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
         phoneTextView = (TextView) findViewById(R.id.phone_tv);
         assert phoneTextView != null;
         phoneTextView.setText(phoneNumber);
+        questionTextView = (TextView) findViewById(R.id.question_tv);
 
         new GetQuestionTask().execute(phoneNumber);
     }
@@ -141,10 +154,6 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
     }
 
 
-    /*get secret question
-    curl 'http://localhost:7777/api/v1/users/getSecretQuestion' -X POST -d "phone=0635491921"
-    */
-
     private class GetQuestionTask extends AsyncTask<String, Void, String>
     {
 
@@ -155,16 +164,19 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
         protected void onPreExecute() {
             super.onPreExecute();
             progressBarQuestion.setVisibility(View.VISIBLE);
-            questionET.setEnabled(false);
-            questionBg.setBackgroundResource(R.drawable.bg_question_disabled);
         }
 
         @Override
         protected String doInBackground(String... params) {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             String phoneNumber = params[0];
 
             try {
-                phoneNumber = URLEncoder.encode(phoneNumber+"8", "UTF-8");
+                phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
 
                 String urlParameters =  "phone=" + phoneNumber;
 
@@ -184,32 +196,29 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
         @Override
         protected void onPostExecute(String result) {
             progressBarQuestion.setVisibility(View.INVISIBLE);
-            questionET.setEnabled(true);
-            questionBg.setBackgroundResource(R.drawable.bg_phone_input);
 
             if (result == null) {
-                Log.e("forg", "result == null");
-                //fragmentListener.onError("Connection error");
+                showError("Connection error");
+
             } else {
                 Log.e("forg", "result "+ result);
-                /*try {
+                try {
                     JSONObject jsonResponse = new JSONObject(result);
                     String res = jsonResponse.getString("result");
                     if (res.equals("success")) {
-                        String accessToken = jsonResponse.getString("accessToken");
-                        String refreshToken = jsonResponse.getString("refreshToken");
 
-                        //fragmentListener.onAuthorizationSuccess(accessToken, refreshToken, countryCode + myPhoneNumber);
+                        String secret = jsonResponse.getString("secret");
+                        questionTextView.setText(secret);
 
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");
-                        if (message.equals("There is an existing user connected to this phone number.")) {
+                        if (message.equals("User not found")) {
                             //errorPhoneTextView.setText(R.string.existing_user);
                         }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
-                }*/
+                }
             }
 
         }
@@ -235,13 +244,12 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
         protected String doInBackground(String... params) {
             String answer = params[0];
             String newPassword = params[1];
-            String regToken;
 
             try {
                 answer = URLEncoder.encode(answer, "UTF-8");
                 newPassword = URLEncoder.encode(newPassword, "UTF-8");
 
-                String urlParameters =  "phone="    + phoneNumber   + "&" +
+                String urlParameters =  "phone="    + URLEncoder.encode(phoneNumber, "UTF-8")   + "&" +
                         "password=" + newPassword      + "&" +
                         "confirm="  + newPassword      + "&" +
                         "answer=" + answer;
@@ -266,21 +274,22 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
             changePassBtnText.setVisibility(View.VISIBLE);
 
             if (result == null) {
-                //fragmentListener.onError("Connection error");
+                showError("Connection error");
             } else {
                 try {
                     JSONObject jsonResponse = new JSONObject(result);
                     String res = jsonResponse.getString("result");
                     if (res.equals("success")) {
-                        String accessToken = jsonResponse.getString("accessToken");
-                        String refreshToken = jsonResponse.getString("refreshToken");
-
-                        //fragmentListener.onAuthorizationSuccess(accessToken, refreshToken, countryCode + myPhoneNumber);
+                        finish();
 
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");
-                        if (message.equals("There is an existing user connected to this phone number.")) {
-                            //errorPhoneTextView.setText(R.string.existing_user);
+                        if (message.equals("User not found")) {
+                            showError("User not found");
+                        }
+                        else if (message.equals("Wrong answer to the secret question"))
+                        {
+                            errorQuestionTextView.setText(R.string.wrong_answer);
                         }
                     }
                 } catch (JSONException e) {
@@ -289,5 +298,20 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
             }
 
         }
+    }
+
+    public void showError(String error) {
+        Snackbar snackbar = Snackbar.make(coordinatorLayout, error, Snackbar.LENGTH_INDEFINITE)
+                .setActionTextColor(Color.RED)
+                .setAction("OK", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+
+                    }
+                });
+
+        TextView textView = (TextView) snackbar.getView().findViewById(android.support.design.R.id.snackbar_text);
+        textView.setTextColor(Color.YELLOW);
+        snackbar.show();
     }
 }
