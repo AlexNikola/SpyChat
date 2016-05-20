@@ -25,4 +25,7 @@
 
     <color name="pin_cancel">#ec4a4a</color>
     <color name="pin_ok">#237b2d</color>
+
+    <color name="colorAttachNormal">#00000000</color>
+    <color name="colorAttachPressed">#26ffffff</color>
 </resources>

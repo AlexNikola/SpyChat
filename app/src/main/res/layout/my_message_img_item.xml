@@ -22,21 +22,28 @@
             android:layout_height="wrap_content"
             android:padding="8dp">
 
-            <ImageView
-                android:scaleType="centerCrop"
-                android:adjustViewBounds="true"
-                android:id="@+id/image_message"
+            <FrameLayout
                 android:layout_width="200dp"
-                android:layout_height="200dp"
-                android:layout_gravity="end"/>
+                android:layout_height="200dp">
 
-            <ProgressBar
-                android:visibility="invisible"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/progressBar_horizontal"
-                android:layout_gravity="center_horizontal" />
+                <ImageView
+                    android:scaleType="centerCrop"
+                    android:adjustViewBounds="true"
+                    android:id="@+id/image_message"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end"/>
+
+                <ProgressBar
+                    android:layout_gravity="center"
+                    android:background="#00656565"
+                    android:id="@+id/progressBar"
+                    android:layout_width="75dp"
+                    android:layout_height="75dp" />
+
+            </FrameLayout>
+
+
 
             <FrameLayout
                 android:padding="4dp"
@@ -70,16 +77,7 @@
 
                 </LinearLayout>
 
-                <ProgressBar
-                    android:layout_gravity="end"
-                    android:background="#00656565"
-                    android:id="@+id/progressBar"
-                    android:layout_width="12dp"
-                    android:layout_height="12dp" />
-
             </FrameLayout>
-
-
 
         </LinearLayout>
 

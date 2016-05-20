@@ -15,6 +15,7 @@
 
 package com.amazonaws.mobileconnectors.s3.transferutility;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.amazonaws.AmazonClientException;
@@ -51,14 +52,16 @@ class UploadTask implements Callable<Boolean> {
     private final TransferDBUtil dbUtil;
     private final TransferStatusUpdater updater;
     private final NetworkInfoReceiver networkInfo;
+    private Context context;
 
     public UploadTask(TransferRecord uploadInfo, AmazonS3 s3, TransferDBUtil dbUtil,
-            TransferStatusUpdater updater, NetworkInfoReceiver networkInfo) {
+            TransferStatusUpdater updater, NetworkInfoReceiver networkInfo, Context context) {
         this.upload = uploadInfo;
         this.s3 = s3;
         this.dbUtil = dbUtil;
         this.updater = updater;
         this.networkInfo = networkInfo;
+        this.context = context;
     }
 
     /*
@@ -67,10 +70,10 @@ class UploadTask implements Callable<Boolean> {
     @Override
     public Boolean call() throws Exception {
         if (!networkInfo.isNetworkConnected()) {
-            updater.updateState(upload.id, TransferState.WAITING_FOR_NETWORK);
+            updater.updateState(upload.id, TransferState.WAITING_FOR_NETWORK, context);
             return false;
         }
-        updater.updateState(upload.id, TransferState.IN_PROGRESS);
+        updater.updateState(upload.id, TransferState.IN_PROGRESS, context);
         if (upload.isMultipart == 1 && upload.partNumber == 0) {
             /*
              * If part number = 0, this multipart upload record is not a real
@@ -93,7 +96,6 @@ class UploadTask implements Callable<Boolean> {
          * For a new multipart upload, upload.mMultipartId should be null. If
          * it's a resumed upload, upload.mMultipartId would not be null.
          */
-        Log.d("amaz_upload", "uploadMultipartAndWaitForCompletion");
         long bytesAlreadyTransferrd = 0;
         if (upload.multipartId == null || upload.multipartId.isEmpty()) {
             PutObjectRequest putObjectRequest = createPutObjectRequest(upload);
@@ -104,7 +106,7 @@ class UploadTask implements Callable<Boolean> {
                 Log.e(TAG, "Error initiating multipart upload: " + upload.id
                         + " due to " + ace.getMessage());
                 updater.throwError(upload.id, ace);
-                updater.updateState(upload.id, TransferState.FAILED);
+                updater.updateState(upload.id, TransferState.FAILED, context);
                 return false;
             }
             dbUtil.updateMultipartId(upload.id, upload.multipartId);
@@ -171,11 +173,12 @@ class UploadTask implements Callable<Boolean> {
                 } else if (e.getCause() != null && e.getCause() instanceof IOException
                         && !networkInfo.isNetworkConnected()) {
                     Log.d(TAG, "Transfer " + upload.id + " waits for network");
-                    updater.updateState(upload.id, TransferState.WAITING_FOR_NETWORK);
+                    updater.updateState(upload.id, TransferState.WAITING_FOR_NETWORK, context);
+                    Log.d("amaz_upload", "lib_state_multi: " + TransferState.WAITING_FOR_NETWORK);
                 }
                 updater.throwError(upload.id, e);
             }
-            updater.updateState(upload.id, TransferState.FAILED);
+            updater.updateState(upload.id, TransferState.FAILED, context);
             return false;
         }
 
@@ -183,20 +186,20 @@ class UploadTask implements Callable<Boolean> {
             completeMultiPartUpload(upload.id, upload.bucketName, upload.key,
                     upload.multipartId);
             updater.updateProgress(upload.id, upload.bytesTotal, upload.bytesTotal);
-            updater.updateState(upload.id, TransferState.COMPLETED);
-            Log.d("amaz_upload", "m_lib_state: " + TransferState.COMPLETED);
+            updater.updateState(upload.id, TransferState.COMPLETED, context);
+            Log.d("amaz_upload", "lib_state_multi: " + TransferState.COMPLETED);
             return true;
         } catch (AmazonClientException ace) {
             Log.e(TAG, "Failed to complete multipart: " + upload.id
                     + " due to " + ace.getMessage());
+            Log.d("amaz_upload", "lib_state_multi: " + TransferState.FAILED);
             updater.throwError(upload.id, ace);
-            updater.updateState(upload.id, TransferState.FAILED);
+            updater.updateState(upload.id, TransferState.FAILED, context);
             return false;
         }
     }
 
     private Boolean uploadSinglePartAndWaitForCompletion() {
-        Log.d("amaz_upload", "uploadSinglePartAndWaitForCompletion");
         PutObjectRequest putObjectRequest = createPutObjectRequest(upload);
 
         long length = putObjectRequest.getFile().length();
@@ -206,9 +209,9 @@ class UploadTask implements Callable<Boolean> {
 
         try {
             s3.putObject(putObjectRequest);
-            Log.d("amaz_upload", "s_lib_state: " + TransferState.COMPLETED);
+            Log.d("amaz_upload", "lib_state_single: " + TransferState.COMPLETED);
             updater.updateProgress(upload.id, length, length);
-            updater.updateState(upload.id, TransferState.COMPLETED);
+            updater.updateState(upload.id, TransferState.COMPLETED, context);
             return true;
         } catch (Exception e) {
             if (RetryUtils.isInterrupted(e)) {
@@ -221,12 +224,12 @@ class UploadTask implements Callable<Boolean> {
             } else if (e.getCause() != null && e.getCause() instanceof IOException
                     && !networkInfo.isNetworkConnected()) {
                 Log.d(TAG, "Transfer " + upload.id + " waits for network");
-                updater.updateState(upload.id, TransferState.WAITING_FOR_NETWORK);
+                updater.updateState(upload.id, TransferState.WAITING_FOR_NETWORK, context);
             }
             // all other exceptions
             Log.e(TAG, "Failed to upload: " + upload.id + " due to " + e.getMessage());
             updater.throwError(upload.id, e);
-            updater.updateState(upload.id, TransferState.FAILED);
+            updater.updateState(upload.id, TransferState.FAILED, context);
             return false;
         }
     }

@@ -15,6 +15,7 @@
 
 package com.amazonaws.mobileconnectors.s3.transferutility;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.amazonaws.AmazonClientException;
@@ -44,6 +45,7 @@ class DownloadTask implements Callable<Boolean> {
     private final TransferRecord download;
     private final TransferStatusUpdater updater;
     private final NetworkInfoReceiver networkInfo;
+    private Context context;
 
     /**
      * Constructs a DownloadTask with the given download info and S3 client.
@@ -55,11 +57,12 @@ class DownloadTask implements Callable<Boolean> {
      * @param networkInfo network info
      */
     public DownloadTask(TransferRecord download, AmazonS3 s3, TransferStatusUpdater updater,
-            NetworkInfoReceiver networkInfo) {
+            NetworkInfoReceiver networkInfo, Context context) {
         this.download = download;
         this.s3 = s3;
         this.updater = updater;
         this.networkInfo = networkInfo;
+        this.context = context;
     }
 
     /**
@@ -68,10 +71,10 @@ class DownloadTask implements Callable<Boolean> {
     @Override
     public Boolean call() throws Exception {
         if (!networkInfo.isNetworkConnected()) {
-            updater.updateState(download.id, TransferState.WAITING_FOR_NETWORK);
+            updater.updateState(download.id, TransferState.WAITING_FOR_NETWORK, context);
             return false;
         }
-        updater.updateState(download.id, TransferState.IN_PROGRESS);
+        updater.updateState(download.id, TransferState.IN_PROGRESS, context);
 
         final GetObjectRequest getObjectRequest = new GetObjectRequest(download.bucketName,
                 download.key);
@@ -94,7 +97,7 @@ class DownloadTask implements Callable<Boolean> {
             if (object == null) {
                 updater.throwError(download.id, new IllegalStateException(
                         "AmazonS3.getObject returns null"));
-                updater.updateState(download.id, TransferState.FAILED);
+                updater.updateState(download.id, TransferState.FAILED, context);
                 return false;
             }
 
@@ -102,7 +105,7 @@ class DownloadTask implements Callable<Boolean> {
             updater.updateProgress(download.id, bytesCurrent, bytesTotal);
             saveToFile(object.getObjectContent(), file);
             updater.updateProgress(download.id, bytesTotal, bytesTotal);
-            updater.updateState(download.id, TransferState.COMPLETED);
+            updater.updateState(download.id, TransferState.COMPLETED, context);
             return true;
         } catch (Exception e) {
             if (RetryUtils.isInterrupted(e)) {
@@ -114,11 +117,11 @@ class DownloadTask implements Callable<Boolean> {
             } else if (e.getCause() != null && e.getCause() instanceof IOException
                     && !networkInfo.isNetworkConnected()) {
                 Log.d(TAG, "Transfer " + download.id + " waits for network");
-                updater.updateState(download.id, TransferState.WAITING_FOR_NETWORK);
+                updater.updateState(download.id, TransferState.WAITING_FOR_NETWORK, context);
             } else {
                 Log.e(TAG, "Failed to download: " + download.id + " due to " + e.getMessage());
                 updater.throwError(download.id, e);
-                updater.updateState(download.id, TransferState.FAILED);
+                updater.updateState(download.id, TransferState.FAILED, context);
             }
         }
         return false;

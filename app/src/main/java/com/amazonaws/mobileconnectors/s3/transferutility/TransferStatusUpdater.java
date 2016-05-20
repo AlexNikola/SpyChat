@@ -15,12 +15,17 @@
 
 package com.amazonaws.mobileconnectors.s3.transferutility;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.amazonaws.event.ProgressEvent;
 import com.amazonaws.event.ProgressListener;
+import com.incode_it.spychat.C;
+import com.incode_it.spychat.QuickstartPreferences;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -137,7 +142,7 @@ class TransferStatusUpdater {
      * @param id id of the transfer to update
      * @param newState new state
      */
-    void updateState(final int id, final TransferState newState) {
+    void updateState(final int id, final TransferState newState, Context context) {
         boolean shouldNotNotify = STATES_NOT_TO_NOTIFY.contains(newState);
         TransferRecord transfer = transfers.get(id);
         if (transfer == null) {
@@ -154,6 +159,7 @@ class TransferStatusUpdater {
             }
         }
 
+        //sendBroadcast(context);
         if (shouldNotNotify) {
             return;
         }
@@ -163,6 +169,7 @@ class TransferStatusUpdater {
         if (list == null || list.isEmpty()) {
             return;
         }
+
 
         // invoke on main thread
         mainHandler.post(new Runnable() {
@@ -182,6 +189,14 @@ class TransferStatusUpdater {
         });
     }
 
+    private void sendBroadcast(Context context)
+    {
+        Intent intent = new Intent(QuickstartPreferences.UPLOAD_MEDIA);
+        //intent.putExtra(C.EXTRA_MESSAGE_ID, messageId);
+        intent.putExtra(C.EXTRA_MEDIA_STATE, "s");
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
     /**
      * Updates the transfer progress of a transfer. It will trigger
      * {@link TransferListener#onProgressChanged(int, long, long)} of associated
@@ -192,6 +207,10 @@ class TransferStatusUpdater {
      * @param bytesTotal total bytes
      */
     void updateProgress(final int id, final long bytesCurrent, final long bytesTotal) {
+        float curr = bytesCurrent;
+        float total = bytesTotal;
+        float percentage = (curr/total * 100f);
+        //Log.d("amaz_upload", "lib_updateProgress " + percentage);
         TransferRecord transfer = transfers.get(id);
         if (transfer != null) {
             transfer.bytesCurrent = bytesCurrent;
@@ -223,6 +242,8 @@ class TransferStatusUpdater {
             });
         }
     }
+
+
 
     /**
      * Throws an error to transfer. It triggers

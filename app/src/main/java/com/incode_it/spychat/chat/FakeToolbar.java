@@ -82,6 +82,7 @@ public class FakeToolbar extends FrameLayout {
     {
         Log.d("faket", "showPopup "+popUpTranslationY);
         isPopupVisible = true;
+        toolbarLower.setVisibility(VISIBLE);
         toolbarLower.animate().translationY(popUpTranslationY).start();
     }
 
@@ -89,7 +90,15 @@ public class FakeToolbar extends FrameLayout {
     {
         Log.d("faket", "hidePopup "+popUpTranslationY);
         isPopupVisible = false;
-        toolbarLower.animate().translationY(0f).start();
+        toolbarLower.animate()
+                .translationY(0f)
+                .withEndAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        toolbarLower.setVisibility(INVISIBLE);
+                    }
+                })
+                .start();
     }
 
     public void startTimer()

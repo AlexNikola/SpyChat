@@ -76,6 +76,11 @@ public class Message
         return message;
     }
 
+    public void setMessage(String message)
+    {
+        this.message = message;
+    }
+
     public String getSenderPhoneNumber() {
         return senderPhoneNumber;
     }

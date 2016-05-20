@@ -31,13 +31,16 @@ public class C
     public static final String EXTRA_IS_FROM_NOTIFICATION = "is_from_notification";
     public static final String EXTRA_MESSAGE_ID = "message_id";
     public static final String EXTRA_MEDIA_FILE_PATH = "media_file_path";
+    public static final String EXTRA_MEDIA_TYPE = "media_type";
+    public static final String EXTRA_MEDIA_LOCAL_PATH = "media_local_path";
 
     public static final String EXTRA_ID_TO_UPDATE_MEDIA = "id_to_update_media";
     public static final String EXTRA_MEDIA_STATE = "media_state";
     public static final String EXTRA_MEDIA_PROGRESS_TOTAL = "media_progress_total";
     public static final String EXTRA_MEDIA_PROGRESS_CURRENT = "media_progress_current";
 
-
+    public static final String MEDIA_TYPE_IMAGE = "images";
+    public static final String MEDIA_TYPE_VIDEO = "videos";
 
     public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
 

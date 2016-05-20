@@ -1,6 +1,7 @@
 package com.incode_it.spychat.chat;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
@@ -13,7 +14,6 @@ import android.media.MediaMetadataRetriever;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
@@ -25,7 +25,6 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.VideoView;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -33,18 +32,13 @@ import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.MyTimerTask;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverIndividual;
+import com.incode_it.spychat.amazon.DownloadService;
+import com.incode_it.spychat.amazon.UploadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
-import com.sprylab.android.widget.TextureVideoView;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Timer;
 
 public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecyclerViewAdapter.MessageViewHolder>
@@ -59,6 +53,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     private Bitmap emptyImageMessageBitmap;
     private Context context;
     private LruCache<String, Bitmap> mMemoryCache;
+    private static final String DOWNLOAD_TAG = "amaz_download";
 
     public MyChatRecyclerViewAdapter(Context context,
                                      ArrayList<Message> messages,
@@ -200,32 +195,43 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     public class MessageImageViewHolder extends MessageViewHolder
     {
         public ImageView imageMessage;
-        public ProgressBar progressBar;
 
         public MessageImageViewHolder(View itemView) {
             super(itemView);
 
             imageMessage = (ImageView) itemView.findViewById(R.id.image_message);
-            progressBar = (ProgressBar) itemView.findViewById(R.id.progressBar_horizontal);
-
         }
 
         @Override
         public void bindViewHolder(Message message) {
             super.bindViewHolder(message);
-
+            imageMessage.setImageBitmap(C.emptyImageBitmap);
             String filePath = message.getMessage();
-            loadBitmap(filePath, imageMessage);
-            if (message.imageProgress > 0)
+            Log.e(DOWNLOAD_TAG,"onReceive download");
+            Log.d("vfrm", "Path "+message.getMessage());
+            if (filePath.startsWith(C.MEDIA_TYPE_IMAGE + "/" + myPhoneNumber + "/"))
+            {
+                Log.d("vfrm", "amazonLoadBitmap");
+                Intent serviceIntent = new Intent(context, DownloadService.class);
+                serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, filePath);
+                serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+                serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_IMAGE);
+                context.getApplicationContext().startService(serviceIntent);
+            }
+            else
+            {
+                Log.d("vfrm", "localLoadBitmap");
+                localLoadBitmap(filePath, imageMessage);
+            }
+
+            /*if (message.imageProgress > 0)
             {
                 progressBar.setVisibility(View.VISIBLE);
                 progressBar.setProgress((int) message.imageProgress);
                 progressBar.setMax((int) message.imageTotalProgress);
-            }
-            String yourRealPath = null;
+            }*/
 
-            Log.d("vfrm", "Path "+message.getMessage());
-            Log.d("vfrm", "yourRealPath "+yourRealPath);
+
         }
     }
 
@@ -307,8 +313,21 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 if (contactBitmap == null) profileImageView.setImageBitmap(noPhotoBitmap);
                 else profileImageView.setImageBitmap(contactBitmap);
 
-                messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
-                progressBar.setVisibility(View.INVISIBLE);
+                switch (message.state)
+                {
+                    case Message.STATE_ADDED:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_added);
+                        progressBar.setVisibility(View.VISIBLE);
+                        break;
+                    case Message.STATE_SUCCESS:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_success);
+                        progressBar.setVisibility(View.INVISIBLE);
+                        break;
+                    case Message.STATE_ERROR:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_error);
+                        progressBar.setVisibility(View.INVISIBLE);
+                        break;
+                }
             }
             else
             {
@@ -417,7 +436,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void loadBitmap(String filePath, ImageView imageView) {
+    public void localLoadBitmap(String filePath, ImageView imageView) {
         if (cancelPotentialWork(filePath, imageView))
         {
             final Bitmap bitmap = getBitmapFromMemCache(filePath);
@@ -480,6 +499,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         @Override
         protected Bitmap doInBackground(String... resIds) {
             //Log.d(TAG, "doInBackground");
+
 
             imageFilePath = resIds[0];
             Bitmap bitmap = null;

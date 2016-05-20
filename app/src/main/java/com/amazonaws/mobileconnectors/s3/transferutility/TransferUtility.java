@@ -30,6 +30,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.util.VersionInfoUtils;
+import com.incode_it.spychat.C;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -85,6 +86,7 @@ import java.util.UUID;
  * </pre>
  */
 public class TransferUtility {
+
 
     private static final String TAG = "TransferUtility";
 

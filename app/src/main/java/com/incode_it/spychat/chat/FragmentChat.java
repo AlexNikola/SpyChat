@@ -58,6 +58,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     private static final int SEND_MESSAGE_DELAY = 500;
     private static final String TAG = "chatm";
+    private static final String DOWNLOAD_TAG = "amaz_download";
     public static final String TAG_FRAGMENT = "FragmentChat";
     private String opponentPhone;
     private RecyclerView recyclerView;
@@ -69,8 +70,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     private ArrayList<Message> messageArrayList;
 
-    private BroadcastReceiver mMediaReceiver;
-    private boolean isMediaReceiverRegistered;
+    private BroadcastReceiver mUploadMediaReceiver;
+    private boolean isUploadMediaReceiverRegistered;
+    private BroadcastReceiver mDownloadMediaReceiver;
+    private boolean isDownloadMediaReceiverRegistered;
     private BroadcastReceiver mMessageReceiver;
     private boolean isMessageReceiverRegistered;
     private boolean isDeleteMessagesReceiverRegistered;
@@ -104,8 +107,11 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     @Override
     public void onPause() {
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mMediaReceiver);
-        isMediaReceiverRegistered = false;
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mUploadMediaReceiver);
+        isUploadMediaReceiverRegistered = false;
+
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDownloadMediaReceiver);
+        isDownloadMediaReceiverRegistered = false;
 
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mMessageReceiver);
         isMessageReceiverRegistered = false;
@@ -139,10 +145,14 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             recyclerView.scrollToPosition(messageArrayList.size() - 1);
             MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
 
+            //uploadFile(photoPath, message.getMessageId());
+
             Log.d("amaz_upload", "onActivityResult "+photoPath);
             Intent serviceIntent = new Intent(getContext(), UploadService.class);
             serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, photoPath);
             serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+            serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
+            serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_IMAGE);
             getContext().getApplicationContext().startService(serviceIntent);
 
         }
@@ -156,6 +166,27 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
         }
     }
+
+    /*private void uploadFile(String photoPath, int messageId)
+    {
+        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
+                getContext().getApplicationContext(),
+                "us-east-1:2fb30153-0f2b-4f60-bbd2-28d08efa98f2", // Identity Pool ID
+                Regions.US_EAST_1 // Region
+        );
+
+        AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
+        s3.setRegion(Region.getRegion(Regions.US_EAST_1));
+        TransferUtility transferUtility = new TransferUtility(s3, getContext().getApplicationContext());
+
+        File file = new File(photoPath);
+
+        TransferObserver transferObserver = transferUtility.upload(
+                "spy-chat-bucket",     *//* The bucket to upload to *//*
+                "public/"+file.getName(),       *//* The key for the uploaded object *//*
+                file       *//* The file where the data to upload exists *//*
+        );
+    }*/
 
     private void openPhotoCamera()
     {
@@ -234,7 +265,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public void onResume() {
         cancelNotification();
         initMessageReceiver();
-        initMediaReceiver();
+        initUploadMediaReceiver();
+        initDownloadMediaReceiver();
         initDeleteMassagesReceiver();
         updateUnreadStateInDB();
         loadMessages();
@@ -276,6 +308,12 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                     imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
                 }
                 getActivity().finish();
+            }
+        });
+        fakeToolbar.setOnGalleryClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
             }
         });
 
@@ -333,57 +371,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
             myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, null);
         }
-        /*if (myPhoneNumber == null)
-        {
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                    getContext().checkSelfPermission(Manifest.permission.READ_SMS)
-                            != PackageManager.PERMISSION_GRANTED)
-            {
-                requestPermissions(new String[]{Manifest.permission.READ_SMS},
-                        C.READ_SMS_CODE);
-            }
-            else
-            {
-                TelephonyManager tm = (TelephonyManager)getContext().getSystemService(Context.TELEPHONY_SERVICE);
-                myPhoneNumber = tm.getLine1Number();
-            }
-        }*/
 
     }
-
-    /*@Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == C.READ_SMS_CODE)
-        {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            {
-                TelephonyManager tm = (TelephonyManager)getContext().getSystemService(Context.TELEPHONY_SERVICE);
-                myPhoneNumber = tm.getLine1Number();
-                if (myPhoneNumber == null || myPhoneNumber.length() == 0)
-                {
-                    myPhoneNumber = "";
-                    Toast.makeText(getContext(), "Phone number is unavailable", Toast.LENGTH_SHORT).show();
-                }
-            }
-            else
-            {
-                Toast.makeText(getContext(), "Sorry!!! Permission Denied",
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
-        else if (requestCode == C.READ_CONTACTS_CODE)
-        {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            {
-                myContactsArrayList = MyContacts.getContactsList(getContext());
-            }
-            else
-            {
-                Toast.makeText(getContext(), "Sorry!!! Permission Denied",
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
-    }*/
 
     private void loadMessages()
     {
@@ -422,7 +411,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     @Override
     public void onReSendMessage(Message message) {
         message.state = Message.STATE_ADDED;
-        MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
+        MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), Message.STATE_ADDED, message.getMessageId());
         adapter.notifyDataSetChanged();
         new SendMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
     }
@@ -463,7 +452,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             {
                 //Toast.makeText(getContext(), "Connection error", Toast.LENGTH_SHORT).show();
                 message.state = Message.STATE_ERROR;
-                MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
+                MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), Message.STATE_ERROR, message.getMessageId());
                 adapter.notifyDataSetChanged();
             }
             else
@@ -471,13 +460,13 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 if (result.equals("success"))
                 {
                     message.state = Message.STATE_SUCCESS;
-                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
+                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), Message.STATE_SUCCESS, message.getMessageId());
                     adapter.notifyDataSetChanged();
                 }
                 else if (result.equals("error"))
                 {
                     message.state = Message.STATE_ERROR;
-                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
+                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), Message.STATE_ERROR, message.getMessageId());
                     adapter.notifyDataSetChanged();
                 }
             }
@@ -510,16 +499,20 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         return result;
     }
 
-    private void initMediaReceiver()
+    private void initUploadMediaReceiver()
     {
-        mMediaReceiver = new BroadcastReceiver()
+        mUploadMediaReceiver = new BroadcastReceiver()
         {
             @Override
             public void onReceive(Context context, Intent intent)
             {
+                Log.e("amaz_upload","onReceive");
+                int idToUpdate = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
+                String status = intent.getStringExtra(C.EXTRA_MEDIA_STATE);
+                String mediaType = intent.getStringExtra(C.EXTRA_MEDIA_TYPE);
+
                 Message message = null;
                 int position = 0;
-                int idToUpdate = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
                 for (int i = 0; i < messageArrayList.size(); i++)
                 {
                     int messageId = messageArrayList.get(i).getMessageId();
@@ -530,43 +523,82 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                     }
                 }
 
-                String status = intent.getStringExtra(C.EXTRA_MEDIA_STATE);
-                if (status.equals("s"))
+                if (status.equals("COMPLETED"))
                 {
+                    Log.e("amaz_upload","mUploadMediaReceiver COMPLETED");
                     message.state = Message.STATE_SUCCESS;
-                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
-                    message.imageTotalProgress = 0;
-                    message.imageProgress = 0;
                     adapter.notifyDataSetChanged();
                 }
-                else if (status.equals("p"))
-                {
-                    long progress = intent.getLongExtra(C.EXTRA_MEDIA_PROGRESS_CURRENT, 0);
-                    long totalProgress = intent.getLongExtra(C.EXTRA_MEDIA_PROGRESS_TOTAL, 0);
-                    message.imageProgress = progress;
-                    message.imageTotalProgress = totalProgress;
-                    adapter.notifyDataSetChanged();
-                }
-                else if (status.equals("e"))
+                else if (status.equals("FAILED"))
                 {
                     message.state = Message.STATE_ERROR;
-                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), message);
                     adapter.notifyDataSetChanged();
                 }
-
-
             }
         };
 
         // Registering BroadcastReceiver
-        registerMediaReceiver();
+        registerUploadMediaReceiver();
     }
 
-    private void registerMediaReceiver(){
-        if(!isMediaReceiverRegistered) {
-            LocalBroadcastManager.getInstance(getContext()).registerReceiver(mMediaReceiver,
-                    new IntentFilter(QuickstartPreferences.RECEIVE_MEDIA));
-            isMediaReceiverRegistered = true;
+    private void registerUploadMediaReceiver(){
+        if(!isUploadMediaReceiverRegistered) {
+            LocalBroadcastManager.getInstance(getContext()).registerReceiver(mUploadMediaReceiver,
+                    new IntentFilter(QuickstartPreferences.UPLOAD_MEDIA));
+            isUploadMediaReceiverRegistered = true;
+        }
+    }
+
+    private void initDownloadMediaReceiver()
+    {
+        mDownloadMediaReceiver = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent)
+            {
+                //Log.e(DOWNLOAD_TAG,"onReceive download");
+                int idToUpdate = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
+                String status = intent.getStringExtra(C.EXTRA_MEDIA_STATE);
+                String mediaType = intent.getStringExtra(C.EXTRA_MEDIA_TYPE);
+                String localPath = intent.getStringExtra(C.EXTRA_MEDIA_LOCAL_PATH);
+
+                Message message = null;
+                int position = 0;
+                for (int i = 0; i < messageArrayList.size(); i++)
+                {
+                    int messageId = messageArrayList.get(i).getMessageId();
+                    if (messageId == idToUpdate)
+                    {
+                        message = messageArrayList.get(i);
+                        position = i;
+                    }
+                }
+
+
+                Log.e(DOWNLOAD_TAG,"onReceive download status: " + status);
+                if (status.equals("COMPLETED"))
+                {
+                    message.state = Message.STATE_SUCCESS;
+                    message.setMessage(localPath);
+                    adapter.notifyDataSetChanged();
+                }
+                else if (status.equals("FAILED"))
+                {
+                    message.state = Message.STATE_ERROR;
+                    adapter.notifyDataSetChanged();
+                }
+
+            }
+        };
+        // Registering BroadcastReceiver
+        registerDownloadMediaReceiver();
+    }
+
+    private void registerDownloadMediaReceiver(){
+        if(!isDownloadMediaReceiverRegistered) {
+            LocalBroadcastManager.getInstance(getContext()).registerReceiver(mDownloadMediaReceiver,
+                    new IntentFilter(QuickstartPreferences.DOWNLOAD_MEDIA));
+            isDownloadMediaReceiverRegistered = true;
         }
     }
 

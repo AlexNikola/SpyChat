@@ -280,7 +280,7 @@ public class TransferService extends Service {
                 TransferRecord transfer = dbUtil.getTransferById(id);
                 if (transfer != null) {
                     updater.addTransfer(transfer);
-                    transfer.start(s3, dbUtil, updater, networkInfoReceiver);
+                    transfer.start(s3, dbUtil, updater, networkInfoReceiver, this);
                 } else {
                     Log.e(TAG, "Can't find transfer: " + id);
                 }
@@ -291,7 +291,7 @@ public class TransferService extends Service {
                 transfer = dbUtil.getTransferById(id);
             }
             if (transfer != null) {
-                transfer.pause(s3, updater);
+                transfer.pause(s3, updater, this);
             }
         } else if (INTENT_ACTION_TRANSFER_RESUME.equals(action)) {
             TransferRecord transfer = updater.getTransfer(id);
@@ -303,14 +303,14 @@ public class TransferService extends Service {
                     Log.e(TAG, "Can't find transfer: " + id);
                 }
             }
-            transfer.start(s3, dbUtil, updater, networkInfoReceiver);
+            transfer.start(s3, dbUtil, updater, networkInfoReceiver, this);
         } else if (INTENT_ACTION_TRANSFER_CANCEL.equals(action)) {
             TransferRecord transfer = updater.getTransfer(id);
             if (transfer == null) {
                 transfer = dbUtil.getTransferById(id);
             }
             if (transfer != null) {
-                transfer.cancel(s3, updater);
+                transfer.cancel(s3, updater, this);
             }
         } else {
             Log.e(TAG, "Unknown action: " + action);
@@ -379,14 +379,14 @@ public class TransferService extends Service {
                     if (updater.getTransfer(id) == null) {
                         TransferRecord transfer = new TransferRecord(id);
                         transfer.updateFromDB(c);
-                        if (transfer.start(s3, dbUtil, updater, networkInfoReceiver)) {
+                        if (transfer.start(s3, dbUtil, updater, networkInfoReceiver, this)) {
                             updater.addTransfer(transfer);
                             count++;
                         }
                     } else {
                         TransferRecord transfer = updater.getTransfer(id);
                         if (!transfer.isRunning()) {
-                            transfer.start(s3, dbUtil, updater, networkInfoReceiver);
+                            transfer.start(s3, dbUtil, updater, networkInfoReceiver, this);
                         }
                     }
                 }
@@ -402,9 +402,9 @@ public class TransferService extends Service {
      */
     void pauseAllForNetwork() {
         for (TransferRecord transfer : updater.getTransfers().values()) {
-            if (s3 != null && transfer != null && transfer.pause(s3, updater)) {
+            if (s3 != null && transfer != null && transfer.pause(s3, updater, this)) {
                 // change status to waiting
-                updater.updateState(transfer.id, TransferState.WAITING_FOR_NETWORK);
+                updater.updateState(transfer.id, TransferState.WAITING_FOR_NETWORK, this);
             }
         }
         shouldScan = true;

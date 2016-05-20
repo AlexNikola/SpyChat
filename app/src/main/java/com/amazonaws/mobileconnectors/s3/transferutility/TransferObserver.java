@@ -61,6 +61,8 @@ public class TransferObserver {
     private TransferListener transferListener;
     private TransferStatusListener statusListener;
 
+    private int messageId;
+
     /**
      * Constructs a TransferObserver and initializes fields with the given
      * arguments.
@@ -79,6 +81,7 @@ public class TransferObserver {
         filePath = file.getAbsolutePath();
         bytesTotal = file.length();
         transferState = TransferState.WAITING;
+        this.messageId = messageId;
     }
 
     /**

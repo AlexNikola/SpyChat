@@ -238,17 +238,30 @@ public class MyDbHelper extends SQLiteOpenHelper
         //db.close();
     }
 
-    public static synchronized void updateMessageState(SQLiteDatabase db, Message message)
+    public static synchronized void updateMessageState(SQLiteDatabase db, int state, int messageId)
     {
         ContentValues values = new ContentValues();
 
-        String whereClause = Chat.MESSAGE_ID + "=" + message.getMessageId();
+        String whereClause = Chat.MESSAGE_ID + "=" + messageId;
 
-        values.put(Chat.STATE, message.state);
+        values.put(Chat.STATE, state);
         int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
         Log.d(LOG_TAG, "updateMessageState numbers: "+num);
+    }
+
+    public static synchronized void updateMediaPath(SQLiteDatabase db, String path, int messageId)
+    {
+        ContentValues values = new ContentValues();
+
+        String whereClause = Chat.MESSAGE_ID + "=" + messageId;
+
+        values.put(Chat.MESSAGE, path);
+        int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
+        db.close();
+
+        Log.d(LOG_TAG, "updateMediaPath numbers: "+num);
     }
 
     public static synchronized void updateAllMessagesState(SQLiteDatabase db, MyContacts.Contact contact)

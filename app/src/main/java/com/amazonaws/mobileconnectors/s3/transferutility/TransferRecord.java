@@ -15,6 +15,7 @@
 
 package com.amazonaws.mobileconnectors.s3.transferutility;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
@@ -157,15 +158,15 @@ class TransferRecord {
      * @return Whether the task is running.
      */
     public boolean start(AmazonS3 s3, TransferDBUtil dbUtil, TransferStatusUpdater updater,
-            NetworkInfoReceiver networkInfo) {
+            NetworkInfoReceiver networkInfo, Context context) {
         Log.d("amaz_upload", "TransferRecord start");
         if (!isRunning() && checkIsReadyToRun()) {
             if (type.equals(TransferType.DOWNLOAD)) {
                 submittedTask = TransferThreadPool
-                        .submitTask(new DownloadTask(this, s3, updater, networkInfo));
+                        .submitTask(new DownloadTask(this, s3, updater, networkInfo, context));
             } else {
                 submittedTask = TransferThreadPool
-                        .submitTask(new UploadTask(this, s3, dbUtil, updater, networkInfo));
+                        .submitTask(new UploadTask(this, s3, dbUtil, updater, networkInfo, context));
             }
             return true;
         }
@@ -180,9 +181,9 @@ class TransferRecord {
      * @return true if the transfer is running and is paused successfully, false
      *         otherwise
      */
-    public boolean pause(AmazonS3 s3, TransferStatusUpdater updater) {
+    public boolean pause(AmazonS3 s3, TransferStatusUpdater updater, Context context) {
         if (!isFinalState(state) && !TransferState.PAUSED.equals(state)) {
-            updater.updateState(id, TransferState.PAUSED);
+            updater.updateState(id, TransferState.PAUSED, context);
             if (isRunning()) {
                 submittedTask.cancel(true);
             }
@@ -199,9 +200,9 @@ class TransferRecord {
      * @return true if the transfer is running and is canceled successfully,
      *         false otherwise
      */
-    public boolean cancel(final AmazonS3 s3, final TransferStatusUpdater updater) {
+    public boolean cancel(final AmazonS3 s3, final TransferStatusUpdater updater, Context context) {
         if (!isFinalState(state)) {
-            updater.updateState(id, TransferState.CANCELED);
+            updater.updateState(id, TransferState.CANCELED, context);
             if (isRunning()) {
                 submittedTask.cancel(true);
             }
