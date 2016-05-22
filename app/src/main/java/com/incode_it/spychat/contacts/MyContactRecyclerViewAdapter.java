@@ -134,7 +134,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             holder.mNameView.setText(MyContacts.getContacts(context).get(position).name);
         }
 
-        holder.mNumberView.setText(MyContacts.getContacts(context).get(position).phoneNumber.substring(0, 5)+"*******");
+        holder.mNumberView.setText(MyContacts.getContacts(context).get(position).phoneNumber);
 
         Uri uri = MyContacts.getContacts(context).get(position).photoURI;
         if (uri != null)

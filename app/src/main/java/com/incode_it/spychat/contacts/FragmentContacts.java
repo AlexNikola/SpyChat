@@ -200,7 +200,7 @@ public class FragmentContacts extends Fragment {
             int count = 0;
             for (Message message: messages)
             {
-                if (message.state == Message.STATE_UNREAD) count++;
+                if (message.isViewed == 0) count++;
             }
             contact.countUnread = count;
         }
@@ -290,15 +290,21 @@ public class FragmentContacts extends Fragment {
 
         @Override
         protected void onPostExecute(ArrayList<String> regContacts) {
+            for (int k=0;k<regContacts.size();k++)
+            {
+                Log.d("lodl", "qqqqqq "+regContacts.get(k));
+            }
             if (regContacts != null)
             {
                 for (MyContacts.Contact mContact: MyContacts.getContacts(getContext()))
                 {
+                    Log.d("lodl", "wwwwww "+mContact.phoneNumber);
                     mContact.isRegistered = false;
                     for (String regPhoneNumber: regContacts)
                     {
                         if (mContact.phoneNumber.equals(regPhoneNumber))
                         {
+                            Log.d("lodl", "true "+mContact.phoneNumber);
                             mContact.isRegistered = true;
                             break;
                         }

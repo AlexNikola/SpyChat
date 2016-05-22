@@ -211,14 +211,16 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             Log.d("vfrm", "Path "+message.getMessage());
             if (filePath.startsWith(C.MEDIA_TYPE_IMAGE + "/" + myPhoneNumber + "/"))
             {
+                MyDbHelper.updateMediaPath(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), "", message.getMessageId());
                 Log.d("vfrm", "amazonLoadBitmap");
                 Intent serviceIntent = new Intent(context, DownloadService.class);
                 serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, filePath);
                 serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
                 serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_IMAGE);
                 context.getApplicationContext().startService(serviceIntent);
+
             }
-            else
+            else if (!filePath.equals(""))
             {
                 Log.d("vfrm", "localLoadBitmap");
                 localLoadBitmap(filePath, imageMessage);

@@ -42,7 +42,8 @@ public class MyDbHelper extends SQLiteOpenHelper
                     Chat.STATE + TYPE_INT + COMMA_SEP +
                     Chat.MESSAGE_ID + TYPE_INT + COMMA_SEP +
                     Chat.REMOVAL_TIME + TYPE_INT  + COMMA_SEP +
-                    Chat.MESSAGE_TYPE + TYPE_INT  +" )";
+                    Chat.MESSAGE_TYPE + TYPE_INT  + COMMA_SEP +
+                    Chat.IS_VIEWED + TYPE_INT + " )";
 
 
     private static final String SQL_DELETE_CHAT_TABLE =
@@ -63,7 +64,7 @@ public class MyDbHelper extends SQLiteOpenHelper
     private static final String SQL_DELETE_COUNTRIES_TABLE =
             "DROP TABLE IF EXISTS " + Countries.TABLE_NAME;
 
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 5;
     public static final String DATABASE_NAME = "SpyChat.db";
 
     public MyDbHelper(Context context) {
@@ -79,7 +80,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         ArrayList<String> c = new ArrayList<>();
         c.add("+380669997588");
 
-        insertRegisteredContacts(db, c);
+        //insertRegisteredContacts(db, c);
 
         insertCountries(db);
     }
@@ -103,6 +104,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         values.put(Chat.MESSAGE_ID, message.getMessageId());
         values.put(Chat.REMOVAL_TIME, message.getRemovalTime());
         values.put(Chat.MESSAGE_TYPE, message.messageType);
+        values.put(Chat.IS_VIEWED, message.isViewed);
 
         db.insert(Chat.TABLE_NAME, null, values);
         db.close();
@@ -167,7 +169,9 @@ public class MyDbHelper extends SQLiteOpenHelper
                 int messageId = cursor.getInt(6);
                 long removalTime = cursor.getLong(7);
                 int messageType = cursor.getInt(8);
+                int isViewed = cursor.getInt(9);
                 Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType);
+                message.isViewed = isViewed;
                 messagesArr.add(message);
             }
             while (cursor.moveToNext());
@@ -193,8 +197,9 @@ public class MyDbHelper extends SQLiteOpenHelper
         messageId = cursor.getInt(6);
         long removalTime = cursor.getLong(7);
         int messageType = cursor.getInt(8);
+        int isViewed = cursor.getInt(9);
         Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType);
-
+        message.isViewed = isViewed;
         cursor.close();
         db.close();
         return message;
@@ -251,6 +256,19 @@ public class MyDbHelper extends SQLiteOpenHelper
         Log.d(LOG_TAG, "updateMessageState numbers: "+num);
     }
 
+    public static synchronized void updateMessageViewedState(SQLiteDatabase db, int isViewed, int messageId)
+    {
+        ContentValues values = new ContentValues();
+
+        String whereClause = Chat.MESSAGE_ID + "=" + messageId;
+
+        values.put(Chat.IS_VIEWED, isViewed);
+        int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
+        db.close();
+
+        Log.d(LOG_TAG, "updateMessageViewedState numbers: "+num);
+    }
+
     public static synchronized void updateMediaPath(SQLiteDatabase db, String path, int messageId)
     {
         ContentValues values = new ContentValues();
@@ -264,17 +282,17 @@ public class MyDbHelper extends SQLiteOpenHelper
         Log.d(LOG_TAG, "updateMediaPath numbers: "+num);
     }
 
-    public static synchronized void updateAllMessagesState(SQLiteDatabase db, MyContacts.Contact contact)
+    public static synchronized void updateAllMessagesViewState(SQLiteDatabase db, MyContacts.Contact contact)
     {
         ContentValues values = new ContentValues();
 
         String whereClause = Chat.SENDER_PHONE_NUMBER + " LIKE '%" + contact.phoneNumber + "%'";
         Log.d(LOG_TAG, "contact.phoneNumber : "+contact.phoneNumber);
-        values.put(Chat.STATE, Message.STATE_SUCCESS);
+        values.put(Chat.IS_VIEWED, 1);
         int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
-        Log.d(LOG_TAG, "updateAllMessagesState numbers: "+num);
+        Log.d(LOG_TAG, "updateAllMessagesViewState numbers: "+num);
     }
 
     public static synchronized void updateMessageTimer(SQLiteDatabase db, long mId, long removalTime)

@@ -14,7 +14,7 @@ public class MyContacts
 {
     private static ArrayList<Contact> mContacts;
 
-    public static ArrayList<Contact> getContacts(Context context)
+    /*public static ArrayList<Contact> getContacts(Context context)
     {
         if (mContacts == null)
         {
@@ -58,19 +58,22 @@ public class MyContacts
         }
 
         return mContacts;
-    }
-
-    /*public static ArrayList<Contact> getContactsList(Context context)
-    {
-        ArrayList<Contact> contactArrayList = new ArrayList<>();
-
-        contactArrayList.add(new Contact("Настя", "+380661234567", null));
-        contactArrayList.add(new Contact("Aндрей", "+380665557778", null));
-        contactArrayList.add(new Contact("Алексей", "+380662223344", null));
-        contactArrayList.add(new Contact("Богдан", "+380669998855", null));
-        contactArrayList.add(new Contact("Виктор", "+380661112255", null));
-        return contactArrayList;
     }*/
+
+    public static ArrayList<Contact> getContacts(Context context)
+    {
+        if (mContacts == null)
+        {
+            mContacts = new ArrayList<>();
+            mContacts.add(new Contact("Настя", "+380661234567", null));
+            mContacts.add(new Contact("Aндрей", "+380669997588", null));
+            mContacts.add(new Contact("Алексей", "+380662223344", null));
+            mContacts.add(new Contact("Богдан", "+380669998855", null));
+            mContacts.add(new Contact("Виктор", "+380661112255", null));
+        }
+
+        return mContacts;
+    }
 
     public static class Contact
     {

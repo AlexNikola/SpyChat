@@ -52,15 +52,15 @@ public class MyGcmListenerService extends GcmListenerService {
         Message message;
         if (textMessage.startsWith(C.MEDIA_TYPE_IMAGE + "/+"))
         {
-            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_UNREAD, Message.NOT_MY_MESSAGE_IMAGE);
+            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_IMAGE);
         }
         else if (textMessage.startsWith(C.MEDIA_TYPE_VIDEO + "/+"))
         {
-            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_UNREAD, Message.NOT_MY_MESSAGE_VIDEO);
+            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_VIDEO);
         }
         else
         {
-            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_UNREAD, Message.NOT_MY_MESSAGE_TEXT);
+            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_SUCCESS, Message.NOT_MY_MESSAGE_TEXT);
         }
 
         MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), message);

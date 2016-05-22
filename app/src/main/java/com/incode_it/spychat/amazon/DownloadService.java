@@ -63,13 +63,13 @@ public class DownloadService extends IntentService {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
 
-        String path = intent.getStringExtra(C.EXTRA_MEDIA_FILE_PATH);
+        final String remotePath = intent.getStringExtra(C.EXTRA_MEDIA_FILE_PATH);
         final String mediaType = intent.getStringExtra(C.EXTRA_MEDIA_TYPE);
         final int messageId = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
 
-        File remoteFile = new File(path);
+        File remoteFile = new File(remotePath);
         File localPath = null;
-        if (path.startsWith(C.MEDIA_TYPE_IMAGE + "/"))
+        if (remotePath.startsWith(C.MEDIA_TYPE_IMAGE + "/"))
         {
             try {
                 localPath = createImageFile(remoteFile.getName());
@@ -77,7 +77,7 @@ public class DownloadService extends IntentService {
                 e.printStackTrace();
             }
         }
-        else if (path.startsWith(C.MEDIA_TYPE_VIDEO + "/"))
+        else if (remotePath.startsWith(C.MEDIA_TYPE_VIDEO + "/"))
         {
 
         }
@@ -101,7 +101,7 @@ public class DownloadService extends IntentService {
         arrayList.add(transferObserver);
 
         final File finalLocalPath = localPath;
-        Log.d(TAG, "remote_path: " + path);
+        Log.d(TAG, "remote_path: " + remotePath);
         Log.d(TAG, "download_from: " + mediaType + "/" + myPhoneNumber + "/" + remoteFile.getName());
         Log.d(TAG, "localPath: " + finalLocalPath);
 
@@ -112,11 +112,12 @@ public class DownloadService extends IntentService {
                 if (state.toString().equals("COMPLETED"))
                 {
                     MyDbHelper.updateMediaPath(new MyDbHelper(getApplicationContext()).getWritableDatabase(), finalLocalPath.getAbsolutePath(), messageId);
-                    MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
+                    MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_SUCCESS, messageId);
                     sendBroadcast(messageId, "COMPLETED", mediaType, finalLocalPath.getAbsolutePath());
                 }
                 else if (state.toString().equals("FAILED"))
                 {
+                    MyDbHelper.updateMediaPath(new MyDbHelper(getApplicationContext()).getWritableDatabase(), remotePath, messageId);
                     MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
                     sendBroadcast(messageId, "FAILED", mediaType, finalLocalPath.getAbsolutePath());
                 }
@@ -132,6 +133,7 @@ public class DownloadService extends IntentService {
 
             @Override
             public void onError(int id, Exception ex) {
+                MyDbHelper.updateMediaPath(new MyDbHelper(getApplicationContext()).getWritableDatabase(), remotePath, messageId);
                 MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
                 sendBroadcast(messageId, "FAILED", mediaType, finalLocalPath.getAbsolutePath());
                 Log.e(TAG,"download_error: " + ex.getLocalizedMessage());

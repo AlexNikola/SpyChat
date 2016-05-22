@@ -268,7 +268,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         initUploadMediaReceiver();
         initDownloadMediaReceiver();
         initDeleteMassagesReceiver();
-        updateUnreadStateInDB();
+        updateViewStateInDB();
         loadMessages();
         super.onResume();
     }
@@ -343,9 +343,9 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         contact.countUnread = 0;
     }
 
-    private void updateUnreadStateInDB()
+    private void updateViewStateInDB()
     {
-        MyDbHelper.updateAllMessagesState(new MyDbHelper(getContext()).getWritableDatabase(), contact);
+        MyDbHelper.updateAllMessagesViewState(new MyDbHelper(getContext()).getWritableDatabase(), contact);
     }
 
     /*private void loadMyContacts()
@@ -614,7 +614,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 if (phone.equals(contact.phoneNumber))
                 {
                     cancelNotification();
-                    MyDbHelper.updateAllMessagesState(new MyDbHelper(context).getWritableDatabase(), contact);
+                    MyDbHelper.updateAllMessagesViewState(new MyDbHelper(context).getWritableDatabase(), contact);
                     int messageId = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
 
                     Message message = MyDbHelper.readMessage(new MyDbHelper(context).getReadableDatabase(), messageId);
