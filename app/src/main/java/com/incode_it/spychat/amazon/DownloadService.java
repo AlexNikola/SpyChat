@@ -16,6 +16,8 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
+import com.amazonaws.services.s3.model.DeleteVersionRequest;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.QuickstartPreferences;
@@ -61,13 +63,13 @@ public class DownloadService extends IntentService {
             e.printStackTrace();
         }
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+        final String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
 
         final String remotePath = intent.getStringExtra(C.EXTRA_MEDIA_FILE_PATH);
         final String mediaType = intent.getStringExtra(C.EXTRA_MEDIA_TYPE);
         final int messageId = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
 
-        File remoteFile = new File(remotePath);
+        final File remoteFile = new File(remotePath);
         File localPath = null;
         if (remotePath.startsWith(C.MEDIA_TYPE_IMAGE + "/"))
         {
@@ -88,16 +90,16 @@ public class DownloadService extends IntentService {
 
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
-                "us-east-1:2fb30153-0f2b-4f60-bbd2-28d08efa98f2", // Identity Pool ID
+                "us-east-1:3bc44367-78a8-47e8-b689-1f05f72f74e5", // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );
 
-        AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
+        final AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
         s3.setRegion(Region.getRegion(Regions.US_EAST_1));
         TransferUtility transferUtility = new TransferUtility(s3, getApplicationContext());
 
         TransferObserver transferObserver = transferUtility.download(
-                "spy-chat-bucket",     /* The bucket to upload to */
+                "spy-chat",     /* The bucket to upload to */
                 mediaType + "/" + myPhoneNumber + "/" + remoteFile.getName(),       /* The key for the uploaded object */
                 localPath      /* The file where the data to upload exists */
         );
@@ -117,6 +119,7 @@ public class DownloadService extends IntentService {
                 {
                     MyDbHelper.updateMediaPath(new MyDbHelper(getApplicationContext()).getWritableDatabase(), finalLocalPath.getAbsolutePath(), messageId);
                     MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_SUCCESS, messageId);
+                    deleteRemoteFile(s3, "spy-chat", (mediaType + "/" + myPhoneNumber + "/" + remoteFile.getName()));
                     sendBroadcast(messageId, "COMPLETED", mediaType, finalLocalPath.getAbsolutePath());
                 }
                 else if (state.toString().equals("FAILED"))
@@ -143,6 +146,19 @@ public class DownloadService extends IntentService {
                 Log.e(TAG,"download_error: " + ex.getLocalizedMessage());
             }
         });
+
+    }
+
+    private void deleteRemoteFile(final AmazonS3 s3, final String bucket, final String keyName)
+    {
+        //s3.deleteObject(new DeleteObjectRequest(bucket, keyName));
+        Log.e(TAG,"delete: " + keyName);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                s3.deleteObject(bucket, keyName);
+            }
+        }).start();
 
     }
 

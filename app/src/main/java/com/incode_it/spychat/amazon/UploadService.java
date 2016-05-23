@@ -77,7 +77,7 @@ public class UploadService extends IntentService {
 
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
-                "us-east-1:2fb30153-0f2b-4f60-bbd2-28d08efa98f2", // Identity Pool ID
+                "us-east-1:3bc44367-78a8-47e8-b689-1f05f72f74e5", // Identity Pool ID
                 Regions.US_EAST_1 // Region
         );
 
@@ -86,7 +86,7 @@ public class UploadService extends IntentService {
         TransferUtility transferUtility = new TransferUtility(s3, getApplicationContext());
 
         TransferObserver transferObserver = transferUtility.upload(
-                "spy-chat-bucket",     /* The bucket to upload to */
+                "spy-chat",     /* The bucket to upload to */
                 mediaType + "/" + opponentPhone + "/" + file.getName(),       /* The key for the uploaded object */
                 file       /* The file where the data to upload exists */
         );

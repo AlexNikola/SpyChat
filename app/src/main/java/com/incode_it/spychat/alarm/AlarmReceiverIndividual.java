@@ -10,8 +10,10 @@ import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 
 import com.incode_it.spychat.C;
+import com.incode_it.spychat.Message;
 import com.incode_it.spychat.data_base.MyDbHelper;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class AlarmReceiverIndividual extends WakefulBroadcastReceiver
@@ -23,11 +25,20 @@ public class AlarmReceiverIndividual extends WakefulBroadcastReceiver
 
         int mId = intent.getIntExtra(C.ID_TO_DELETE, 0);
         Log.d(TAG, "onReceive mId "+mId);
+        Message message = MyDbHelper.readMessage(new MyDbHelper(context).getReadableDatabase(), mId);
+
+        if (message.messageType != Message.MY_MESSAGE_TEXT && message.messageType != Message.NOT_MY_MESSAGE_TEXT)
+        {
+            File file = new File(message.getMessage());
+            file.delete();
+        }
         MyDbHelper.removeMessage(new MyDbHelper(context).getWritableDatabase(), mId);
 
         Intent serviceIntent = new Intent(context, UpdateUIService.class);
         serviceIntent.putExtra(C.ID_TO_DELETE, mId);
         startWakefulService(context, serviceIntent);
+
+
     }
 
 

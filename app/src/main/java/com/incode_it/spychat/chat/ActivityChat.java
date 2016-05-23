@@ -2,9 +2,6 @@ package com.incode_it.spychat.chat;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.NotificationManager;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -17,9 +14,9 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.incode_it.spychat.C;
+import com.incode_it.spychat.Message;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.authorization.ActivityAuth;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
@@ -53,32 +50,7 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
             fragmentTransaction.add(R.id.fragment_chat_container, fragment, FragmentChat.TAG_FRAGMENT);
             fragmentTransaction.commit();
         }
-
-
     }
-
-
-
-
-
-    private void openVideoCamera()
-    {
-
-    }
-
-    private void openMedia()
-    {
-
-    }
-
-
-
-
-
-
-
-
-
 
     @Override
     public void onCreateSuccessMessageDialog(OnMessageDialogListener listener) {
@@ -87,8 +59,8 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
     }
 
     @Override
-    public void onCreateErrorMessageDialog(OnMessageDialogListener listener) {
-        DialogFragment newFragment = ErrorMessageDialogFragment.newInstance(listener);
+    public void onCreateErrorMessageDialog(OnMessageDialogListener listener, int type) {
+        DialogFragment newFragment = ErrorMessageDialogFragment.newInstance(listener, type);
         newFragment.show(getSupportFragmentManager(), ErrorMessageDialogFragment.TAG);
     }
 
@@ -179,12 +151,18 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
         public static final String TAG = "ErrorMessageDialogFragment";
 
         private OnMessageDialogListener listener;
+        private int type;
 
-        public static ErrorMessageDialogFragment newInstance(OnMessageDialogListener listener)
+        public static ErrorMessageDialogFragment newInstance(OnMessageDialogListener listener, int type)
         {
             ErrorMessageDialogFragment newFragment = new ErrorMessageDialogFragment();
             newFragment.setListener(listener);
+            newFragment.setType(type);
             return newFragment;
+        }
+
+        public void setType(int type) {
+            this.type = type;
         }
 
         public void setListener(OnMessageDialogListener listener) {
@@ -195,18 +173,26 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
 
+            int arr;
+            if (type == Message.MY_MESSAGE_TEXT || type == Message.MY_MESSAGE_IMAGE || type == Message.MY_MESSAGE_VIDEO)
+            {
+                arr = R.array.error_my_message_dialog;
+            }
+            else arr = R.array.error_not_my_message_dialog;
+
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle(R.string.error_dialog)
-                    .setItems(R.array.error_massage_dialog, new DialogInterface.OnClickListener() {
+                    .setItems(arr, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             switch (which)
                             {
                                 case 0:
-                                    listener.onReSendMessage();
+                                    listener.onDeleteMessage();
                                     break;
 
                                 case 1:
-                                    listener.onDeleteMessage();
+
+                                    listener.onReSendMessage();
                                     break;
                             }
                         }
@@ -218,21 +204,8 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
 
 
 
-    public class AlarmReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // For our recurring task, we'll just display a message
-            Log.d("myalarm", "onReceive "+context.hashCode() + " " + intent.hashCode());
-            Toast.makeText(context, "I'm running", Toast.LENGTH_SHORT).show();
-
-        }
-    }
-
     @Override
     protected void onPause() {
-        /*LocalBroadcastManager.getInstance(this).unregisterReceiver(mPinReceiver);
-        isPinReceiverRegistered = false;*/
         requestPin = true;
         Log.d("lifes", "onPause");
         super.onPause();
@@ -240,7 +213,6 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
 
     @Override
     protected void onResume() {
-        //registerPinReceiver();
         Log.d("lifes", "onResume");
         showPinDialog();
         super.onResume();
@@ -270,7 +242,6 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
             FragmentPin fragmentPin = FragmentPin.newInstance();
             fragmentPin.show(ft, FragmentPin.TAG);
         }
-
     }
 
     @Override

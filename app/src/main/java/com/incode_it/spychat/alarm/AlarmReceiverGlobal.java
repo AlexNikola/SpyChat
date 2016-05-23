@@ -12,8 +12,10 @@ import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 
 import com.incode_it.spychat.C;
+import com.incode_it.spychat.Message;
 import com.incode_it.spychat.data_base.MyDbHelper;
 
+import java.io.File;
 import java.util.ArrayList;
 
 public class AlarmReceiverGlobal extends WakefulBroadcastReceiver
@@ -40,7 +42,14 @@ public class AlarmReceiverGlobal extends WakefulBroadcastReceiver
             if (timeHolder.removalTime == 0)
             {
                 hasId = true;
+                Message message = MyDbHelper.readMessage(new MyDbHelper(context).getReadableDatabase(), timeHolder.mId);
                 MyDbHelper.removeMessage(new MyDbHelper(context).getWritableDatabase(), timeHolder.mId);
+                if (message.messageType != Message.MY_MESSAGE_TEXT && message.messageType != Message.NOT_MY_MESSAGE_TEXT)
+                {
+                    File file = new File(message.getMessage());
+                    file.delete();
+                }
+
             }
         }
 

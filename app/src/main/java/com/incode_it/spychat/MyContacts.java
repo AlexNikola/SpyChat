@@ -13,12 +13,14 @@ import java.util.ArrayList;
 public class MyContacts
 {
     private static ArrayList<Contact> mContacts;
+    private static ArrayList<Contact> mSearchableContacts;
 
     public static ArrayList<Contact> getContacts(Context context)
     {
         if (mContacts == null)
         {
             mContacts = new ArrayList<>();
+
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
             String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, null);
             Cursor phones = context.getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,null,null, null);
@@ -58,6 +60,20 @@ public class MyContacts
         }
 
         return mContacts;
+    }
+
+    public static void initSearchableContacts(Context context)
+    {
+        if (mSearchableContacts == null)
+        {
+            mSearchableContacts = new ArrayList<>();
+            mSearchableContacts.addAll(getContacts(context));
+        }
+    }
+
+    public static ArrayList<Contact> getSearchableContacts()
+    {
+        return mSearchableContacts;
     }
 
     /*public static ArrayList<Contact> getContacts(Context context)

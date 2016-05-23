@@ -57,7 +57,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     static final int REQUEST_VIDEO_CAPTURE = 12;
     static final int REQUEST_GALLERY = 13;
 
-
     private static final int SEND_MESSAGE_DELAY = 500;
     private static final String TAG = "chatm";
     private static final String DOWNLOAD_TAG = "amaz_download";
@@ -81,11 +80,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private boolean isDeleteMessagesReceiverRegistered;
     private OnFragmentChatInteractionListener fragmentChatInteractionListener;
 
-
     private MyContacts.Contact contact;
-
-
-
 
     private SharedPreferences sharedPreferences;
 
@@ -202,6 +197,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private void uploadImage(String photoPath)
     {
         final Message message = new Message(photoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_IMAGE);
+        message.isViewed = 1;
         messageArrayList.add(message);
         adapter.notifyItemInserted(messageArrayList.size() - 1);
         recyclerView.scrollToPosition(messageArrayList.size() - 1);
@@ -222,6 +218,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     {
         Log.d("my_pa", "videoUri "+videoPath);
         final Message message = new Message(videoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_VIDEO);
+        message.isViewed = 1;
         messageArrayList.add(message);
         adapter.notifyItemInserted(messageArrayList.size() - 1);
         recyclerView.scrollToPosition(messageArrayList.size() - 1);
@@ -782,7 +779,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     {
         void onCreateSuccessMessageDialog(OnMessageDialogListener listener);
 
-        void onCreateErrorMessageDialog(OnMessageDialogListener listener);
+        void onCreateErrorMessageDialog(OnMessageDialogListener listener, int state);
 
         void onCreateTimeDialog(OnMessageDialogListener listener);
     }

@@ -61,8 +61,11 @@
         <item>Delete message</item>
     </string-array>
 
-    <string-array name="error_massage_dialog">
+    <string-array name="error_my_message_dialog">
+        <item>Delete message</item>
         <item>Send again</item>
+    </string-array>
+    <string-array name="error_not_my_message_dialog">
         <item>Delete message</item>
     </string-array>
     <string name="title_activity_activity_settings">Settings</string>

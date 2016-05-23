@@ -14,7 +14,6 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -48,14 +47,11 @@ public class FragmentContacts extends Fragment {
 
     private RecyclerView recyclerView;
     private MyContactRecyclerViewAdapter adapter;
-
     private UpdateContactsTask updateContactsTask;
-
     private boolean isMessageReceiverRegistered;
     private BroadcastReceiver mBroadcastReceiver;
-
     private boolean isExpanded;
-    private ArrayList<MyContacts.Contact> searchableContacts = new ArrayList<>();
+    private String searchQuery = "";
 
     public static FragmentContacts newInstance() {
         FragmentContacts fragment = new FragmentContacts();
@@ -75,16 +71,16 @@ public class FragmentContacts extends Fragment {
         super.onSaveInstanceState(outState);
     }
 
+
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        Log.d("qwew", "onAttach");
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("qwew", "onCreate ");
         setHasOptionsMenu(true);
         setRetainInstance(true);
     }
@@ -94,12 +90,10 @@ public class FragmentContacts extends Fragment {
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver);
         isMessageReceiverRegistered = false;
         super.onPause();
-        Log.d("vnvnv", "onPause");
     }
 
     @Override
     public void onResume() {
-        Log.d("vnvnv", "onResume "+adapter);
         initMessageReceiver();
         updateNumbersOfUnreadMessages();
         if (adapter != null) adapter.notifyDataSetChanged();
@@ -110,7 +104,6 @@ public class FragmentContacts extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-        Log.d("vnvnv", "onCreateView");
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
         localUpdateContactList();
         serverUpdateContacts();
@@ -140,7 +133,6 @@ public class FragmentContacts extends Fragment {
             }
         };
 
-        // Registering BroadcastReceiver
         registerMessageReceiver();
     }
 
@@ -151,46 +143,6 @@ public class FragmentContacts extends Fragment {
             isMessageReceiverRegistered = true;
         }
     }
-
-    /*private void loadMyContacts()
-    {
-        Log.d("lodl", "loadMyContacts");
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                getContext().checkSelfPermission(Manifest.permission.READ_CONTACTS)
-                        != PackageManager.PERMISSION_GRANTED)
-        {
-            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS},
-                    C.READ_CONTACTS_CODE);
-        }
-        else
-        {
-            mContacts = MyContacts.getContactsList(getContext());
-            Log.d("lodl", "mContacts "+mContacts.size());
-
-        }
-
-    }*/
-
-    /*@Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        Log.d("lodl", "onRequestPermissionsResult " + requestCode);
-        if (requestCode == C.READ_CONTACTS_CODE)
-        {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            {
-                ArrayList<MyContacts.Contact> arr = MyContacts.getContactsList(getContext());
-                mContacts.clear();
-                mContacts.addAll(arr);
-                localUpdateContactList();
-                serverUpdateContacts();
-            }
-            else
-            {
-                Toast.makeText(getContext(), "Sorry!!! Permission Denied",
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
-    }*/
 
     private void updateNumbersOfUnreadMessages()
     {
@@ -208,7 +160,6 @@ public class FragmentContacts extends Fragment {
 
     private void localUpdateContactList()
     {
-        Log.d("lodl", "localUpdateContactList");
         ArrayList<String> registeredContacts;
         registeredContacts = MyDbHelper.readRegisteredContacts(new MyDbHelper(getContext()).getReadableDatabase());
         for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
@@ -224,12 +175,10 @@ public class FragmentContacts extends Fragment {
         }
 
         Collections.sort(MyContacts.getContacts(getContext()), new ContactsComparator());
-        Log.d("lodl", "mContacts "+MyContacts.getContacts(getContext()).size());
     }
 
     private void serverUpdateContacts()
     {
-        Log.d("lodl", "serverUpdateContacts");
         ArrayList<String> contactsNumbers = new ArrayList<>();
         for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
         {
@@ -290,21 +239,15 @@ public class FragmentContacts extends Fragment {
 
         @Override
         protected void onPostExecute(ArrayList<String> regContacts) {
-            for (int k=0;k<regContacts.size();k++)
-            {
-                Log.d("lodl", "qqqqqq "+regContacts.get(k));
-            }
             if (regContacts != null)
             {
                 for (MyContacts.Contact mContact: MyContacts.getContacts(getContext()))
                 {
-                    Log.d("lodl", "wwwwww "+mContact.phoneNumber);
                     mContact.isRegistered = false;
                     for (String regPhoneNumber: regContacts)
                     {
                         if (mContact.phoneNumber.equals(regPhoneNumber))
                         {
-                            Log.d("lodl", "true "+mContact.phoneNumber);
                             mContact.isRegistered = true;
                             break;
                         }
@@ -312,7 +255,6 @@ public class FragmentContacts extends Fragment {
                 }
                 Collections.sort(MyContacts.getContacts(getContext()), new ContactsComparator());
                 if (adapter != null) adapter.notifyDataSetChanged();
-                Log.d("lodl", "mContacts "+MyContacts.getContacts(getContext()).size());
             }
             else
             {
@@ -368,7 +310,6 @@ public class FragmentContacts extends Fragment {
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
-        Log.d("qwew", "onCreateOptionsMenu");
         inflater.inflate(R.menu.contacts, menu);
         MenuItem actionMenuItem = menu.findItem(R.id.action_search);
         if (isExpanded) actionMenuItem.expandActionView();
@@ -376,52 +317,43 @@ public class FragmentContacts extends Fragment {
             @Override
             public boolean onMenuItemActionExpand(MenuItem item) {
                 isExpanded = true;
-                searchableContacts.clear();
-                searchableContacts.addAll(MyContacts.getContacts(getContext()));
-                Log.d("qwew", "isExpanded true");
+                MyContacts.initSearchableContacts(getContext());
                 return true;
             }
 
             @Override
             public boolean onMenuItemActionCollapse(MenuItem item) {
                 isExpanded = false;
-                /*searchableContacts.clear();
-                searchableContacts.addAll(ActivityMain.mContacts);*/
-                Log.d("qwew", "isExpanded false");
                 return true;
             }
         });
         final SearchView searchView = (SearchView) actionMenuItem.getActionView();
+        searchView.setQuery(searchQuery, false);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 callSearch(query);
-                Log.d("qwew", "onQueryTextSubmit");
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
                 callSearch(newText);
-                Log.d("qwew", "onQueryTextChange");
-              /*if (searchView.isExpanded() && TextUtils.isEmpty(newText)) {
-                callSearch(newText);
-              }*/
                 return true;
             }
 
             public void callSearch(String query)
             {
+                searchQuery = query;
                 MyContacts.getContacts(getContext()).clear();
                 if (query.length() > 0)
                 {
-                    for (MyContacts.Contact contact: searchableContacts)
+                    for (MyContacts.Contact contact: MyContacts.getSearchableContacts())
                     {
                         if (contact.name.toLowerCase().contains(query.toLowerCase()))
                         {
                             contact.setSearchableSubString(query);
                             MyContacts.getContacts(getContext()).add(contact);
-
                         }
                     }
                     adapter.notifyDataSetChanged();
@@ -429,7 +361,7 @@ public class FragmentContacts extends Fragment {
                 else
                 {
                     MyContacts.getContacts(getContext()).clear();
-                    MyContacts.getContacts(getContext()).addAll(searchableContacts);
+                    MyContacts.getContacts(getContext()).addAll(MyContacts.getSearchableContacts());
                     for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
                     {
                         contact.searchableSubString = "";
@@ -456,13 +388,11 @@ public class FragmentContacts extends Fragment {
     @Override
     public void onStop() {
         super.onStop();
-        Log.d("qwew", "onStop");
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        Log.d("qwew", "onDetach");
     }
 
 }

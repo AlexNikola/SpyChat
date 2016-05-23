@@ -35,6 +35,7 @@ import com.incode_it.spychat.amazon.DownloadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Timer;
@@ -287,12 +288,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             Log.d("vfrm", "yourRealPath "+yourRealPath);
 
             localLoadBitmap(yourRealPath, videoMessage, "frame");
+        }
 
-
-
-            /*videoView.setVideoURI(videoUri);
-            videoView.setKeepScreenOn(true);
-            videoView.start();*/
+        @Override
+        public void onDeleteMessage() {
+            Message message = messages.get(getAdapterPosition());
+            File file = new File(message.getMessage());
+            file.delete();
+            super.onDeleteMessage();
         }
     }
 
@@ -304,6 +307,16 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             super(itemView);
 
             imageMessage = (ImageView) itemView.findViewById(R.id.image_message);
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Message message = messages.get(getAdapterPosition());
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(message.getMessage()));
+                    Log.d("vfrm", "path "+"file:/"+message.getMessage());
+                    intent.setDataAndType(Uri.fromFile(new File(message.getMessage())), "image/*");
+                    context.startActivity(intent);
+                }
+            });
         }
 
         @Override
@@ -313,9 +326,9 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             String filePath = message.getMessage();
             Log.e(DOWNLOAD_TAG,"onReceive download");
             Log.d("vfrm", "Path "+message.getMessage());
-            if (filePath.startsWith(C.MEDIA_TYPE_IMAGE + "/" + myPhoneNumber + "/"))
+            if (!filePath.equals("") && filePath.startsWith(C.MEDIA_TYPE_IMAGE + "/" + myPhoneNumber + "/") && message.state != Message.STATE_ERROR)
             {
-                MyDbHelper.updateMediaPath(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), "", message.getMessageId());
+                //MyDbHelper.updateMediaPath(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), "", message.getMessageId());
                 Log.d("vfrm", "amazonLoadBitmap");
                 Intent serviceIntent = new Intent(context, DownloadService.class);
                 serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, filePath);
@@ -329,15 +342,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 Log.d("vfrm", "localLoadBitmap");
                 localLoadBitmap(filePath, imageMessage, "");
             }
+        }
 
-            /*if (message.imageProgress > 0)
-            {
-                progressBar.setVisibility(View.VISIBLE);
-                progressBar.setProgress((int) message.imageProgress);
-                progressBar.setMax((int) message.imageTotalProgress);
-            }*/
-
-
+        @Override
+        public void onDeleteMessage() {
+            Message message = messages.get(getAdapterPosition());
+            File file = new File(message.getMessage());
+            file.delete();
+            super.onDeleteMessage();
         }
     }
 
@@ -391,7 +403,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             progressBar = itemView.findViewById(R.id.progressBar);
             timeText = (TextView) itemView.findViewById(R.id.time_tv);
             messageContainer = itemView.findViewById(R.id.message_container);
-            messageContainer.setOnLongClickListener(new View.OnLongClickListener() {
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     Log.d("merr", "onLongClick state "+messages.get(getAdapterPosition()).state);
@@ -401,9 +413,9 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                     }
                     else if (messages.get(getAdapterPosition()).state == Message.STATE_ERROR)
                     {
-                        listener.onCreateErrorMessageDialog(MessageViewHolder.this);
+                        listener.onCreateErrorMessageDialog(MessageViewHolder.this, messages.get(getAdapterPosition()).messageType);
                     }
-                    return true;
+                    return false;
                 }
             });
         }

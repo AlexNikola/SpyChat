@@ -16,7 +16,6 @@ import android.support.v7.widget.RecyclerView;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -24,15 +23,14 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.incode_it.spychat.chat.ActivityChat;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.chat.ActivityChat;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 
 
 public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContactRecyclerViewAdapter.ViewHolder> {
@@ -48,7 +46,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         typeface = Typeface.createFromAsset(context.getAssets(), "fonts/OpenSans-Light.ttf");
 
         noPhotoBitmap = C.getNoPhotoBitmap(context);
-        Log.d("myPerm", "noPhotoBitmap "+noPhotoBitmap);
 
         final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
         final int cacheSize = maxMemory / 8;
@@ -117,8 +114,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             int start, end;
             start = name.toLowerCase().indexOf(holder.mContact.searchableSubString.toLowerCase());
             end = start + holder.mContact.searchableSubString.length();
-            Log.d("sear", "start "+start);
-            Log.d("sear", "end "+end);
             if (start != -1)
             {
                 final ForegroundColorSpan fcs = new ForegroundColorSpan(context.getResources().getColor(R.color.colorPrimary));
@@ -143,7 +138,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
         }
         else
         {
-            Log.d("myPerm", "noPhotoBitmap ");
             holder.mImage.setImageBitmap(noPhotoBitmap);
         }
     }
@@ -180,7 +174,6 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
             mView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d("mylist", "position "+getAdapterPosition());
                     if (mContact.isRegistered)
                     {
                         Intent intent = new Intent(context, ActivityChat.class);
@@ -191,7 +184,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                     {
                         Intent intent = new Intent(Intent.ACTION_SENDTO);
                         intent.setData(Uri.parse("smsto:" + Uri.encode(mContact.phoneNumber)));
-                        intent.putExtra("sms_body", "sms test");
+                        intent.putExtra("sms_body", "Hey there! Check out SPYChat <download URL>. A messenger app that cares about security.");
                         context.startActivity(intent);
                     }
                 }
