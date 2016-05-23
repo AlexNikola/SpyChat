@@ -14,7 +14,7 @@ public class MyContacts
 {
     private static ArrayList<Contact> mContacts;
 
-    /*public static ArrayList<Contact> getContacts(Context context)
+    public static ArrayList<Contact> getContacts(Context context)
     {
         if (mContacts == null)
         {
@@ -58,9 +58,9 @@ public class MyContacts
         }
 
         return mContacts;
-    }*/
+    }
 
-    public static ArrayList<Contact> getContacts(Context context)
+    /*public static ArrayList<Contact> getContacts(Context context)
     {
         if (mContacts == null)
         {
@@ -73,7 +73,7 @@ public class MyContacts
         }
 
         return mContacts;
-    }
+    }*/
 
     public static class Contact
     {

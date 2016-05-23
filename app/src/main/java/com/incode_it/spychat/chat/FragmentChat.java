@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -54,6 +55,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     static final int REQUEST_IMAGE_CAPTURE = 11;
     static final int REQUEST_VIDEO_CAPTURE = 12;
+    static final int REQUEST_GALLERY = 13;
 
 
     private static final int SEND_MESSAGE_DELAY = 500;
@@ -126,7 +128,18 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     {
         Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
         if (takeVideoIntent.resolveActivity(getContext().getPackageManager()) != null) {
-            startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
+            File videoFile = null;
+            try {
+                videoFile = createVideoFile();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+            if (videoFile != null) {
+                takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(videoFile));
+                startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
+            }
         }
     }
 
@@ -139,54 +152,88 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
             String photoPath = sharedPreferences.getString(C.SHARED_NEW_PHOTO_PATH, "error");
 
-            final Message message = new Message(photoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_IMAGE);
-            messageArrayList.add(message);
-            adapter.notifyItemInserted(messageArrayList.size() - 1);
-            recyclerView.scrollToPosition(messageArrayList.size() - 1);
-            MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
-
-            //uploadFile(photoPath, message.getMessageId());
-
-            Log.d("amaz_upload", "onActivityResult "+photoPath);
-            Intent serviceIntent = new Intent(getContext(), UploadService.class);
-            serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, photoPath);
-            serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
-            serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
-            serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_IMAGE);
-            getContext().getApplicationContext().startService(serviceIntent);
+            uploadImage(photoPath);
 
         }
         else if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == Activity.RESULT_OK)
         {
-            Uri videoUri = data.getData();
-            final Message message = new Message(videoUri.toString(), myPhoneNumber, contact.phoneNumber, Message.STATE_SUCCESS, Message.MY_MESSAGE_VIDEO);
-            messageArrayList.add(message);
-            adapter.notifyItemInserted(messageArrayList.size() - 1);
-            recyclerView.scrollToPosition(messageArrayList.size() - 1);
-            MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
+            //Uri videoUri = data.getData();
+            String videoPath = sharedPreferences.getString(C.SHARED_NEW_VIDEO_PATH, "error");
+            uploadVideo(videoPath);
+
+        }
+        else if (requestCode == REQUEST_GALLERY && resultCode == Activity.RESULT_OK)
+        {
+            String path = data.getData().toString();
+            Log.d("my_pa", "Uri "+path);
+            if (path.startsWith("content://media/external/video"))
+            {
+                String realPath = getRealPath(path);
+                uploadVideo(realPath);
+            }
+            else if (path.startsWith("content://media/external/images"))
+            {
+                String realPath = getRealPath(path);
+                uploadImage(realPath);
+            }
         }
     }
 
-    /*private void uploadFile(String photoPath, int messageId)
+    private String getRealPath(String path)
     {
-        CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
-                getContext().getApplicationContext(),
-                "us-east-1:2fb30153-0f2b-4f60-bbd2-28d08efa98f2", // Identity Pool ID
-                Regions.US_EAST_1 // Region
-        );
+        String yourRealPath = null;
 
-        AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
-        s3.setRegion(Region.getRegion(Regions.US_EAST_1));
-        TransferUtility transferUtility = new TransferUtility(s3, getContext().getApplicationContext());
+        String[] filePathColumn = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContext().getContentResolver().query(Uri.parse(path), filePathColumn, null, null, null);
+        if (cursor != null)
+        {
+            if(cursor.moveToFirst()){
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                yourRealPath = cursor.getString(columnIndex);
+            } else {
+                //boooo, cursor doesn't have rows ...
+            }
+            cursor.close();
+        }
 
-        File file = new File(photoPath);
+        return yourRealPath;
+    }
 
-        TransferObserver transferObserver = transferUtility.upload(
-                "spy-chat-bucket",     *//* The bucket to upload to *//*
-                "public/"+file.getName(),       *//* The key for the uploaded object *//*
-                file       *//* The file where the data to upload exists *//*
-        );
-    }*/
+    private void uploadImage(String photoPath)
+    {
+        final Message message = new Message(photoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_IMAGE);
+        messageArrayList.add(message);
+        adapter.notifyItemInserted(messageArrayList.size() - 1);
+        recyclerView.scrollToPosition(messageArrayList.size() - 1);
+        MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
+
+        //uploadFile(photoPath, message.getMessageId());
+
+        Log.d("amaz_upload", "onActivityResult "+photoPath);
+        Intent serviceIntent = new Intent(getContext(), UploadService.class);
+        serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, photoPath);
+        serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+        serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
+        serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_IMAGE);
+        getContext().getApplicationContext().startService(serviceIntent);
+    }
+
+    private void uploadVideo(String videoPath)
+    {
+        Log.d("my_pa", "videoUri "+videoPath);
+        final Message message = new Message(videoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_VIDEO);
+        messageArrayList.add(message);
+        adapter.notifyItemInserted(messageArrayList.size() - 1);
+        recyclerView.scrollToPosition(messageArrayList.size() - 1);
+        MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
+
+        Intent serviceIntent = new Intent(getContext(), UploadService.class);
+        serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, videoPath);
+        serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+        serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
+        serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_VIDEO);
+        getContext().getApplicationContext().startService(serviceIntent);
+    }
 
     private void openPhotoCamera()
     {
@@ -223,13 +270,25 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
-
-        // Save a file: path for use with ACTION_VIEW intents
         sharedPreferences.edit().putString(C.SHARED_NEW_PHOTO_PATH, image.getAbsolutePath()).apply();
-        /*Log.d("lifes", "mCurrentPhotoPath "+mCurrentPhotoPath);
-        Log.d("lifes", "getExternalStorageDirectory "+Environment.getExternalStorageDirectory());
-        Log.d("lifes", "getExternalStorageDirectory "+Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES));*/
+
         return image;
+    }
+
+    private File createVideoFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "MP4_" + timeStamp + "_";
+        /*File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);*/
+        File storageDir = getContext().getExternalFilesDir(null);
+        File video = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".mp4",         /* suffix */
+                storageDir      /* directory */
+        );
+        sharedPreferences.edit().putString(C.SHARED_NEW_VIDEO_PATH, video.getAbsolutePath()).apply();
+
+        return video;
     }
 
     @Override
@@ -313,7 +372,9 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         fakeToolbar.setOnGalleryClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
+                photoPickerIntent.setType("image/*,video/*");
+                startActivityForResult(photoPickerIntent, REQUEST_GALLERY);
             }
         });
 
@@ -392,6 +453,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 if (textMessage.length() > 0)
                 {
                     final Message message = new Message(textMessage, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_TEXT);
+                    message.isViewed = 1;
                     messageArrayList.add(message);
                     adapter.notifyItemInserted(messageArrayList.size() - 1);
                     recyclerView.scrollToPosition(messageArrayList.size() - 1);

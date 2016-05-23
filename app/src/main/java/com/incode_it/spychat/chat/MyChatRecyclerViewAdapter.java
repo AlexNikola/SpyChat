@@ -23,7 +23,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.incode_it.spychat.C;
@@ -33,7 +32,6 @@ import com.incode_it.spychat.MyTimerTask;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverIndividual;
 import com.incode_it.spychat.amazon.DownloadService;
-import com.incode_it.spychat.amazon.UploadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 
@@ -147,43 +145,149 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
     public class MessageVideoViewHolder extends MessageViewHolder
     {
-        public ImageView imageView;
+        public ImageView videoMessage;
+        public ImageView download;
+        public ImageView play;
+
         //public VideoView videoView;
 
         public MessageVideoViewHolder(View itemView) {
             super(itemView);
-            imageView = (ImageView) itemView.findViewById(R.id.video_message);
-            //videoView = (VideoView) itemView.findViewById(R.id.video_message);
+            videoMessage = (ImageView) itemView.findViewById(R.id.video_message);
+            download = (ImageView) itemView.findViewById(R.id.download);
+            download.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Message message = messages.get(getAdapterPosition());
+                    String filePath = message.getMessage();
+                    //MyDbHelper.updateMediaPath(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), "", message.getMessageId());
+                    Log.d("vfrm", "amazonLoadBitmap");
+                    Intent serviceIntent = new Intent(context, DownloadService.class);
+                    serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, filePath);
+                    serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+                    serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_VIDEO);
+                    context.getApplicationContext().startService(serviceIntent);
+
+                    progressBar.setVisibility(View.VISIBLE);
+                    message.state = Message.STATE_DOWNLOADING;
+                    MyDbHelper.updateMessageState(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), Message.STATE_DOWNLOADING, message.getMessageId());
+                    download.setVisibility(View.INVISIBLE);
+                    play.setVisibility(View.INVISIBLE);
+                }
+            });
+            play = (ImageView) itemView.findViewById(R.id.play);
+            play.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Message message = messages.get(getAdapterPosition());
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(message.getMessage()));
+                    intent.setDataAndType(Uri.parse(message.getMessage()), "video/mp4");
+                    context.startActivity(intent);
+                }
+            });
         }
 
         @Override
         public void bindViewHolder(Message message) {
-            super.bindViewHolder(message);
+            timeText.setText(message.getDate());
+            timerTextView.setText("");
+            startTimer();
 
-            //String uri = message.getMessage();
+            //videoMessage.setImageBitmap(C.getEmptyVideoMessageBitmap(context));
 
-            //Uri videoUri = Uri.parse(uri);
+            if (!message.getSenderPhoneNumber().equals(myPhoneNumber))
+            {
+                profileImageView.setVisibility(View.VISIBLE);
+                if (contactBitmap == null) profileImageView.setImageBitmap(noPhotoBitmap);
+                else profileImageView.setImageBitmap(contactBitmap);
 
-            String yourRealPath = null;
+                switch (message.state)
+                {
+                    case Message.STATE_ADDED:
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+                        progressBar.setVisibility(View.INVISIBLE);
+
+                        download.setVisibility(View.VISIBLE);
+                        play.setVisibility(View.INVISIBLE);
+                        break;
+                    case Message.STATE_SUCCESS:
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+                        progressBar.setVisibility(View.INVISIBLE);
+
+                        download.setVisibility(View.INVISIBLE);
+                        play.setVisibility(View.VISIBLE);
+                        break;
+                    case Message.STATE_ERROR:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_error);
+                        progressBar.setVisibility(View.INVISIBLE);
+
+                        download.setVisibility(View.VISIBLE);
+                        play.setVisibility(View.INVISIBLE);
+                        break;
+                    case Message.STATE_DOWNLOADING:
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+                        progressBar.setVisibility(View.VISIBLE);
+
+                        download.setVisibility(View.INVISIBLE);
+                        play.setVisibility(View.INVISIBLE);
+                        break;
+                }
+            }
+            else
+            {
+                //profileImageView.setImageBitmap(noPhotoBitmap);
+                profileImageView.setVisibility(View.GONE);
+
+                switch (message.state)
+                {
+                    case Message.STATE_ADDED:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_added);
+                        progressBar.setVisibility(View.VISIBLE);
+
+                        download.setVisibility(View.INVISIBLE);
+                        play.setVisibility(View.INVISIBLE);
+                        break;
+                    case Message.STATE_SUCCESS:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_success);
+                        progressBar.setVisibility(View.INVISIBLE);
+
+                        download.setVisibility(View.INVISIBLE);
+                        play.setVisibility(View.VISIBLE);
+                        break;
+                    case Message.STATE_ERROR:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_error);
+                        progressBar.setVisibility(View.INVISIBLE);
+
+                        download.setVisibility(View.INVISIBLE);
+                        play.setVisibility(View.INVISIBLE);
+                        break;
+                }
+            }
+
+
 
             Uri uri = Uri.parse(message.getMessage());
+            String yourRealPath = uri.getPath();
+
             String[] filePathColumn = {MediaStore.Images.Media.DATA};
             Cursor cursor = context.getContentResolver().query(uri, filePathColumn, null, null, null);
-            if(cursor.moveToFirst()){
-                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                yourRealPath = cursor.getString(columnIndex);
-            } else {
-                //boooo, cursor doesn't have rows ...
+            if (cursor != null)
+            {
+                if(cursor.moveToFirst()){
+                    int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                    yourRealPath = cursor.getString(columnIndex);
+                } else {
+                    //boooo, cursor doesn't have rows ...
+                }
+                cursor.close();
             }
-            cursor.close();
+
 
             Log.d("vfrm", "Path "+message.getMessage());
             Log.d("vfrm", "yourRealPath "+yourRealPath);
 
+            localLoadBitmap(yourRealPath, videoMessage, "frame");
 
-            Bitmap bitmap = ThumbnailUtils.createVideoThumbnail(yourRealPath,
-                    MediaStore.Images.Thumbnails.MINI_KIND);
-            imageView.setImageBitmap(bitmap);
 
 
             /*videoView.setVideoURI(videoUri);
@@ -223,7 +327,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             else if (!filePath.equals(""))
             {
                 Log.d("vfrm", "localLoadBitmap");
-                localLoadBitmap(filePath, imageMessage);
+                localLoadBitmap(filePath, imageMessage, "");
             }
 
             /*if (message.imageProgress > 0)
@@ -312,17 +416,18 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
             if (!message.getSenderPhoneNumber().equals(myPhoneNumber))
             {
+                profileImageView.setVisibility(View.VISIBLE);
                 if (contactBitmap == null) profileImageView.setImageBitmap(noPhotoBitmap);
                 else profileImageView.setImageBitmap(contactBitmap);
 
                 switch (message.state)
                 {
                     case Message.STATE_ADDED:
-                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_added);
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
                         progressBar.setVisibility(View.VISIBLE);
                         break;
                     case Message.STATE_SUCCESS:
-                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_success);
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
                         progressBar.setVisibility(View.INVISIBLE);
                         break;
                     case Message.STATE_ERROR:
@@ -333,7 +438,8 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             }
             else
             {
-                profileImageView.setImageBitmap(noPhotoBitmap);
+                //profileImageView.setImageBitmap(noPhotoBitmap);
+                profileImageView.setVisibility(View.GONE);
 
                 switch (message.state)
                 {
@@ -436,9 +542,10 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     }
 
 
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void localLoadBitmap(String filePath, ImageView imageView) {
+    public void localLoadBitmap(String filePath, ImageView imageView, String work) {
         if (cancelPotentialWork(filePath, imageView))
         {
             final Bitmap bitmap = getBitmapFromMemCache(filePath);
@@ -453,7 +560,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                         new AsyncDrawable(context.getResources(), emptyImageMessageBitmap, task);
                 imageView.setImageDrawable(asyncDrawable);
                 //task.execute(uri);
-                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, filePath);
+                task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, filePath, work);
             }
         }
     }
@@ -504,13 +611,23 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
 
             imageFilePath = resIds[0];
+            String work = resIds[1];
             Bitmap bitmap = null;
-            BitmapFactory.Options options = new BitmapFactory.Options();
-            options.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(imageFilePath, options);
-            options.inJustDecodeBounds = false;
-            options.inSampleSize = calculateInSampleSize(options, 200, 200);
-            bitmap= BitmapFactory.decodeFile(imageFilePath, options);
+            if (work.equals("frame"))
+            {
+                bitmap = ThumbnailUtils.createVideoThumbnail(imageFilePath,
+                        MediaStore.Images.Thumbnails.MINI_KIND);
+            }
+            else
+            {
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(imageFilePath, options);
+                options.inJustDecodeBounds = false;
+                options.inSampleSize = calculateInSampleSize(options, 200, 200);
+                bitmap= BitmapFactory.decodeFile(imageFilePath, options);
+            }
+
             if (bitmap != null) addBitmapToMemoryCache(imageFilePath, bitmap);
             return bitmap;
         }

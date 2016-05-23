@@ -14,6 +14,7 @@ public class Message
     public static final int STATE_SUCCESS = 1;
     public static final int STATE_ERROR = 2;
     public static final int STATE_UNREAD = 3;
+    public static final int STATE_DOWNLOADING = 4;
 
     public static final int NOT_MY_MESSAGE_TEXT = 0;
     public static final int MY_MESSAGE_TEXT = 1;

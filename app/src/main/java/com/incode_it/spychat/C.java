@@ -22,6 +22,7 @@ public class C
     public static final String SHARED_MY_PHONE_NUMBER = "my_phone_number";
     public static final String SHARED_PIN = "my_pin";
     public static final String SHARED_NEW_PHOTO_PATH = "photo_path";
+    public static final String SHARED_NEW_VIDEO_PATH = "video_path";
 
     public static final String EXTRA_COUNTRY_CODE = "country_code";
     public static final String EXTRA_COUNTRY_ISO = "country_iso";
@@ -106,6 +107,23 @@ public class C
         }
 
         return emptyImageBitmap;
+    }
+
+    public static Bitmap emptyVideoBitmap;
+
+    public static Bitmap getEmptyVideoMessageBitmap(Context context)
+    {
+        if (emptyVideoBitmap == null)
+        {
+            Drawable drawable = context.getResources().getDrawable(R.drawable.ic_video);
+            Canvas canvas = new Canvas();
+            emptyVideoBitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
+            canvas.setBitmap(emptyVideoBitmap);
+            drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+            drawable.draw(canvas);
+        }
+
+        return emptyVideoBitmap;
     }
 
 

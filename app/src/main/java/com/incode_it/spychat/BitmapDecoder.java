@@ -18,28 +18,28 @@ import java.lang.ref.WeakReference;
 
 public class BitmapDecoder
 {
-    /*public static void decodeBitmapFromUri(Uri uri, ImageView imageView, Context context, Bitmap noPhotoBitmap, LruCache<String, Bitmap> mMemoryCache)
+    /*public static void decodeBitmapFromUri(Uri uri, ImageView videoMessage, Context context, Bitmap noPhotoBitmap, LruCache<String, Bitmap> mMemoryCache)
     {
-        if (cancelPotentialWork(uri, imageView))
+        if (cancelPotentialWork(uri, videoMessage))
         {
             final Bitmap bitmap = getBitmapFromMemCache(uri.toString());
             if (bitmap != null)
             {
-                imageView.setImageBitmap(bitmap);
+                videoMessage.setImageBitmap(bitmap);
             }
             else
             {
-                final BitmapWorkerTask task = new BitmapWorkerTask(imageView);
+                final BitmapWorkerTask task = new BitmapWorkerTask(videoMessage);
                 final AsyncDrawable asyncDrawable =
                         new AsyncDrawable(context.getResources(), noPhotoBitmap, task);
-                imageView.setImageDrawable(asyncDrawable);
+                videoMessage.setImageDrawable(asyncDrawable);
                 task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, uri);
             }
         }
     }*/
 
-    /*private static boolean cancelPotentialWork(Uri uri, ImageView imageView) {
-        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(imageView);
+    /*private static boolean cancelPotentialWork(Uri uri, ImageView videoMessage) {
+        final BitmapWorkerTask bitmapWorkerTask = getBitmapWorkerTask(videoMessage);
 
         if (bitmapWorkerTask != null) {
             final Uri bitmapUri = bitmapWorkerTask.imageUri;
@@ -56,9 +56,9 @@ public class BitmapDecoder
         return true;
     }*/
 
-   /* private static BitmapWorkerTask getBitmapWorkerTask(ImageView imageView) {
-        if (imageView != null) {
-            final Drawable drawable = imageView.getDrawable();
+   /* private static BitmapWorkerTask getBitmapWorkerTask(ImageView videoMessage) {
+        if (videoMessage != null) {
+            final Drawable drawable = videoMessage.getDrawable();
             if (drawable instanceof AsyncDrawable) {
                 final AsyncDrawable asyncDrawable = (AsyncDrawable) drawable;
                 return asyncDrawable.getBitmapWorkerTask();
@@ -121,9 +121,9 @@ public class BitmapDecoder
         private final WeakReference<ImageView> imageViewReference;
         private Uri imageUri;
 
-        public BitmapWorkerTask(ImageView imageView) {
+        public BitmapWorkerTask(ImageView videoMessage) {
             // Use a WeakReference to ensure the ImageView can be garbage collected
-            imageViewReference = new WeakReference<>(imageView);
+            imageViewReference = new WeakReference<>(videoMessage);
 
         }
 
@@ -161,11 +161,11 @@ public class BitmapDecoder
             }
 
             if (imageViewReference != null && bitmap != null) {
-                final ImageView imageView = imageViewReference.get();
+                final ImageView videoMessage = imageViewReference.get();
                 final BitmapWorkerTask bitmapWorkerTask =
-                        getBitmapWorkerTask(imageView);
-                if (this == bitmapWorkerTask && imageView != null) {
-                    imageView.setImageBitmap(bitmap);
+                        getBitmapWorkerTask(videoMessage);
+                if (this == bitmapWorkerTask && videoMessage != null) {
+                    videoMessage.setImageBitmap(bitmap);
                 }
             }
         }

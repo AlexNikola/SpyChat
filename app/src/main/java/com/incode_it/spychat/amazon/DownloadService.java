@@ -79,7 +79,11 @@ public class DownloadService extends IntentService {
         }
         else if (remotePath.startsWith(C.MEDIA_TYPE_VIDEO + "/"))
         {
-
+            try {
+                localPath = createVideoFile(remoteFile.getName());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
@@ -143,6 +147,15 @@ public class DownloadService extends IntentService {
     }
 
     private File createImageFile(String fileName) throws IOException {
+        /*File storageDir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_PICTURES);*/
+        File storageDir = this.getExternalFilesDir(null);
+        String fullDir = storageDir.getAbsolutePath() + "/" + fileName;
+
+        return new File(fullDir);
+    }
+
+    private File createVideoFile(String fileName) throws IOException {
         /*File storageDir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES);*/
         File storageDir = this.getExternalFilesDir(null);
