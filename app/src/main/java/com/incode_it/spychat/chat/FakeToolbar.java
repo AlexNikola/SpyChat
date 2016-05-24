@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.incode_it.spychat.C;
+import com.incode_it.spychat.MyGlobalTimerTask;
 import com.incode_it.spychat.MyTimerTask;
 import com.incode_it.spychat.R;
 
@@ -21,7 +22,7 @@ import java.util.Timer;
 
 public class FakeToolbar extends FrameLayout {
 
-    private MyTimerTask timerTask;
+    private MyGlobalTimerTask timerTask;
     private TextView globalTimerTextView;
 
     private float popUpTranslationY;
@@ -115,7 +116,7 @@ public class FakeToolbar extends FrameLayout {
         Log.d("timmmer", "startTimer removalTime " + removalTime);
         if (removalTime > 0)
         {
-            timerTask = new MyTimerTask(removalTime, globalTimerTextView, timer);
+            timerTask = new MyGlobalTimerTask(removalTime, globalTimerTextView, timer);
             timerTask.isRunning = true;
             Timer myTimer = new Timer();
             myTimer.schedule(timerTask, 0, 1000);

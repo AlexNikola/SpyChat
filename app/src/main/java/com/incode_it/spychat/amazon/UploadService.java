@@ -32,17 +32,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
 
 public class UploadService extends IntentService {
 
     private final static String TAG = "amaz_upload";
 
-
-
     static ArrayList<TransferObserver> arrayList;
-    //private TransferObserver transferObserver;
-    final CountDownLatch latch = new CountDownLatch(1);
 
     public UploadService() {
         super("UploadService");
@@ -56,40 +51,35 @@ public class UploadService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-
         upload(intent);
     }
 
     protected void upload(Intent intent) {
 
         Log.d(TAG, "onHandleIntent "+this.hashCode());
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        String path = intent.getStringExtra(C.EXTRA_MEDIA_FILE_PATH);
+
+        String localPath = intent.getStringExtra(C.EXTRA_MEDIA_FILE_PATH);
         final String mediaType = intent.getStringExtra(C.EXTRA_MEDIA_TYPE);
         final String opponentPhone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
         final int messageId = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
 
-        File file = new File(path);
+        File localFile = new File(localPath);
+
+        String remotePath = mediaType + "/" + opponentPhone + "/" + localFile.getName();
 
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
-                "us-east-1:3bc44367-78a8-47e8-b689-1f05f72f74e5", // Identity Pool ID
-                Regions.US_EAST_1 // Region
-        );
+                C.amazonIdentityPoolID,
+                C.amazonRegion);
 
         AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
-        s3.setRegion(Region.getRegion(Regions.US_EAST_1));
+        s3.setRegion(Region.getRegion(C.amazonRegion));
         TransferUtility transferUtility = new TransferUtility(s3, getApplicationContext());
 
         TransferObserver transferObserver = transferUtility.upload(
-                "spy-chat",     /* The bucket to upload to */
-                mediaType + "/" + opponentPhone + "/" + file.getName(),       /* The key for the uploaded object */
-                file       /* The file where the data to upload exists */
-        );
+                C.amazonBucket,
+                remotePath,
+                localFile);
 
         arrayList.add(transferObserver);
 
@@ -99,9 +89,7 @@ public class UploadService extends IntentService {
                 Log.d(TAG, "my_state: " + state);
                 if (state.toString().equals("COMPLETED"))
                 {
-                    boolean isMain = Looper.myLooper() == Looper.getMainLooper();
                     new SendMessageTask(messageId, opponentPhone, mediaType).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                    Log.d(TAG, "COMPLETED" + isMain);
                 }
             }
 
@@ -111,8 +99,6 @@ public class UploadService extends IntentService {
                 float total = bytesTotal;
                 float percentage = (curr/total * 100f);
                 Log.d(TAG, "my_percentage: " + percentage);
-                /*Log.d("amaz_upload", "bytesCurrent: " + bytesCurrent);
-                Log.d("amaz_upload", "bytesTotal: " + bytesTotal);*/
             }
 
             @Override

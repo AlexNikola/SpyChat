@@ -61,14 +61,14 @@ public class AlarmReceiverGlobal extends WakefulBroadcastReceiver
         return hasId;
     }
 
-    public void setAlarm(Context context, long removalTime, long timer) {
+    public void setAlarm(Context context, long timeAdded, long timer) {
 
         AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmReceiverGlobal.class);
         int requestCode = 0;/* = (int) timer;*/
         PendingIntent alarmIntent = PendingIntent.getBroadcast(context, requestCode, intent, 0);
         Log.d("timmmer", "setAlarm  " + requestCode);
-        alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, removalTime, timer, alarmIntent);
+        alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, (timeAdded + timer), timer, alarmIntent);
 
         // Enable {@code SampleBootReceiver} to automatically restart the alarm when the
         // device is rebooted.

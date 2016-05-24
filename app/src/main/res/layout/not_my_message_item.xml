@@ -1,82 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
+    xmlns:custom="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="16dp">
 
-    <FrameLayout
-        android:id="@+id/text_container"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_marginLeft="8dp"
         android:layout_marginStart="8dp"
-        android:background="@drawable/bg_not_my_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toRightOf="@+id/image"
         android:layout_toEndOf="@+id/image">
 
-        <LinearLayout
-            android:padding="8dp"
-            android:orientation="vertical"
+        <FrameLayout
+            android:id="@+id/message_container"
+            android:background="@drawable/bg_not_my_message"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content">
 
-            <TextView
-                android:id="@+id/text_message"
-                android:text="efetuf fvbgdfdsdf dsfdfsdfsd fdsdsfsdfsdfd sdfdfsdffdsf fsds dfsdf df sd s fgdfgfdgd "
-                android:textSize="16sp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
             <LinearLayout
-                android:orientation="horizontal"
+                android:padding="8dp"
+                android:orientation="vertical"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
                 <TextView
-                    android:id="@+id/time_tv"
-                    android:background="#00678676"
-                    android:layout_marginTop="4dp"
-                    android:text="14:53"
-                    android:textSize="10sp"
+                    android:id="@+id/text_message"
+                    android:text="efetuf fvbgdfdsdf dsfdfsdfsd fdsdsfsdfsdfd sdfdfsdffdsf fsds dfsdf df sd s fgdfgfdgd "
+                    android:textSize="16sp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
 
-                <TextView
-                    android:id="@+id/timer_message_tv"
-                    android:textColor="@color/errorColor"
-                    android:layout_marginTop="4dp"
-                    android:text="14:53"
-                    android:textSize="10sp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="5dp"
-                    android:layout_marginStart="5dp"/>
-
-                <FrameLayout
-                    android:visibility="gone"
-                    android:layout_margin="4dp"
+                <LinearLayout
+                    android:orientation="horizontal"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content">
 
-                    <ImageView
-                        android:id="@+id/icon_sent"
+                    <TextView
+                        android:id="@+id/time_tv"
+                        android:background="#00678676"
+                        android:layout_marginTop="4dp"
+                        android:text="14:53"
+                        android:textSize="10sp"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/ic_check_12dp"/>
+                        android:layout_height="wrap_content" />
 
-                    <ProgressBar
-                        android:id="@+id/progressBar"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp" />
+                    <FrameLayout
+                        android:visibility="gone"
+                        android:layout_margin="4dp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content">
 
-                </FrameLayout>
+                        <ImageView
+                            android:id="@+id/icon_sent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_check_12dp"/>
+
+                        <ProgressBar
+                            android:id="@+id/progressBar"
+                            android:layout_width="12dp"
+                            android:layout_height="12dp" />
+
+                    </FrameLayout>
+
+                </LinearLayout>
 
             </LinearLayout>
 
-        </LinearLayout>
+        </FrameLayout>
 
-    </FrameLayout>
+        <com.incode_it.spychat.TextViewDigital
+            custom:typefaceAsset="fonts/digital.ttf"
+            android:layout_gravity="start"
+            android:id="@+id/timer_message_tv"
+            android:textColor="@color/errorColor"
+            android:text="00:25:12"
+            android:textSize="15sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginRight="5dp"/>
+
+    </LinearLayout>
+
+
 
     <de.hdodenhof.circleimageview.CircleImageView
         android:src="@drawable/profile"

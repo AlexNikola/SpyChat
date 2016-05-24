@@ -2,9 +2,9 @@
 <resources>
 
     <string-array name="questions">
-        <item>Question 1</item>
-        <item>Question 2</item>
-        <item>Question 3</item>
+        <item>Who is your favorite actor, musician, or artist?</item>
+        <item>What is the name of your favorite pet?</item>
+        <item>What is your mother`s maiden name?</item>
     </string-array>
 
 </resources>

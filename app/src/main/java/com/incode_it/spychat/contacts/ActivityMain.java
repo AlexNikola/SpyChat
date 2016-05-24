@@ -3,16 +3,21 @@ package com.incode_it.spychat.contacts;
 import android.animation.Animator;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -22,16 +27,21 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.incode_it.spychat.C;
+import com.incode_it.spychat.Message;
+import com.incode_it.spychat.MyGlobalTimerTask;
 import com.incode_it.spychat.MyTimerTask;
+import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
 import com.incode_it.spychat.authorization.ActivityAuth;
 import com.incode_it.spychat.chat.ActivityChat;
+import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.pin.FragmentPin;
 import com.incode_it.spychat.settings.ActivitySettings;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
+import java.util.ArrayList;
 import java.util.Timer;
 
 public class ActivityMain extends AppCompatActivity implements
@@ -52,7 +62,7 @@ public class ActivityMain extends AppCompatActivity implements
     private ImageView timerImageView, settingsImageView, logOutImageView;
     private TextView timerTextView, settingsTextView, logOutTextView;
     private TextView globalTimerTextView;
-    private MyTimerTask timerTask;
+    private MyGlobalTimerTask timerTask;
     private Toolbar toolbar;
     private float translationX;
     private View navContainer;
@@ -66,6 +76,9 @@ public class ActivityMain extends AppCompatActivity implements
     private AnimatorSet animatorSetIconsClose;
     private AnimatorSet animatorSetTextOpen;
     private AnimatorSet animatorSetTextClose;
+
+    private BroadcastReceiver mDeleteMessagesReceiver;
+    private boolean isDeleteMessagesReceiverRegistered;
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
@@ -152,6 +165,8 @@ public class ActivityMain extends AppCompatActivity implements
     protected void onPause() {
         requestPin = true;
         stopTimerIfNecessary();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mDeleteMessagesReceiver);
+        isDeleteMessagesReceiverRegistered = false;
         super.onPause();
     }
 
@@ -159,19 +174,45 @@ public class ActivityMain extends AppCompatActivity implements
     protected void onResume() {
         showPinDialog();
         startTimer();
+        initDeleteMassagesReceiver();
         super.onResume();
+    }
+
+    private void initDeleteMassagesReceiver()
+    {
+        mDeleteMessagesReceiver = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context, Intent intent)
+            {
+                Log.d("recr", "onReceive");
+                startTimer();
+            }
+        };
+
+        // Registering BroadcastReceiver
+        registerDeleteMassagesReceiver();
+    }
+
+    private void registerDeleteMassagesReceiver(){
+        if(!isDeleteMessagesReceiverRegistered) {
+            LocalBroadcastManager.getInstance(this).registerReceiver(mDeleteMessagesReceiver,
+                    new IntentFilter(QuickstartPreferences.DELETE_MESSAGES));
+            isDeleteMessagesReceiverRegistered = true;
+        }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        requestPin = false;
         if (requestCode == C.REQUEST_CODE_ACTIVITY_CHAT || requestCode == C.REQUEST_CODE_ACTIVITY_SETTINGS) {
-             if (resultCode == C.RESULT_EXIT)
+            requestPin = false;
+            if (resultCode == C.RESULT_EXIT)
             {
                 finish();
             }
         }
+        else requestPin = true;
 
         contentContainer.setTranslationX(0f);
         contentContainer.setScaleX(1f);
@@ -281,7 +322,7 @@ public class ActivityMain extends AppCompatActivity implements
         long timer = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
         if (removalTime > 0)
         {
-            timerTask = new MyTimerTask(removalTime, globalTimerTextView, timer);
+            timerTask = new MyGlobalTimerTask(removalTime, globalTimerTextView, timer);
             timerTask.isRunning = true;
             Timer myTimer = new Timer();
             myTimer.schedule(timerTask, 0, 1000);

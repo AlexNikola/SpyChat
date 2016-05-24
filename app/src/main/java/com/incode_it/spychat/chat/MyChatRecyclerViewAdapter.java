@@ -49,7 +49,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     private OnChatAdapterListener chatAdapterListener;
     private String myPhoneNumber;
     private Bitmap noPhotoBitmap;
-    private Bitmap emptyImageMessageBitmap;
     private Context context;
     private LruCache<String, Bitmap> mMemoryCache;
     private static final String DOWNLOAD_TAG = "amaz_download";
@@ -68,7 +67,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         this.chatAdapterListener = chatAdapterListener;
 
         noPhotoBitmap = C.getNoPhotoBitmap(context);
-        emptyImageMessageBitmap = C.getEmptyImageMessageBitmap(context);
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, null);
@@ -160,11 +158,10 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 @Override
                 public void onClick(View v) {
                     Message message = messages.get(getAdapterPosition());
-                    String filePath = message.getMessage();
-                    //MyDbHelper.updateMediaPath(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), "", message.getMessageId());
+                    String remotePath = message.getMessage();
                     Log.d("vfrm", "amazonLoadBitmap");
                     Intent serviceIntent = new Intent(context, DownloadService.class);
-                    serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, filePath);
+                    serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, remotePath);
                     serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
                     serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_VIDEO);
                     context.getApplicationContext().startService(serviceIntent);
@@ -193,8 +190,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             timeText.setText(message.getDate());
             timerTextView.setText("");
             startTimer();
-
-            //videoMessage.setImageBitmap(C.getEmptyVideoMessageBitmap(context));
 
             if (!message.getSenderPhoneNumber().equals(myPhoneNumber))
             {
@@ -236,7 +231,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             }
             else
             {
-                //profileImageView.setImageBitmap(noPhotoBitmap);
                 profileImageView.setVisibility(View.GONE);
 
                 switch (message.state)
@@ -283,11 +277,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 cursor.close();
             }
 
-
-            Log.d("vfrm", "Path "+message.getMessage());
-            Log.d("vfrm", "yourRealPath "+yourRealPath);
-
-            localLoadBitmap(yourRealPath, videoMessage, "frame");
+            localLoadBitmap(yourRealPath, videoMessage, "frame", C.getEmptyVideoMessageBitmap(context));
         }
 
         @Override
@@ -302,6 +292,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     public class MessageImageViewHolder extends MessageViewHolder
     {
         public ImageView imageMessage;
+        public ImageView download;
 
         public MessageImageViewHolder(View itemView) {
             super(itemView);
@@ -317,31 +308,96 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                     context.startActivity(intent);
                 }
             });
+            download = (ImageView) itemView.findViewById(R.id.download);
+            download.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Message message = messages.get(getAdapterPosition());
+                    String remotePath = message.getMessage();
+                    Intent serviceIntent = new Intent(context, DownloadService.class);
+                    serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, remotePath);
+                    serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+                    serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_IMAGE);
+                    context.getApplicationContext().startService(serviceIntent);
+
+                    progressBar.setVisibility(View.VISIBLE);
+                    message.state = Message.STATE_DOWNLOADING;
+                    MyDbHelper.updateMessageState(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), Message.STATE_DOWNLOADING, message.getMessageId());
+                    download.setVisibility(View.INVISIBLE);
+                }
+            });
         }
 
         @Override
         public void bindViewHolder(Message message) {
-            super.bindViewHolder(message);
-            imageMessage.setImageBitmap(C.emptyImageBitmap);
-            String filePath = message.getMessage();
-            Log.e(DOWNLOAD_TAG,"onReceive download");
-            Log.d("vfrm", "Path "+message.getMessage());
-            if (!filePath.equals("") && filePath.startsWith(C.MEDIA_TYPE_IMAGE + "/" + myPhoneNumber + "/") && message.state != Message.STATE_ERROR)
-            {
-                //MyDbHelper.updateMediaPath(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), "", message.getMessageId());
-                Log.d("vfrm", "amazonLoadBitmap");
-                Intent serviceIntent = new Intent(context, DownloadService.class);
-                serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, filePath);
-                serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
-                serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_IMAGE);
-                context.getApplicationContext().startService(serviceIntent);
+            timeText.setText(message.getDate());
+            timerTextView.setText("");
+            startTimer();
 
-            }
-            else if (!filePath.equals(""))
+            if (!message.getSenderPhoneNumber().equals(myPhoneNumber))
             {
-                Log.d("vfrm", "localLoadBitmap");
-                localLoadBitmap(filePath, imageMessage, "");
+                profileImageView.setVisibility(View.VISIBLE);
+                if (contactBitmap == null) profileImageView.setImageBitmap(noPhotoBitmap);
+                else profileImageView.setImageBitmap(contactBitmap);
+
+                switch (message.state)
+                {
+                    case Message.STATE_ADDED:
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+                        progressBar.setVisibility(View.INVISIBLE);
+
+                        download.setVisibility(View.VISIBLE);
+                        break;
+                    case Message.STATE_SUCCESS:
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+                        progressBar.setVisibility(View.INVISIBLE);
+
+                        download.setVisibility(View.INVISIBLE);
+                        break;
+                    case Message.STATE_ERROR:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_error);
+                        progressBar.setVisibility(View.INVISIBLE);
+
+                        download.setVisibility(View.VISIBLE);
+                        break;
+                    case Message.STATE_DOWNLOADING:
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+                        progressBar.setVisibility(View.VISIBLE);
+
+                        download.setVisibility(View.INVISIBLE);
+                        break;
+                }
             }
+            else
+            {
+                profileImageView.setVisibility(View.GONE);
+
+                switch (message.state)
+                {
+                    case Message.STATE_ADDED:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_added);
+                        progressBar.setVisibility(View.VISIBLE);
+
+                        download.setVisibility(View.INVISIBLE);
+                        break;
+                    case Message.STATE_SUCCESS:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_success);
+                        progressBar.setVisibility(View.INVISIBLE);
+
+                        download.setVisibility(View.INVISIBLE);
+                        break;
+                    case Message.STATE_ERROR:
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_error);
+                        progressBar.setVisibility(View.INVISIBLE);
+
+                        download.setVisibility(View.INVISIBLE);
+                        break;
+                }
+            }
+
+            String filePath = message.getMessage();
+
+            localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
         }
 
         @Override
@@ -473,7 +529,8 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
         @Override
         public void onDeleteMessage() {
-            MyDbHelper.removeMessage(new MyDbHelper(context).getWritableDatabase(), messages.get(getAdapterPosition()).getMessageId());
+            Message message = messages.get(getAdapterPosition());
+            MyDbHelper.removeMessage(new MyDbHelper(context).getWritableDatabase(), message.getMessageId());
             AlarmReceiverIndividual alarmReceiverIndividual = new AlarmReceiverIndividual();
             alarmReceiverIndividual.cancelAlarm(context, messages.get(getAdapterPosition()).getMessageId());
             messages.remove(getAdapterPosition());
@@ -483,6 +540,11 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             }
 
             notifyItemRemoved(getAdapterPosition());
+            if (message.messageType != Message.MY_MESSAGE_TEXT && message.messageType != Message.NOT_MY_MESSAGE_TEXT)
+            {
+                File file = new File(message.getMessage());
+                file.delete();
+            }
         }
 
         @Override
@@ -557,7 +619,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void localLoadBitmap(String filePath, ImageView imageView, String work) {
+    public void localLoadBitmap(String filePath, ImageView imageView, String work, Bitmap emptyImageMessageBitmap) {
         if (cancelPotentialWork(filePath, imageView))
         {
             final Bitmap bitmap = getBitmapFromMemCache(filePath);

@@ -12,11 +12,16 @@ import com.amazon.clouddrive.auth.AmazonAuthorizationConnectionFactory;
 import com.amazon.clouddrive.configuration.AccountConfiguration;
 import com.amazon.clouddrive.configuration.ClientConfiguration;
 import com.amazon.clouddrive.model.DownloadFileRequest;
+import com.amazonaws.regions.Regions;
 
 import java.util.ArrayList;
 
 public class C
 {
+    public static final String amazonBucket = "spy-chat";
+    public static final String amazonIdentityPoolID = "us-east-1:3bc44367-78a8-47e8-b689-1f05f72f74e5";
+    public static final Regions amazonRegion = Regions.US_EAST_1;
+
     public static final String SHARED_ACCESS_TOKEN = "access_token";
     public static final String SHARED_REFRESH_TOKEN = "refresh_token";
     public static final String SHARED_MY_PHONE_NUMBER = "my_phone_number";
@@ -63,6 +68,7 @@ public class C
     public static final int REQUEST_CODE_SELECT_COUNTRY = 4;
     public static final int REQUEST_CODE_ACTIVITY_CHAT = 5;
     public static final int REQUEST_CODE_ACTIVITY_SETTINGS = 6;
+    public static final int REQUEST_CODE_ACTIVITY_CHANGE_PASSWORD = 7;
 
     public static final int RESULT_EXIT = 2;
     public static final int RESULT_LOG_OUT = 3;

@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#2196F3</color>
     <color name="colorPrimaryDark">#0D47A1</color>
-    <color name="colorAccent">#ffffff</color>
+    <color name="colorAccent">#FF4081</color>
 
     <color name="colorPrimarySettings">#2196F3</color>
     <color name="colorPrimaryDarkSettings">#0D47A1</color>
@@ -18,8 +18,11 @@
 
     <color name="errorColor">#ff1f1f</color>
 
-    <color name="delete_account_normal">#abff0000</color>
-    <color name="delete_account_pressed">#d5840000</color>
+    <color name="delete_account_normal">#67ff0000</color>
+    <color name="delete_account_pressed">#84ff0000</color>
+
+    <color name="change_password_normal">#672196f3</color>
+    <color name="change_password_pressed">#9f2196f3</color>
 
     <color name="color_text_message_added">#55000000</color>
 

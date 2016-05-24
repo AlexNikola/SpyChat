@@ -46,35 +46,24 @@ public class DownloadService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        try {
-            Thread.sleep(6000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         download(intent);
     }
 
     protected void download(Intent intent) {
-
         Log.d(TAG, "onHandleIntent "+this.hashCode());
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        final String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+        final String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, null);
 
         final String remotePath = intent.getStringExtra(C.EXTRA_MEDIA_FILE_PATH);
         final String mediaType = intent.getStringExtra(C.EXTRA_MEDIA_TYPE);
         final int messageId = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
 
         final File remoteFile = new File(remotePath);
-        File localPath = null;
+        File localFile = null;
         if (remotePath.startsWith(C.MEDIA_TYPE_IMAGE + "/"))
         {
             try {
-                localPath = createImageFile(remoteFile.getName());
+                localFile = createImageFile(remoteFile.getName());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -82,7 +71,7 @@ public class DownloadService extends IntentService {
         else if (remotePath.startsWith(C.MEDIA_TYPE_VIDEO + "/"))
         {
             try {
-                localPath = createVideoFile(remoteFile.getName());
+                localFile = createVideoFile(remoteFile.getName());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -90,23 +79,21 @@ public class DownloadService extends IntentService {
 
         CognitoCachingCredentialsProvider credentialsProvider = new CognitoCachingCredentialsProvider(
                 getApplicationContext(),
-                "us-east-1:3bc44367-78a8-47e8-b689-1f05f72f74e5", // Identity Pool ID
-                Regions.US_EAST_1 // Region
-        );
+                C.amazonIdentityPoolID,
+                C.amazonRegion);
 
         final AmazonS3 s3 = new AmazonS3Client(credentialsProvider);
         s3.setRegion(Region.getRegion(Regions.US_EAST_1));
         TransferUtility transferUtility = new TransferUtility(s3, getApplicationContext());
 
         TransferObserver transferObserver = transferUtility.download(
-                "spy-chat",     /* The bucket to upload to */
-                mediaType + "/" + myPhoneNumber + "/" + remoteFile.getName(),       /* The key for the uploaded object */
-                localPath      /* The file where the data to upload exists */
-        );
+                C.amazonBucket,
+                remotePath,
+                localFile);
 
         arrayList.add(transferObserver);
 
-        final File finalLocalPath = localPath;
+        final File finalLocalPath = localFile;
         Log.d(TAG, "remote_path: " + remotePath);
         Log.d(TAG, "download_from: " + mediaType + "/" + myPhoneNumber + "/" + remoteFile.getName());
         Log.d(TAG, "localPath: " + finalLocalPath);
@@ -114,19 +101,17 @@ public class DownloadService extends IntentService {
         transferObserver.setTransferListener(new TransferListener() {
             @Override
             public void onStateChanged(int id, TransferState state) {
-                Log.d(TAG, "download_state: " + state);
+                Log.d(TAG, "onStateChanged: " + state);
                 if (state.toString().equals("COMPLETED"))
                 {
                     MyDbHelper.updateMediaPath(new MyDbHelper(getApplicationContext()).getWritableDatabase(), finalLocalPath.getAbsolutePath(), messageId);
                     MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_SUCCESS, messageId);
-                    deleteRemoteFile(s3, "spy-chat", (mediaType + "/" + myPhoneNumber + "/" + remoteFile.getName()));
+                    deleteRemoteFile(s3, C.amazonBucket, remotePath);
                     sendBroadcast(messageId, "COMPLETED", mediaType, finalLocalPath.getAbsolutePath());
                 }
                 else if (state.toString().equals("FAILED"))
                 {
-                    MyDbHelper.updateMediaPath(new MyDbHelper(getApplicationContext()).getWritableDatabase(), remotePath, messageId);
-                    MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
-                    sendBroadcast(messageId, "FAILED", mediaType, finalLocalPath.getAbsolutePath());
+
                 }
             }
 
@@ -140,10 +125,9 @@ public class DownloadService extends IntentService {
 
             @Override
             public void onError(int id, Exception ex) {
-                MyDbHelper.updateMediaPath(new MyDbHelper(getApplicationContext()).getWritableDatabase(), remotePath, messageId);
                 MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
                 sendBroadcast(messageId, "FAILED", mediaType, finalLocalPath.getAbsolutePath());
-                Log.e(TAG,"download_error: " + ex.getLocalizedMessage());
+                Log.e(TAG,"onError: " + ex.getLocalizedMessage());
             }
         });
 
@@ -151,7 +135,6 @@ public class DownloadService extends IntentService {
 
     private void deleteRemoteFile(final AmazonS3 s3, final String bucket, final String keyName)
     {
-        //s3.deleteObject(new DeleteObjectRequest(bucket, keyName));
         Log.e(TAG,"delete: " + keyName);
         new Thread(new Runnable() {
             @Override
@@ -163,17 +146,12 @@ public class DownloadService extends IntentService {
     }
 
     private File createImageFile(String fileName) throws IOException {
-        /*File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);*/
         File storageDir = this.getExternalFilesDir(null);
         String fullDir = storageDir.getAbsolutePath() + "/" + fileName;
-
         return new File(fullDir);
     }
 
     private File createVideoFile(String fileName) throws IOException {
-        /*File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);*/
         File storageDir = this.getExternalFilesDir(null);
         String fullDir = storageDir.getAbsolutePath() + "/" + fileName;
 

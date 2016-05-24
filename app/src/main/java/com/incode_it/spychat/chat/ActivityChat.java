@@ -17,6 +17,8 @@ import android.util.Log;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
+import com.incode_it.spychat.MyTimePickerDialog;
+import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.authorization.ActivityAuth;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
@@ -53,20 +55,29 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        requestPin = true;
+    }
+
+    @Override
     public void onCreateSuccessMessageDialog(OnMessageDialogListener listener) {
+        OrientationUtils.lockOrientation(this);
         DialogFragment newFragment = SuccessMessageDialogFragment.newInstance(listener);
         newFragment.show(getSupportFragmentManager(), SuccessMessageDialogFragment.TAG);
     }
 
     @Override
     public void onCreateErrorMessageDialog(OnMessageDialogListener listener, int type) {
+        OrientationUtils.lockOrientation(this);
         DialogFragment newFragment = ErrorMessageDialogFragment.newInstance(listener, type);
         newFragment.show(getSupportFragmentManager(), ErrorMessageDialogFragment.TAG);
     }
 
     @Override
     public void onCreateTimeDialog(final OnMessageDialogListener listener) {
-        TimePickerDialog tpd = TimePickerDialog.newInstance(null, 0, 0, true);
+
+        TimePickerDialog tpd = MyTimePickerDialog.newInstance(null, 0, 0, true);
 
         tpd.vibrate(true);
         tpd.setAccentColor(getResources().getColor(R.color.colorPrimary));
@@ -81,9 +92,16 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
         tpd.setOnTimeSetListener(new TimePickerDialog.OnTimeSetListener() {
             @Override
             public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
+
                 long timer = (hourOfDay * 60 * 60 * 1000) + (minute * 60 * 1000) + (second * 1000);
                 long removalTime = System.currentTimeMillis() + timer;
                 listener.onApplyTime(removalTime, timer);
+            }
+        });
+        tpd.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                OrientationUtils.unlockOrientation(ActivityChat.this);
             }
         });
         tpd.show(getFragmentManager(), "Timepickerdialog");
@@ -109,12 +127,20 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
 
         public static final String TAG = "SuccessMessageDialogFragment";
         private OnMessageDialogListener listener;
+        private boolean doUnlock = true;
 
         public static SuccessMessageDialogFragment newInstance(OnMessageDialogListener listener)
         {
             SuccessMessageDialogFragment newFragment = new SuccessMessageDialogFragment();
             newFragment.setListener(listener);
             return newFragment;
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            super.onDismiss(dialog);
+            if (doUnlock)
+            OrientationUtils.unlockOrientation(getActivity());
         }
 
         @NonNull
@@ -129,12 +155,14 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
                             {
                                 case 0:
                                     listener.onSetTime();
+                                    doUnlock = false;
                                     break;
 
                                 case 1:
                                     listener.onDeleteMessage();
                                     break;
                             }
+
                         }
                     });
 
@@ -159,6 +187,12 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
             newFragment.setListener(listener);
             newFragment.setType(type);
             return newFragment;
+        }
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            super.onDismiss(dialog);
+            OrientationUtils.unlockOrientation(getActivity());
         }
 
         public void setType(int type) {
@@ -188,6 +222,7 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
                             {
                                 case 0:
                                     listener.onDeleteMessage();
+
                                     break;
 
                                 case 1:

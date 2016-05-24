@@ -2,6 +2,7 @@ package com.incode_it.spychat.settings;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -11,6 +12,9 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -31,6 +35,7 @@ import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.authorization.ActivityAuth;
+import com.incode_it.spychat.pin.FragmentPin;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,8 +44,10 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class ActivitySettings extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener {
+public class ActivitySettings extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener, FragmentPin.FragmentPinListener {
 
+    private AlertDialog.Builder ad;
+    private boolean requestPin;
     private Switch switchSound, switchVibration, switchPin;
     private SharedPreferences sharedPreferences;
     private EditText pinInput_0, pinInput_1, pinInput_2, pinInput_3;
@@ -53,10 +60,76 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
     private Button changePasswordBtn;
 
     @Override
+    protected void onPause() {
+        requestPin = true;
+        super.onPause();
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        requestPin = false;
+        super.onRestoreInstanceState(savedInstanceState);
+    }
+
+    @Override
+    protected void onResume() {
+        showPinDialog();
+        super.onResume();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == C.REQUEST_CODE_ACTIVITY_CHANGE_PASSWORD) {
+            requestPin = false;
+            if (resultCode == C.RESULT_EXIT)
+            {
+                setResult(C.RESULT_EXIT);
+                finish();
+            }
+        }
+        else requestPin = true;
+    }
+
+    @Override
+    public void onSecurityClose() {
+        setResult(C.RESULT_EXIT);
+        finish();
+    }
+
+    @Override
+    public void onSecurityLogOut() {
+        setResult(C.RESULT_EXIT);
+        sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
+        Intent intent = new Intent(this, ActivityAuth.class);
+        startActivity(intent);
+        finish();
+    }
+
+    private void showPinDialog()
+    {
+        boolean isPinOn = sharedPreferences.getBoolean(C.SETTING_PIN, false);
+        if (isPinOn && requestPin)
+        {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            Fragment prev = getSupportFragmentManager().findFragmentByTag(FragmentPin.TAG);
+            if (prev != null) {
+                ft.remove(prev);
+                ft.addToBackStack(null);
+                ft.commit();
+            }
+
+            ft = getSupportFragmentManager().beginTransaction();
+            FragmentPin fragmentPin = FragmentPin.newInstance();
+            fragmentPin.show(ft, FragmentPin.TAG);
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-
+        requestPin = getIntent().getBooleanExtra(C.EXTRA_REQUEST_PIN, false);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         container = findViewById(R.id.container);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator);
@@ -72,9 +145,33 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(ActivitySettings.this, ActivityChangePassword.class);
-                startActivity(intent);
+                startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_CHANGE_PASSWORD);
             }
         });
+
+        initAlertDialog();
+    }
+
+    private void initAlertDialog()
+    {
+        ad = new AlertDialog.Builder(ActivitySettings.this);
+        ad.setTitle("Are you sure?");
+        ad.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+                new DeleteAccountTask().execute();
+            }
+        });
+        ad.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int arg1) {
+
+            }
+        });
+        ad.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+            }
+        });
+        ad.setCancelable(true);
     }
 
     private void initDeleteAccountBtn()
@@ -83,7 +180,7 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
         deleteAccountBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new DeleteAccountTask().execute();
+                ad.show();
             }
         });
     }
@@ -303,6 +400,8 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
         }
     }
 
+
+
     private class DeleteAccountTask extends AsyncTask<String, Void, String>
     {
         public DeleteAccountTask() {
@@ -325,7 +424,7 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
         protected String doInBackground(String... params) {
 
             try {
-                Thread.sleep(2000);
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

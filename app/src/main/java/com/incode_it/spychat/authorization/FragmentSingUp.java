@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
@@ -208,13 +209,7 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
             @Override
             public void onClick(View v) {
                 Log.e("wqwq", "onClick");
-                int currentOrientation = getResources().getConfiguration().orientation;
-                if (currentOrientation == Configuration.ORIENTATION_LANDSCAPE) {
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-                }
-                else {
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
-                }
+                OrientationUtils.lockOrientation(getActivity());
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 SelectQuestionDialogFragment fragment = SelectQuestionDialogFragment.newInstance(questionPosition, FragmentSingUp.this);
 
@@ -394,7 +389,7 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
             Log.e("wqwq", "onCreateDialog");
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity(), R.style.DialogCustom);
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle(R.string.select_question)
                     .setSingleChoiceItems(R.array.questions, position, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
@@ -405,7 +400,7 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
             builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
                 @Override
                 public void onDismiss(DialogInterface dialog) {
-                    getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+                    OrientationUtils.unlockOrientation(getActivity());
                 }
             });
             return builder.create();

@@ -21,7 +21,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -67,7 +66,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private MyChatRecyclerViewAdapter adapter;
     private Bitmap contactBitmap;
     private String myPhoneNumber;
-    private BroadcastReceiver mDeleteMessagesReceiver;
 
     private ArrayList<Message> messageArrayList;
 
@@ -77,12 +75,13 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private boolean isDownloadMediaReceiverRegistered;
     private BroadcastReceiver mMessageReceiver;
     private boolean isMessageReceiverRegistered;
+    private BroadcastReceiver mDeleteMessagesReceiver;
     private boolean isDeleteMessagesReceiverRegistered;
+
     private OnFragmentChatInteractionListener fragmentChatInteractionListener;
-
     private MyContacts.Contact contact;
-
     private SharedPreferences sharedPreferences;
+    private FakeToolbar fakeToolbar;
 
     public FragmentChat() {
         // Required empty public constructor
@@ -100,192 +99,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public void onAttach(Context context) {
         super.onAttach(context);
         fragmentChatInteractionListener = (OnFragmentChatInteractionListener) context;
-    }
-
-    @Override
-    public void onPause() {
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mUploadMediaReceiver);
-        isUploadMediaReceiverRegistered = false;
-
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDownloadMediaReceiver);
-        isDownloadMediaReceiverRegistered = false;
-
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mMessageReceiver);
-        isMessageReceiverRegistered = false;
-
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDeleteMessagesReceiver);
-        isDeleteMessagesReceiverRegistered = false;
-        Log.e(TAG, "onPause Fragment Chat");
-        super.onPause();
-    }
-
-    private void openVideoCamera()
-    {
-        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-        if (takeVideoIntent.resolveActivity(getContext().getPackageManager()) != null) {
-            File videoFile = null;
-            try {
-                videoFile = createVideoFile();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-
-            if (videoFile != null) {
-                takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                        Uri.fromFile(videoFile));
-                startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
-            }
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
-            /*Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");*/
-            //mImageView.setImageBitmap(imageBitmap);
-
-            String photoPath = sharedPreferences.getString(C.SHARED_NEW_PHOTO_PATH, "error");
-
-            uploadImage(photoPath);
-
-        }
-        else if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == Activity.RESULT_OK)
-        {
-            //Uri videoUri = data.getData();
-            String videoPath = sharedPreferences.getString(C.SHARED_NEW_VIDEO_PATH, "error");
-            uploadVideo(videoPath);
-
-        }
-        else if (requestCode == REQUEST_GALLERY && resultCode == Activity.RESULT_OK)
-        {
-            String path = data.getData().toString();
-            Log.d("my_pa", "Uri "+path);
-            if (path.startsWith("content://media/external/video"))
-            {
-                String realPath = getRealPath(path);
-                uploadVideo(realPath);
-            }
-            else if (path.startsWith("content://media/external/images"))
-            {
-                String realPath = getRealPath(path);
-                uploadImage(realPath);
-            }
-        }
-    }
-
-    private String getRealPath(String path)
-    {
-        String yourRealPath = null;
-
-        String[] filePathColumn = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContext().getContentResolver().query(Uri.parse(path), filePathColumn, null, null, null);
-        if (cursor != null)
-        {
-            if(cursor.moveToFirst()){
-                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                yourRealPath = cursor.getString(columnIndex);
-            } else {
-                //boooo, cursor doesn't have rows ...
-            }
-            cursor.close();
-        }
-
-        return yourRealPath;
-    }
-
-    private void uploadImage(String photoPath)
-    {
-        final Message message = new Message(photoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_IMAGE);
-        message.isViewed = 1;
-        messageArrayList.add(message);
-        adapter.notifyItemInserted(messageArrayList.size() - 1);
-        recyclerView.scrollToPosition(messageArrayList.size() - 1);
-        MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
-
-        //uploadFile(photoPath, message.getMessageId());
-
-        Log.d("amaz_upload", "onActivityResult "+photoPath);
-        Intent serviceIntent = new Intent(getContext(), UploadService.class);
-        serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, photoPath);
-        serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
-        serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
-        serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_IMAGE);
-        getContext().getApplicationContext().startService(serviceIntent);
-    }
-
-    private void uploadVideo(String videoPath)
-    {
-        Log.d("my_pa", "videoUri "+videoPath);
-        final Message message = new Message(videoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_VIDEO);
-        message.isViewed = 1;
-        messageArrayList.add(message);
-        adapter.notifyItemInserted(messageArrayList.size() - 1);
-        recyclerView.scrollToPosition(messageArrayList.size() - 1);
-        MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
-
-        Intent serviceIntent = new Intent(getContext(), UploadService.class);
-        serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, videoPath);
-        serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
-        serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
-        serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_VIDEO);
-        getContext().getApplicationContext().startService(serviceIntent);
-    }
-
-    private void openPhotoCamera()
-    {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, true);
-        if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
-
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-               ex.printStackTrace();
-            }
-
-            if (photoFile != null) {
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                        Uri.fromFile(photoFile));
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        }
-    }
-
-
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        /*File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);*/
-        File storageDir = getContext().getExternalFilesDir(null);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-        sharedPreferences.edit().putString(C.SHARED_NEW_PHOTO_PATH, image.getAbsolutePath()).apply();
-
-        return image;
-    }
-
-    private File createVideoFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "MP4_" + timeStamp + "_";
-        /*File storageDir = Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES);*/
-        File storageDir = getContext().getExternalFilesDir(null);
-        File video = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".mp4",         /* suffix */
-                storageDir      /* directory */
-        );
-        sharedPreferences.edit().putString(C.SHARED_NEW_VIDEO_PATH, video.getAbsolutePath()).apply();
-
-        return video;
     }
 
     @Override
@@ -324,10 +137,158 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         initUploadMediaReceiver();
         initDownloadMediaReceiver();
         initDeleteMassagesReceiver();
-        updateViewStateInDB();
+        updateViewedStateInDB();
         loadMessages();
+        fakeToolbar.startTimer();
         super.onResume();
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
+            String photoPath = sharedPreferences.getString(C.SHARED_NEW_PHOTO_PATH, "error");
+            uploadImage(photoPath);
+        } else if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == Activity.RESULT_OK) {
+            String videoPath = sharedPreferences.getString(C.SHARED_NEW_VIDEO_PATH, "error");
+            uploadVideo(videoPath);
+        } else if (requestCode == REQUEST_GALLERY && resultCode == Activity.RESULT_OK) {
+            String path = data.getData().toString();
+            if (path.startsWith("content://media/external/video")) {
+                String realPath = getRealPath(path);
+                uploadVideo(realPath);
+            } else if (path.startsWith("content://media/external/images")) {
+                String realPath = getRealPath(path);
+                uploadImage(realPath);
+            }
+        }
+    }
+
+    @Override
+    public void onPause() {
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mUploadMediaReceiver);
+        isUploadMediaReceiverRegistered = false;
+
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDownloadMediaReceiver);
+        isDownloadMediaReceiverRegistered = false;
+
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mMessageReceiver);
+        isMessageReceiverRegistered = false;
+
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDeleteMessagesReceiver);
+        isDeleteMessagesReceiverRegistered = false;
+        super.onPause();
+    }
+
+    private String getRealPath(String path) {
+        String yourRealPath = null;
+
+        String[] filePathColumn = {MediaStore.Images.Media.DATA};
+        Cursor cursor = getContext().getContentResolver().query(Uri.parse(path), filePathColumn, null, null, null);
+        if (cursor != null) {
+            if(cursor.moveToFirst()){
+                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                yourRealPath = cursor.getString(columnIndex);
+            } else {
+                //boooo, cursor doesn't have rows ...
+            }
+            cursor.close();
+        }
+        return yourRealPath;
+    }
+
+    private void uploadImage(String photoPath)
+    {
+        final Message message = new Message(photoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_IMAGE);
+        message.isViewed = 1;
+        messageArrayList.add(message);
+        adapter.notifyItemInserted(messageArrayList.size() - 1);
+        recyclerView.scrollToPosition(messageArrayList.size() - 1);
+        MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
+
+        Intent serviceIntent = new Intent(getContext(), UploadService.class);
+        serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, photoPath);
+        serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+        serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
+        serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_IMAGE);
+        getContext().getApplicationContext().startService(serviceIntent);
+    }
+
+    private void uploadVideo(String videoPath)
+    {
+        final Message message = new Message(videoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_VIDEO);
+        message.isViewed = 1;
+        messageArrayList.add(message);
+        adapter.notifyItemInserted(messageArrayList.size() - 1);
+        recyclerView.scrollToPosition(messageArrayList.size() - 1);
+        MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
+
+        Intent serviceIntent = new Intent(getContext(), UploadService.class);
+        serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, videoPath);
+        serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+        serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
+        serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_VIDEO);
+        getContext().getApplicationContext().startService(serviceIntent);
+    }
+
+    private void openVideoCamera()
+    {
+        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
+        if (takeVideoIntent.resolveActivity(getContext().getPackageManager()) != null) {
+            File videoFile = null;
+            try {
+                videoFile = createVideoFile();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+
+            if (videoFile != null) {
+                takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(videoFile));
+                startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
+            }
+        }
+    }
+
+    private void openPhotoCamera()
+    {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, true);
+        if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
+
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+               ex.printStackTrace();
+            }
+
+            if (photoFile != null) {
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
+                        Uri.fromFile(photoFile));
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getContext().getExternalFilesDir(null);
+        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+        sharedPreferences.edit().putString(C.SHARED_NEW_PHOTO_PATH, image.getAbsolutePath()).apply();
+        return image;
+    }
+
+    private File createVideoFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "MP4_" + timeStamp + "_";
+        File storageDir = getContext().getExternalFilesDir(null);
+        File video = File.createTempFile(imageFileName, ".mp4", storageDir);
+        sharedPreferences.edit().putString(C.SHARED_NEW_VIDEO_PATH, video.getAbsolutePath()).apply();
+        return video;
+    }
+
+
 
     private void cancelNotification()
     {
@@ -340,9 +301,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     private void initFakeToolbar(View view)
     {
-        FakeToolbar fakeToolbar = (FakeToolbar) view.findViewById(R.id.toolbar_fake_layout);
+        fakeToolbar = (FakeToolbar) view.findViewById(R.id.toolbar_fake_layout);
         fakeToolbar.setTitle(contact.name);
-        fakeToolbar.startTimer();
         fakeToolbar.setOnPhotoClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -383,44 +343,27 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     {
         if (contact == null)
         {
-            //loadMyContacts();
             for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
             {
                 if (contact.phoneNumber.equals(opponentPhone))
                 {
                     this.contact = contact;
-                    updateUnreadState();
+                    updateViewedState();
                     break;
                 }
             }
         }
     }
 
-    private void updateUnreadState()
+    private void updateViewedState()
     {
         contact.countUnread = 0;
     }
 
-    private void updateViewStateInDB()
+    private void updateViewedStateInDB()
     {
         MyDbHelper.updateAllMessagesViewState(new MyDbHelper(getContext()).getWritableDatabase(), contact);
     }
-
-    /*private void loadMyContacts()
-    {
-        myContactsArrayList = MyContacts.getContactsList(getContext());
-        *//*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                getContext().checkSelfPermission(Manifest.permission.READ_CONTACTS)
-                        != PackageManager.PERMISSION_GRANTED)
-        {
-            requestPermissions(new String[]{Manifest.permission.READ_CONTACTS},
-                    C.READ_CONTACTS_CODE);
-        }
-        else
-        {
-            myContactsArrayList = MyContacts.getContactsList(getContext());
-        }*//*
-    }*/
 
     private void initMyPhoneNumber()
     {
@@ -469,10 +412,31 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     @Override
     public void onReSendMessage(Message message) {
-        message.state = Message.STATE_ADDED;
+        if (message.messageType == Message.MY_MESSAGE_IMAGE)
+        {
+            Intent serviceIntent = new Intent(getContext(), UploadService.class);
+            serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, message.getMessage());
+            serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+            serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
+            serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_IMAGE);
+            getContext().getApplicationContext().startService(serviceIntent);
+        }
+        else if (message.messageType == Message.MY_MESSAGE_VIDEO)
+        {
+            Intent serviceIntent = new Intent(getContext(), UploadService.class);
+            serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, message.getMessage());
+            serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+            serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
+            serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_VIDEO);
+            getContext().getApplicationContext().startService(serviceIntent);
+        }
+        else
+        {
+            new SendMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+        }
         MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), Message.STATE_ADDED, message.getMessageId());
+        message.state = Message.STATE_ADDED;
         adapter.notifyDataSetChanged();
-        new SendMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
     }
 
     public class SendMessageTask extends AsyncTask<Message, Void, String>
@@ -565,38 +529,32 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             @Override
             public void onReceive(Context context, Intent intent)
             {
-                Log.e("amaz_upload","onReceive");
                 int idToUpdate = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
                 String status = intent.getStringExtra(C.EXTRA_MEDIA_STATE);
-                String mediaType = intent.getStringExtra(C.EXTRA_MEDIA_TYPE);
 
                 Message message = null;
-                int position = 0;
                 for (int i = 0; i < messageArrayList.size(); i++)
                 {
                     int messageId = messageArrayList.get(i).getMessageId();
                     if (messageId == idToUpdate)
                     {
                         message = messageArrayList.get(i);
-                        position = i;
+                        if (status.equals("COMPLETED"))
+                        {
+                            message.state = Message.STATE_SUCCESS;
+                            adapter.notifyDataSetChanged();
+                        }
+                        else if (status.equals("FAILED"))
+                        {
+                            message.state = Message.STATE_ERROR;
+                            adapter.notifyDataSetChanged();
+                        }
+                        break;
                     }
-                }
-
-                if (status.equals("COMPLETED"))
-                {
-                    Log.e("amaz_upload","mUploadMediaReceiver COMPLETED");
-                    message.state = Message.STATE_SUCCESS;
-                    adapter.notifyDataSetChanged();
-                }
-                else if (status.equals("FAILED"))
-                {
-                    message.state = Message.STATE_ERROR;
-                    adapter.notifyDataSetChanged();
                 }
             }
         };
 
-        // Registering BroadcastReceiver
         registerUploadMediaReceiver();
     }
 
@@ -615,41 +573,33 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             @Override
             public void onReceive(Context context, Intent intent)
             {
-                //Log.e(DOWNLOAD_TAG,"onReceive download");
                 int idToUpdate = intent.getIntExtra(C.EXTRA_MESSAGE_ID, 0);
                 String status = intent.getStringExtra(C.EXTRA_MEDIA_STATE);
-                String mediaType = intent.getStringExtra(C.EXTRA_MEDIA_TYPE);
                 String localPath = intent.getStringExtra(C.EXTRA_MEDIA_LOCAL_PATH);
 
                 Message message = null;
-                int position = 0;
                 for (int i = 0; i < messageArrayList.size(); i++)
                 {
                     int messageId = messageArrayList.get(i).getMessageId();
                     if (messageId == idToUpdate)
                     {
                         message = messageArrayList.get(i);
-                        position = i;
+                        if (status.equals("COMPLETED"))
+                        {
+                            message.state = Message.STATE_SUCCESS;
+                            message.setMessage(localPath);
+                            adapter.notifyDataSetChanged();
+                        }
+                        else if (status.equals("FAILED"))
+                        {
+                            message.state = Message.STATE_ERROR;
+                            adapter.notifyDataSetChanged();
+                        }
+                        break;
                     }
                 }
-
-
-                Log.e(DOWNLOAD_TAG,"onReceive download status: " + status);
-                if (status.equals("COMPLETED"))
-                {
-                    message.state = Message.STATE_SUCCESS;
-                    message.setMessage(localPath);
-                    adapter.notifyDataSetChanged();
-                }
-                else if (status.equals("FAILED"))
-                {
-                    message.state = Message.STATE_ERROR;
-                    adapter.notifyDataSetChanged();
-                }
-
             }
         };
-        // Registering BroadcastReceiver
         registerDownloadMediaReceiver();
     }
 
@@ -668,7 +618,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             @Override
             public void onReceive(Context context, Intent intent)
             {
-                Log.d("amaz_upload", "onReceive "+intent.getAction());
                 String phone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
                 if (phone.equals(contact.phoneNumber))
                 {
@@ -703,7 +652,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             @Override
             public void onReceive(Context context, Intent intent)
             {
-                Log.d("recr", "onReceive");
                 int idToDelete = intent.getIntExtra(C.ID_TO_DELETE, 0);
                 if (idToDelete == 0)
                 {
@@ -711,6 +659,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                     messageArrayList.clear();
                     messageArrayList.addAll(arrayList);
                     adapter.notifyDataSetChanged();
+                    fakeToolbar.startTimer();
                 }
                 else {
                     for (int i = 0; i < messageArrayList.size(); i++)
