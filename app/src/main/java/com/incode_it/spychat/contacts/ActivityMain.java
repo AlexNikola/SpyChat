@@ -30,6 +30,7 @@ import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyGlobalTimerTask;
 import com.incode_it.spychat.MyTimerTask;
+import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
@@ -275,6 +276,7 @@ public class ActivityMain extends AppCompatActivity implements
 
     private void startTimerDialog()
     {
+        OrientationUtils.lockOrientation(this);
         TimePickerDialog tpd = TimePickerDialog.newInstance(
                 ActivityMain.this, 0, 0, true
         );
@@ -283,6 +285,12 @@ public class ActivityMain extends AppCompatActivity implements
         tpd.setAccentColor(getResources().getColor(R.color.colorPrimary));
         tpd.setTitle("Global timer");
         tpd.enableSeconds(true);
+        tpd.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                OrientationUtils.unlockOrientation(ActivityMain.this);
+            }
+        });
         tpd.setOnCancelListener(new DialogInterface.OnCancelListener() {
             @Override
             public void onCancel(DialogInterface dialogInterface) {

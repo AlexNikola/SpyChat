@@ -1,5 +1,6 @@
 package com.incode_it.spychat.alarm;
 
+import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.ComponentName;
@@ -7,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
@@ -24,7 +26,6 @@ public class AlarmReceiverGlobal extends WakefulBroadcastReceiver
 
     @Override
     public void onReceive(Context context, Intent intent) {
-
         boolean hasId = deleteMessages(context);
         if (!hasId) return;
         Intent serviceIntent = new Intent(context, UpdateUIService.class);
@@ -33,7 +34,6 @@ public class AlarmReceiverGlobal extends WakefulBroadcastReceiver
 
     private boolean deleteMessages(Context context)
     {
-
         boolean hasId = false;
 
         ArrayList<TimeHolder> timeHolderArrayList = MyDbHelper.readTime(new MyDbHelper(context).getReadableDatabase());
@@ -55,20 +55,33 @@ public class AlarmReceiverGlobal extends WakefulBroadcastReceiver
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         long timer = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
+        long removalTime = timer + System.currentTimeMillis();
         sharedPreferences.edit().putLong(C.REMOVAL_GLOBAL_TIME, (timer + System.currentTimeMillis())).apply();
-        Log.d("timmmer", "deleteMessages " + timer);
+        Log.d("myreci", "deleteMessages " + AlarmReceiverGlobal.this.hashCode());
+        setAlarm(context, removalTime, timer);
 
         return hasId;
     }
 
-    public void setAlarm(Context context, long timeAdded, long timer) {
 
+    public void setAlarm(Context context, long removalTime, long timer) {
+        Log.d("myreci", "setAlarm");
         AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmReceiverGlobal.class);
-        int requestCode = 0;/* = (int) timer;*/
+        int requestCode = 0;
         PendingIntent alarmIntent = PendingIntent.getBroadcast(context, requestCode, intent, 0);
-        Log.d("timmmer", "setAlarm  " + requestCode);
-        alarmMgr.setRepeating(AlarmManager.RTC_WAKEUP, (timeAdded + timer), timer, alarmIntent);
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+        {
+            alarmMgr.setExact(AlarmManager.RTC_WAKEUP, removalTime, alarmIntent);
+        }
+        else
+        {
+            alarmMgr.set(AlarmManager.RTC_WAKEUP, removalTime, alarmIntent);
+        }
+
+
+
 
         // Enable {@code SampleBootReceiver} to automatically restart the alarm when the
         // device is rebooted.

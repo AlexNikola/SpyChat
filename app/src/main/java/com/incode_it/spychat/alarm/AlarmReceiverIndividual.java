@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.support.v4.content.WakefulBroadcastReceiver;
 import android.util.Log;
 
@@ -48,7 +49,14 @@ public class AlarmReceiverIndividual extends WakefulBroadcastReceiver
         intent.putExtra(C.ID_TO_DELETE, mId);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(context, mId, intent, 0);
         Log.d(TAG, "setAlarm mId "+mId);
-        alarmMgr.set(AlarmManager.RTC_WAKEUP, removalTime, alarmIntent);
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+        {
+            alarmMgr.setExact(AlarmManager.RTC_WAKEUP, removalTime, alarmIntent);
+        }
+        else
+        {
+            alarmMgr.set(AlarmManager.RTC_WAKEUP, removalTime, alarmIntent);
+        }
 
         // Enable {@code SampleBootReceiver} to automatically restart the alarm when the
         // device is rebooted.

@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -31,11 +32,15 @@ import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.MyContacts;
+import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
 import com.incode_it.spychat.amazon.UploadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
+import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
+import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -50,7 +55,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.OnChatAdapterListener {
+public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.OnChatAdapterListener,
+        TimePickerDialog.OnTimeSetListener{
 
     static final int REQUEST_IMAGE_CAPTURE = 11;
     static final int REQUEST_VIDEO_CAPTURE = 12;
@@ -332,6 +338,12 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
                 photoPickerIntent.setType("image/*,video/*");
                 startActivityForResult(photoPickerIntent, REQUEST_GALLERY);
+            }
+        });
+        fakeToolbar.setOnTimerClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startTimerDialog();
             }
         });
 
@@ -731,6 +743,55 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         void onCreateErrorMessageDialog(OnMessageDialogListener listener, int state);
 
         void onCreateTimeDialog(OnMessageDialogListener listener);
+    }
+
+    private void startTimerDialog()
+    {
+        OrientationUtils.lockOrientation(getActivity());
+        TimePickerDialog tpd = TimePickerDialog.newInstance(
+                FragmentChat.this, 0, 0, true
+        );
+
+        tpd.vibrate(true);
+        tpd.setAccentColor(getResources().getColor(R.color.colorPrimary));
+        tpd.setTitle("Global timer");
+        tpd.enableSeconds(true);
+        tpd.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                OrientationUtils.unlockOrientation(getActivity());
+            }
+        });
+        tpd.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+            }
+        });
+        tpd.show(getActivity().getFragmentManager(), "Timepickerdialog");
+    }
+
+    @Override
+    public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute, int second) {
+
+        long timer = (hourOfDay * 60 * 60 * 1000) + (minute * 60 * 1000) + (second * 1000);
+        long removalTime = System.currentTimeMillis() + timer;
+        AlarmReceiverGlobal alarmReceiverGlobal = new AlarmReceiverGlobal();
+        if (timer == 0)
+        {
+            long id = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
+            sharedPreferences.edit().putLong(C.REMOVAL_GLOBAL_TIME, 0).apply();
+            sharedPreferences.edit().putLong(C.GLOBAL_TIMER, 0).apply();
+
+            alarmReceiverGlobal.cancelAlarm(getContext(), 0);
+        }
+        else
+        {
+            sharedPreferences.edit().putLong(C.REMOVAL_GLOBAL_TIME, removalTime).apply();
+            sharedPreferences.edit().putLong(C.GLOBAL_TIMER, timer).apply();
+            alarmReceiverGlobal.cancelAlarm(getContext(), 0);
+            alarmReceiverGlobal.setAlarm(getContext(), removalTime, timer);
+        }
+        fakeToolbar.startTimer();
     }
 
 

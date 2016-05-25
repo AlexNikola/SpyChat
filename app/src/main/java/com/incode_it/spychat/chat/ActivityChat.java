@@ -17,16 +17,23 @@ import android.util.Log;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
+import com.incode_it.spychat.MyGlobalTimerTask;
 import com.incode_it.spychat.MyTimePickerDialog;
 import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
 import com.incode_it.spychat.authorization.ActivityAuth;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.pin.FragmentPin;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
-public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFragmentChatInteractionListener, FragmentPin.FragmentPinListener {
+import java.util.Timer;
+
+public class ActivityChat extends AppCompatActivity implements
+        FragmentChat.OnFragmentChatInteractionListener,
+        FragmentPin.FragmentPinListener
+        {
 
     private SharedPreferences sharedPreferences;
     private boolean requestPin;
@@ -278,6 +285,11 @@ public class ActivityChat extends AppCompatActivity implements FragmentChat.OnFr
             fragmentPin.show(ft, FragmentPin.TAG);
         }
     }
+
+
+
+
+
 
     @Override
     public void onBackPressed() {

@@ -77,6 +77,7 @@ public class FakeToolbar extends FrameLayout {
         takeVideo = (ImageView) findViewById(R.id.take_video);
         openGallery = (ImageView) findViewById(R.id.open_gallery);
         globalTimerTextView = (TextView) findViewById(R.id.global_timer_text);
+
     }
 
     private void showPopup()
@@ -150,5 +151,10 @@ public class FakeToolbar extends FrameLayout {
     public void setOnGalleryClickListener(OnClickListener listener)
     {
         openGallery.setOnClickListener(listener);
+    }
+
+    public void setOnTimerClickListener(OnClickListener listener)
+    {
+        globalTimerTextView.setOnClickListener(listener);
     }
 }
