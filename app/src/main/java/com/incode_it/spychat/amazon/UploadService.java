@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Looper;
 import android.preference.PreferenceManager;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -57,7 +58,6 @@ public class UploadService extends IntentService {
     protected void upload(Intent intent) {
 
         Log.d(TAG, "onHandleIntent "+this.hashCode());
-
         String localPath = intent.getStringExtra(C.EXTRA_MEDIA_FILE_PATH);
         final String mediaType = intent.getStringExtra(C.EXTRA_MEDIA_TYPE);
         final String opponentPhone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);

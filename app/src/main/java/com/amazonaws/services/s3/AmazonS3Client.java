@@ -1316,7 +1316,7 @@ public class AmazonS3Client extends AmazonWebServiceClient implements AmazonS3 {
                     && !ServiceUtils.skipMd5CheckPerResponse(s3Object.getObjectMetadata())) {
                 byte[] serverSideHash = null;
                 String etag = s3Object.getObjectMetadata().getETag();
-                if (etag != null && ServiceUtils.isMultipartUploadETag(etag) == false) {
+                if (etag != null && !ServiceUtils.isMultipartUploadETag(etag)) {
                     serverSideHash = BinaryUtils.fromHex(s3Object.getObjectMetadata().getETag());
                     try {
                         // No content length check is performed when the

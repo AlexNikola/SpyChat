@@ -159,7 +159,6 @@ class TransferRecord {
      */
     public boolean start(AmazonS3 s3, TransferDBUtil dbUtil, TransferStatusUpdater updater,
             NetworkInfoReceiver networkInfo, Context context) {
-        Log.d("amaz_upload", "TransferRecord start");
         if (!isRunning() && checkIsReadyToRun()) {
             if (type.equals(TransferType.DOWNLOAD)) {
                 submittedTask = TransferThreadPool

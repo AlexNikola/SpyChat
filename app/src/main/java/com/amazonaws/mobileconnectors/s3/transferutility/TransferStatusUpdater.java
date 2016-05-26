@@ -57,7 +57,7 @@ class TransferStatusUpdater {
     /**
      * A map of listeners.
      */
-    static final Map<Integer, List<TransferListener>> listeners = new HashMap<Integer, List<TransferListener>>();
+    static final Map<Integer, List<TransferListener>> listeners = new HashMap<>();
 
     /**
      * A map of active transfers.
@@ -83,8 +83,8 @@ class TransferStatusUpdater {
     TransferStatusUpdater(TransferDBUtil dbUtil) {
         this.dbUtil = dbUtil;
         mainHandler = new Handler(Looper.getMainLooper());
-        transfers = new HashMap<Integer, TransferRecord>();
-        lastUpdateTime = new HashMap<Integer, Long>();
+        transfers = new HashMap<>();
+        lastUpdateTime = new HashMap<>();
     }
 
     /**
