@@ -1,12 +1,9 @@
 package com.incode_it.spychat;
 
 import android.content.Intent;
-import android.os.Handler;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.WindowManager;
 
 import com.incode_it.spychat.authorization.ActivityAuth;
@@ -47,7 +44,6 @@ public class ActivitySplash extends AppCompatActivity {
     }
 
     protected void goMain() {
-        Log.d(LOG_TAG, "Launching Main Activity...");
         goAfterSplashTimeout(new Intent(this, ActivityAuth.class));
     }
 

@@ -18,7 +18,6 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
-import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -89,16 +88,12 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     @Override
     public void onLogIn(String phone)
     {
-        Log.i(TAG, "onLogIn");
         hideKeyBoard();
-        //showPhone(phone);
     }
 
     @Override
     public void onSignUp(String phone) {
-        Log.i(TAG, "onSignUp");
         hideKeyBoard();
-        //showPhone(phone);
     }
 
     private void showPhone(String phone)
@@ -171,52 +166,16 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
 
     public String getPhoneNumber()
     {
-        Log.d("myPerm", "AA getPhoneNumber ");
         TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
         return tm.getLine1Number();
-        /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                checkSelfPermission(Manifest.permission.READ_SMS)
-                        != PackageManager.PERMISSION_GRANTED)
-        {
-            requestPermissions(new String[]{Manifest.permission.READ_SMS},
-                    C.READ_SMS_CODE);
-        }
-        else
-        {
-            TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-            myPhoneNumber = tm.getLine1Number();
-        }*/
+
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.d("qqqqq", "AA onActivityResult resultCode "+resultCode);
 
     }
-
-    /*@Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        Log.d("myPerm", "AA onRequestPermissionsResult " + requestCode);
-        if (requestCode == C.READ_SMS_CODE)
-        {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED)
-            {
-                TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
-                myPhoneNumber = tm.getLine1Number();
-                if (myPhoneNumber == null || myPhoneNumber.length() == 0)
-                {
-                    myPhoneNumber = "";
-                    Toast.makeText(this, "Phone number is unavailable", Toast.LENGTH_SHORT).show();
-                }
-            }
-            else
-            {
-                Toast.makeText(this, "Sorry!!! Permission Denied",
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
-    }*/
 
     public class AuthFragmentPagerAdapter extends FragmentPagerAdapter {
         ArrayList<Fragment> fragmentArrayList;
@@ -253,7 +212,6 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
                 apiAvailability.getErrorDialog(this, resultCode, PLAY_SERVICES_RESOLUTION_REQUEST)
                         .show();
             } else {
-                Log.i(TAG, "This device is not supported.");
                 finish();
             }
             return false;

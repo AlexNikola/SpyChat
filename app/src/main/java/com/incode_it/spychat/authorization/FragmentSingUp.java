@@ -6,33 +6,25 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.incode_it.spychat.OrientationUtils;
-import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
+import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.country_selection.ActivitySelectCountry;
 import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
-import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -93,7 +85,6 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d("qqqqq", "FL onActivityResult resultCode "+resultCode);
         if (requestCode == C.REQUEST_CODE_SELECT_COUNTRY) {
             if (resultCode == Activity.RESULT_OK) {
                 countryCode = data.getStringExtra(C.EXTRA_COUNTRY_CODE);
@@ -208,7 +199,6 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
         selectQuestion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("wqwq", "onClick");
                 OrientationUtils.lockOrientation(getActivity());
                 FragmentManager fm = getActivity().getSupportFragmentManager();
                 SelectQuestionDialogFragment fragment = SelectQuestionDialogFragment.newInstance(questionPosition, FragmentSingUp.this);
@@ -330,7 +320,6 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
             }
             catch (IOException e)
             {
-                Log.e(TAG, "my err " + e.getLocalizedMessage());
                 e.printStackTrace();
             }
 
@@ -378,7 +367,6 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
 
         public static SelectQuestionDialogFragment newInstance(int position, OnDialogListener listener)
         {
-            Log.e("wqwq", "newInstance");
             SelectQuestionDialogFragment newFragment = new SelectQuestionDialogFragment();
             newFragment.setListener(listener);
             newFragment.setPosition(position);
@@ -388,7 +376,6 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
         @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
-            Log.e("wqwq", "onCreateDialog");
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setTitle(R.string.select_question)
                     .setSingleChoiceItems(R.array.questions, position, new DialogInterface.OnClickListener() {

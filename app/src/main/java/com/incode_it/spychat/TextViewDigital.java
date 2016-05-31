@@ -4,7 +4,6 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Typeface;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.widget.TextView;
 
 public class TextViewDigital extends TextView {
@@ -23,7 +22,6 @@ public class TextViewDigital extends TextView {
                 if (attr == R.styleable.FontText_typefaceAsset)
                 {
                     String fontAsset = typedArray.getString(attr);
-                    Log.d("typef", "fontAsset "+fontAsset);
                     if (fontAsset != null)
                     {
                         Typeface typeface = Typeface.createFromAsset(getContext().getAssets(), fontAsset);

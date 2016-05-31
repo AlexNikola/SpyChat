@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
-import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -30,7 +29,6 @@ public class MyContacts
                     String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
                     String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER));
                     String photoURI = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
-                    Log.d("conterr", "phoneNumber "+phoneNumber+" "+"name "+name);
                     if (phoneNumber == null) continue;
                     Uri uri = null;
                     if (photoURI != null)

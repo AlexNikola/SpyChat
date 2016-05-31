@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -142,7 +141,6 @@ public class FragmentLogIn extends Fragment
                 else errorPhoneTextView.setText("");
                 if (password.length() < 6)
                 {
-                    Log.d("qaz", "Password is too short " + password.length());
                     if (password.length() == 0) errorPassTextView.setText(R.string.enter_password);
                     else errorPassTextView.setText(R.string.short_password);
                     isValid = false;
@@ -176,7 +174,6 @@ public class FragmentLogIn extends Fragment
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d("qqqqq", "FL onActivityResult resultCode "+resultCode);
         if (requestCode == C.REQUEST_CODE_SELECT_COUNTRY) {
             if (resultCode == Activity.RESULT_OK) {
                 countryCode = data.getStringExtra(C.EXTRA_COUNTRY_CODE);
@@ -251,7 +248,6 @@ public class FragmentLogIn extends Fragment
             }
             catch (IOException e)
             {
-                Log.e(TAG, "my err " + e.getLocalizedMessage());
                 e.printStackTrace();
             }
 

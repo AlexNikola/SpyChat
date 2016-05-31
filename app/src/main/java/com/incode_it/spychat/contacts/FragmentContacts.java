@@ -225,6 +225,8 @@ public class FragmentContacts extends Fragment {
                             registeredContacts.add(phoneNumber);
                         }
                     }
+                    Context context = getContext();
+                    if (context != null)
                     MyDbHelper.insertRegisteredContacts(new MyDbHelper(getContext()).getWritableDatabase(), registeredContacts);
 
                 }
@@ -239,32 +241,32 @@ public class FragmentContacts extends Fragment {
 
         @Override
         protected void onPostExecute(ArrayList<String> regContacts) {
-            if (regContacts != null)
+            Context context = getContext();
+            if (context != null)
             {
-                for (MyContacts.Contact mContact: MyContacts.getContacts(getContext()))
+                if (regContacts != null)
                 {
-                    mContact.isRegistered = false;
-                    for (String regPhoneNumber: regContacts)
+                    for (MyContacts.Contact mContact: MyContacts.getContacts(context))
                     {
-                        if (mContact.phoneNumber.equals(regPhoneNumber))
+                        mContact.isRegistered = false;
+                        for (String regPhoneNumber: regContacts)
                         {
-                            mContact.isRegistered = true;
-                            break;
+                            if (mContact.phoneNumber.equals(regPhoneNumber))
+                            {
+                                mContact.isRegistered = true;
+                                break;
+                            }
                         }
                     }
+                    Collections.sort(MyContacts.getContacts(context), new ContactsComparator());
+                    if (adapter != null) adapter.notifyDataSetChanged();
                 }
-                Collections.sort(MyContacts.getContacts(getContext()), new ContactsComparator());
-                if (adapter != null) adapter.notifyDataSetChanged();
-            }
-            else
-            {
-                Context context = getContext();
-                if (context != null)
+                else
                 {
                     Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show();
                 }
-
             }
+
         }
     }
 

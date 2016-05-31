@@ -7,7 +7,6 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -186,7 +185,6 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
             }
             catch (IOException e)
             {
-                Log.e("q", "my err " + e.getLocalizedMessage());
                 e.printStackTrace();
             }
 
@@ -195,20 +193,19 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
 
         @Override
         protected void onPostExecute(String result) {
-            progressBarQuestion.setVisibility(View.INVISIBLE);
+            if(progressBarQuestion!=null)progressBarQuestion.setVisibility(View.INVISIBLE);
 
             if (result == null) {
                 showError("Connection error");
 
             } else {
-                Log.e("forg", "result "+ result);
                 try {
                     JSONObject jsonResponse = new JSONObject(result);
                     String res = jsonResponse.getString("result");
                     if (res.equals("success")) {
 
                         String secret = jsonResponse.getString("secret");
-                        questionTextView.setText(secret);
+                        if(questionTextView!=null)questionTextView.setText(secret);
 
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");
@@ -260,7 +257,6 @@ public class ActivityForgotPassword extends AppCompatActivity implements View.On
             }
             catch (IOException e)
             {
-                Log.e("q", "my err " + e.getLocalizedMessage());
                 e.printStackTrace();
             }
 

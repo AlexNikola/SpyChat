@@ -4,11 +4,8 @@ import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Looper;
 import android.preference.PreferenceManager;
-import android.support.v4.app.LoaderManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
@@ -16,7 +13,6 @@ import com.amazonaws.mobileconnectors.s3.transferutility.TransferObserver;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferState;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferUtility;
 import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.incode_it.spychat.C;
@@ -57,7 +53,6 @@ public class UploadService extends IntentService {
 
     protected void upload(Intent intent) {
 
-        Log.d(TAG, "onHandleIntent "+this.hashCode());
         String localPath = intent.getStringExtra(C.EXTRA_MEDIA_FILE_PATH);
         final String mediaType = intent.getStringExtra(C.EXTRA_MEDIA_TYPE);
         final String opponentPhone = intent.getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
@@ -86,7 +81,6 @@ public class UploadService extends IntentService {
         transferObserver.setTransferListener(new TransferListener() {
             @Override
             public void onStateChanged(int id, TransferState state) {
-                Log.d(TAG, "my_state: " + state);
                 if (state.toString().equals("COMPLETED"))
                 {
                     new SendMessageTask(messageId, opponentPhone, mediaType).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
@@ -95,17 +89,15 @@ public class UploadService extends IntentService {
 
             @Override
             public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                float curr = bytesCurrent;
+                /*float curr = bytesCurrent;
                 float total = bytesTotal;
-                float percentage = (curr/total * 100f);
-                Log.d(TAG, "my_percentage: " + percentage);
+                float percentage = (curr/total * 100f);*/
             }
 
             @Override
             public void onError(int id, Exception ex) {
                 MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
                 sendBroadcast(messageId, "FAILED");
-                Log.e(TAG,"my_error: " + ex.getLocalizedMessage());
             }
         });
 
@@ -212,7 +204,6 @@ public class UploadService extends IntentService {
 
     @Override
     public void onDestroy() {
-        Log.e(TAG,"onDestroy");
         super.onDestroy();
     }
 }

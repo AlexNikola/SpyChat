@@ -12,8 +12,6 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
-import android.telephony.TelephonyManager;
-import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
 import com.incode_it.spychat.C;
@@ -40,8 +38,6 @@ public class MyGcmListenerService extends GcmListenerService {
         String textMessage = data.getString("message");
         if (textMessage == null) return;
         String phone = data.getString("phone");
-        Log.d(TAG, "phone: " + phone);
-        Log.d(TAG, "message: " + textMessage);
 
 
         sendNotification(textMessage, phone);
@@ -115,9 +111,7 @@ public class MyGcmListenerService extends GcmListenerService {
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         long longId = Long.parseLong(phone.substring(1));
-        Log.d(TAG, "longId: " + longId);
         int id = (int) longId;
-        Log.d(TAG, "id: " + id);
         notificationManager.notify(id /* ID of notification */, notificationBuilder.build());
     }
 }

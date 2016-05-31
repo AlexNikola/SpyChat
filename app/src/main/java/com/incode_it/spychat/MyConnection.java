@@ -3,7 +3,6 @@ package com.incode_it.spychat;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
@@ -25,14 +24,12 @@ public class MyConnection
     public static synchronized boolean sendRefreshToken(Context context) throws IOException, JSONException {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         String refreshToken = sharedPreferences.getString(C.SHARED_REFRESH_TOKEN, "");
-        Log.i(TAG, "sendRefreshToken: " + refreshToken);
         String urlParameters = "refreshToken=" + refreshToken;
         URL url = new URL(C.BASE_URL + "api/v1/auth/refreshAccessToke/");
-        Log.i(TAG, "URL: " + url.toString() + urlParameters);
         HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
         httpURLConnection.setDoInput(true);
         httpURLConnection.setDoOutput(true);
-        httpURLConnection.setConnectTimeout(10000);
+        httpURLConnection.setConnectTimeout(30000);
         httpURLConnection.setRequestMethod("POST");
         httpURLConnection.connect();
 
@@ -44,15 +41,12 @@ public class MyConnection
         int httpResponse = httpURLConnection.getResponseCode();
         InputStream inputStream;
         if (httpResponse == HttpURLConnection.HTTP_OK) {
-            Log.d(TAG, "HTTP_OK");
             inputStream = httpURLConnection.getInputStream();
         } else {
-            Log.d(TAG, "HTTP_ERROR");
             inputStream = httpURLConnection.getErrorStream();
         }
 
         String response = IOUtils.toString(inputStream);
-        Log.d(TAG, "resp: " + response);
         try {
             JSONObject jsonResponse = new JSONObject(response);
             String res = jsonResponse.getString("result");
@@ -73,11 +67,10 @@ public class MyConnection
 
     public static synchronized String post(URL url, String urlParameters, String header) throws IOException
     {
-        Log.i(TAG, "URL: " + url.toString() + urlParameters);
         HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
         httpURLConnection.setDoInput(true);
         httpURLConnection.setDoOutput(true);
-        httpURLConnection.setConnectTimeout(10000);
+        httpURLConnection.setConnectTimeout(30000);
         httpURLConnection.setRequestMethod("POST");
         if (header != null) httpURLConnection.addRequestProperty("Authorization", header);
         httpURLConnection.connect();
@@ -90,16 +83,13 @@ public class MyConnection
         int httpResponse = httpURLConnection.getResponseCode();
         InputStream inputStream;
         if (httpResponse == HttpURLConnection.HTTP_OK) {
-            Log.d(TAG, "HTTP_OK");
             inputStream = httpURLConnection.getInputStream();
         } else {
-            Log.d(TAG, "HTTP_ERROR");
             inputStream = httpURLConnection.getErrorStream();
         }
 
         String response = IOUtils.toString(inputStream);
         inputStream.close();
-        Log.d(TAG, "resp: " + response);
 
 
 

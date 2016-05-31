@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
@@ -16,8 +15,6 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.DeleteVersionRequest;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.QuickstartPreferences;
@@ -25,9 +22,7 @@ import com.incode_it.spychat.data_base.MyDbHelper;
 
 import java.io.File;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class DownloadService extends IntentService {
 
@@ -50,7 +45,6 @@ public class DownloadService extends IntentService {
     }
 
     protected void download(Intent intent) {
-        Log.d(TAG, "onHandleIntent "+this.hashCode());
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         final String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, null);
 
@@ -94,14 +88,10 @@ public class DownloadService extends IntentService {
         arrayList.add(transferObserver);
 
         final File finalLocalPath = localFile;
-        Log.d(TAG, "remote_path: " + remotePath);
-        Log.d(TAG, "download_from: " + mediaType + "/" + myPhoneNumber + "/" + remoteFile.getName());
-        Log.d(TAG, "localPath: " + finalLocalPath);
 
         transferObserver.setTransferListener(new TransferListener() {
             @Override
             public void onStateChanged(int id, TransferState state) {
-                Log.d(TAG, "onStateChanged: " + state);
                 if (state.toString().equals("COMPLETED"))
                 {
                     MyDbHelper.updateMediaPath(new MyDbHelper(getApplicationContext()).getWritableDatabase(), finalLocalPath.getAbsolutePath(), messageId);
@@ -117,17 +107,15 @@ public class DownloadService extends IntentService {
 
             @Override
             public void onProgressChanged(int id, long bytesCurrent, long bytesTotal) {
-                float curr = bytesCurrent;
+                /*float curr = bytesCurrent;
                 float total = bytesTotal;
-                float percentage = (curr/total * 100f);
-                Log.d(TAG, "download_percentage: " + percentage);
+                float percentage = (curr/total * 100f);*/
             }
 
             @Override
             public void onError(int id, Exception ex) {
                 MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
                 sendBroadcast(messageId, "FAILED", mediaType, finalLocalPath.getAbsolutePath());
-                Log.e(TAG,"onError: " + ex.getLocalizedMessage());
             }
         });
 
@@ -135,7 +123,6 @@ public class DownloadService extends IntentService {
 
     private void deleteRemoteFile(final AmazonS3 s3, final String bucket, final String keyName)
     {
-        Log.e(TAG,"delete: " + keyName);
         new Thread(new Runnable() {
             @Override
             public void run() {

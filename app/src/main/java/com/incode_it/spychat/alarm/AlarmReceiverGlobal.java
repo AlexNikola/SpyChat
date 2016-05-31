@@ -1,17 +1,13 @@
 package com.incode_it.spychat.alarm;
 
-import android.annotation.TargetApi;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.support.v4.content.WakefulBroadcastReceiver;
-import android.util.Log;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -57,7 +53,6 @@ public class AlarmReceiverGlobal extends WakefulBroadcastReceiver
         long timer = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
         long removalTime = timer + System.currentTimeMillis();
         sharedPreferences.edit().putLong(C.REMOVAL_GLOBAL_TIME, (timer + System.currentTimeMillis())).apply();
-        Log.d("myreci", "deleteMessages " + AlarmReceiverGlobal.this.hashCode());
         setAlarm(context, removalTime, timer);
 
         return hasId;
@@ -65,7 +60,6 @@ public class AlarmReceiverGlobal extends WakefulBroadcastReceiver
 
 
     public void setAlarm(Context context, long removalTime, long timer) {
-        Log.d("myreci", "setAlarm");
         AlarmManager alarmMgr = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmReceiverGlobal.class);
         int requestCode = 0;
@@ -97,7 +91,6 @@ public class AlarmReceiverGlobal extends WakefulBroadcastReceiver
 
     public void cancelAlarm(Context context, long id) {
         int requestCode = (int) id;
-        Log.d("timmmer", "cancelAlarm  " + requestCode);
         AlarmManager alarmMgr = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
         Intent intent = new Intent(context, AlarmReceiverGlobal.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, requestCode, intent, 0);

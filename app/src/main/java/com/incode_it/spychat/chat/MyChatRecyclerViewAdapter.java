@@ -17,7 +17,6 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -159,7 +158,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 public void onClick(View v) {
                     Message message = messages.get(getAdapterPosition());
                     String remotePath = message.getMessage();
-                    Log.d("vfrm", "amazonLoadBitmap");
                     Intent serviceIntent = new Intent(context, DownloadService.class);
                     serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, remotePath);
                     serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
@@ -303,7 +301,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 public void onClick(View v) {
                     Message message = messages.get(getAdapterPosition());
                     Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(message.getMessage()));
-                    Log.d("vfrm", "path "+"file:/"+message.getMessage());
                     intent.setDataAndType(Uri.fromFile(new File(message.getMessage())), "image/*");
                     context.startActivity(intent);
                 }
@@ -462,7 +459,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    Log.d("merr", "onLongClick state "+messages.get(getAdapterPosition()).state);
                     if (messages.get(getAdapterPosition()).state == Message.STATE_SUCCESS)
                     {
                         listener.onCreateSuccessMessageDialog(MessageViewHolder.this);
@@ -769,7 +765,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 inSampleSize *= 2;
             }
         }
-        Log.d("lifes", "height: "+ height +" width: " + width + " inSampleSize: " + inSampleSize);
         return inSampleSize;
     }
 

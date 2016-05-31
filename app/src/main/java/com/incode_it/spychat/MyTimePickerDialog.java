@@ -1,6 +1,5 @@
 package com.incode_it.spychat;
 
-import android.app.Activity;
 import android.content.Context;
 
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;

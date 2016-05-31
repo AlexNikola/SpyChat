@@ -413,7 +413,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
                     new Handler().postDelayed(new Runnable() {
                         public void run() {
-                            new SendMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+                            new SendMessageTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
                         }
                     }, SEND_MESSAGE_DELAY);
 
@@ -444,7 +444,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
         else
         {
-            new SendMessageTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
+            new SendMessageTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
         }
         MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), Message.STATE_ADDED, message.getMessageId());
         message.state = Message.STATE_ADDED;
@@ -454,9 +454,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public class SendMessageTask extends AsyncTask<Message, Void, String>
     {
         private Message message;
+        private Context context;
 
-        public SendMessageTask() {
-
+        public SendMessageTask(Context context) {
+            this.context = context;
         }
 
         @Override
@@ -471,7 +472,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             String result = null;
             try
             {
-                result = trySendMessage(textMessage);
+                result = trySendMessage(textMessage, context);
             }
             catch (IOException | JSONException e)
             {
@@ -485,9 +486,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         protected void onPostExecute(String result) {
             if (result == null)
             {
-                //Toast.makeText(getContext(), "Connection error", Toast.LENGTH_SHORT).show();
                 message.state = Message.STATE_ERROR;
-                MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), Message.STATE_ERROR, message.getMessageId());
+                MyDbHelper.updateMessageState(new MyDbHelper(context).getWritableDatabase(), Message.STATE_ERROR, message.getMessageId());
                 adapter.notifyDataSetChanged();
             }
             else
@@ -495,24 +495,24 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 if (result.equals("success"))
                 {
                     message.state = Message.STATE_SUCCESS;
-                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), Message.STATE_SUCCESS, message.getMessageId());
+                    MyDbHelper.updateMessageState(new MyDbHelper(context).getWritableDatabase(), Message.STATE_SUCCESS, message.getMessageId());
                     adapter.notifyDataSetChanged();
                 }
                 else if (result.equals("error"))
                 {
                     message.state = Message.STATE_ERROR;
-                    MyDbHelper.updateMessageState(new MyDbHelper(getContext()).getWritableDatabase(), Message.STATE_ERROR, message.getMessageId());
+                    MyDbHelper.updateMessageState(new MyDbHelper(context).getWritableDatabase(), Message.STATE_ERROR, message.getMessageId());
                     adapter.notifyDataSetChanged();
                 }
             }
         }
     }
 
-    private String trySendMessage(String message) throws IOException, JSONException
+    private String trySendMessage(String message, Context context) throws IOException, JSONException
     {
         StringBuilder sbParams = new StringBuilder();
         sbParams.append("message=").append(URLEncoder.encode(message, "UTF-8")).append("&").append("destination=").append(URLEncoder.encode(contact.phoneNumber, "UTF-8"));
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, "");
         URL url = new URL(C.BASE_URL + "api/v1/message/sendMessage/");
         String header = "Bearer "+accessToken;
@@ -522,8 +522,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         String result = null;
         if (response.equals("Access token is expired"))
         {
-            if (MyConnection.sendRefreshToken(getContext()))
-                result = trySendMessage(message);
+            if (MyConnection.sendRefreshToken(context))
+                result = trySendMessage(message, context);
         }
         else
         {

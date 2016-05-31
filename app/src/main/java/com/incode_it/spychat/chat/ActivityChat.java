@@ -13,22 +13,17 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
-import com.incode_it.spychat.MyGlobalTimerTask;
 import com.incode_it.spychat.MyTimePickerDialog;
 import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.R;
-import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
 import com.incode_it.spychat.authorization.ActivityAuth;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.pin.FragmentPin;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
-
-import java.util.Timer;
 
 public class ActivityChat extends AppCompatActivity implements
         FragmentChat.OnFragmentChatInteractionListener,
@@ -249,13 +244,11 @@ public class ActivityChat extends AppCompatActivity implements
     @Override
     protected void onPause() {
         requestPin = true;
-        Log.d("lifes", "onPause");
         super.onPause();
     }
 
     @Override
     protected void onResume() {
-        Log.d("lifes", "onResume");
         showPinDialog();
         super.onResume();
     }
@@ -263,7 +256,6 @@ public class ActivityChat extends AppCompatActivity implements
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         requestPin = false;
-        Log.d("lifes", "onRestoreInstanceState");
         super.onRestoreInstanceState(savedInstanceState);
     }
 

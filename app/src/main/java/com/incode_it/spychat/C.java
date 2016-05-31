@@ -5,19 +5,13 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.provider.SyncStateContract;
 
-import com.amazon.clouddrive.AmazonCloudDriveClient;
-import com.amazon.clouddrive.auth.AmazonAuthorizationConnectionFactory;
-import com.amazon.clouddrive.configuration.AccountConfiguration;
-import com.amazon.clouddrive.configuration.ClientConfiguration;
-import com.amazon.clouddrive.model.DownloadFileRequest;
 import com.amazonaws.regions.Regions;
-
-import java.util.ArrayList;
 
 public class C
 {
+    public static final String play_market_url = "https://play.google.com/store/apps/details?id=com.incode_it.spychat";
+
     public static final String amazonBucket = "spy-chat";
     public static final String amazonIdentityPoolID = "us-east-1:3bc44367-78a8-47e8-b689-1f05f72f74e5";
     public static final Regions amazonRegion = Regions.US_EAST_1;

@@ -2,20 +2,16 @@ package com.incode_it.spychat.alarm;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.os.Build;
 import android.support.v4.content.WakefulBroadcastReceiver;
-import android.util.Log;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.data_base.MyDbHelper;
 
 import java.io.File;
-import java.util.ArrayList;
 
 public class AlarmReceiverIndividual extends WakefulBroadcastReceiver
 {
@@ -25,7 +21,6 @@ public class AlarmReceiverIndividual extends WakefulBroadcastReceiver
     public void onReceive(Context context, Intent intent) {
 
         int mId = intent.getIntExtra(C.ID_TO_DELETE, 0);
-        Log.d(TAG, "onReceive mId "+mId);
         Message message = MyDbHelper.readMessage(new MyDbHelper(context).getReadableDatabase(), mId);
 
         if (message.messageType != Message.MY_MESSAGE_TEXT && message.messageType != Message.NOT_MY_MESSAGE_TEXT)
@@ -48,7 +43,6 @@ public class AlarmReceiverIndividual extends WakefulBroadcastReceiver
         Intent intent = new Intent(context, AlarmReceiverIndividual.class);
         intent.putExtra(C.ID_TO_DELETE, mId);
         PendingIntent alarmIntent = PendingIntent.getBroadcast(context, mId, intent, 0);
-        Log.d(TAG, "setAlarm mId "+mId);
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
         {
             alarmMgr.setExact(AlarmManager.RTC_WAKEUP, removalTime, alarmIntent);

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.data_base.MyDbHelper;
@@ -19,7 +18,6 @@ public class BootReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
             // Set the alarm here.
-            Log.d(TAG, "BootReceiver onReceive");
             startIndividualAlarms(context, intent);
             startGlobalAlarm(context, intent);
         }

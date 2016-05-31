@@ -1,7 +1,6 @@
 package com.incode_it.spychat;
 
 import android.os.Handler;
-import android.util.Log;
 import android.widget.TextView;
 
 import java.text.SimpleDateFormat;

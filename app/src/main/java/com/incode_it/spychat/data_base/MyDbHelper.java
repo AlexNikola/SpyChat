@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyContacts;
@@ -207,7 +206,6 @@ public class MyDbHelper extends SQLiteOpenHelper
 
     public static synchronized ArrayList<String> readRegisteredContacts(SQLiteDatabase db)
     {
-        Log.d(LOG_TAG, "readRegisteredContacts");
         String sql = "SELECT * FROM "+ RegisteredContact.TABLE_NAME;
         Cursor cursor = db.rawQuery(sql, null);
 
@@ -231,7 +229,6 @@ public class MyDbHelper extends SQLiteOpenHelper
     {
         db.execSQL(SQL_DELETE_CONTACT_TABLE);
         db.execSQL(SQL_CREATE_CONTACT_TABLE);
-        Log.d(LOG_TAG, "insertRegisteredContacts " + registeredContacts.size());
         ContentValues values = new ContentValues();
 
         for (String phone: registeredContacts)
@@ -253,7 +250,6 @@ public class MyDbHelper extends SQLiteOpenHelper
         int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
-        Log.d(LOG_TAG, "updateMessageState numbers: "+num);
     }
 
     public static synchronized void updateMessageViewedState(SQLiteDatabase db, int isViewed, int messageId)
@@ -266,7 +262,6 @@ public class MyDbHelper extends SQLiteOpenHelper
         int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
-        Log.d(LOG_TAG, "updateMessageViewedState numbers: "+num);
     }
 
     public static synchronized void updateMediaPath(SQLiteDatabase db, String path, int messageId)
@@ -279,7 +274,6 @@ public class MyDbHelper extends SQLiteOpenHelper
         int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
-        Log.d(LOG_TAG, "updateMediaPath numbers: "+num);
     }
 
     public static synchronized void updateAllMessagesViewState(SQLiteDatabase db, MyContacts.Contact contact)
@@ -287,12 +281,10 @@ public class MyDbHelper extends SQLiteOpenHelper
         ContentValues values = new ContentValues();
 
         String whereClause = Chat.SENDER_PHONE_NUMBER + " LIKE '%" + contact.phoneNumber + "%'";
-        Log.d(LOG_TAG, "contact.phoneNumber : "+contact.phoneNumber);
         values.put(Chat.IS_VIEWED, 1);
         int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
-        Log.d(LOG_TAG, "updateAllMessagesViewState numbers: "+num);
     }
 
     public static synchronized void updateMessageTimer(SQLiteDatabase db, long mId, long removalTime)
@@ -326,7 +318,6 @@ public class MyDbHelper extends SQLiteOpenHelper
             while (cursor.moveToNext());
         }
 
-        Log.d("nnnnn", "countries "+countries.size());
         cursor.close();
         db.close();
         return countries;

@@ -3,10 +3,8 @@ package com.incode_it.spychat.chat;
 import android.app.Service;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Typeface;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -15,7 +13,6 @@ import android.widget.TextView;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyGlobalTimerTask;
-import com.incode_it.spychat.MyTimerTask;
 import com.incode_it.spychat.R;
 
 import java.util.Timer;
@@ -59,7 +56,6 @@ public class FakeToolbar extends FrameLayout {
 
     private void init()
     {
-        Log.d("faket", "init");
         title = (TextView) findViewById(R.id.title);
         backBtn = findViewById(R.id.back_to_contacts);
         toolbarUpper = findViewById(R.id.toolbar_upper);
@@ -82,7 +78,6 @@ public class FakeToolbar extends FrameLayout {
 
     private void showPopup()
     {
-        Log.d("faket", "showPopup "+popUpTranslationY);
         isPopupVisible = true;
         toolbarLower.setVisibility(VISIBLE);
         toolbarLower.animate().translationY(popUpTranslationY).start();
@@ -90,7 +85,6 @@ public class FakeToolbar extends FrameLayout {
 
     private void hidePopup()
     {
-        Log.d("faket", "hidePopup "+popUpTranslationY);
         isPopupVisible = false;
         toolbarLower.animate()
                 .translationY(0f)
@@ -105,7 +99,6 @@ public class FakeToolbar extends FrameLayout {
 
     public void startTimer()
     {
-        Log.d("faket", "startTimer");
         if (timerTask != null && timerTask.isRunning)
         {
             timerTask.cancel();
@@ -113,8 +106,6 @@ public class FakeToolbar extends FrameLayout {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         long removalTime = sharedPreferences.getLong(C.REMOVAL_GLOBAL_TIME, 0);
         long timer = sharedPreferences.getLong(C.GLOBAL_TIMER, 0);
-        Log.d("timmmer", "startTimer timer " + timer);
-        Log.d("timmmer", "startTimer removalTime " + removalTime);
         if (removalTime > 0)
         {
             timerTask = new MyGlobalTimerTask(removalTime, globalTimerTextView, timer);
