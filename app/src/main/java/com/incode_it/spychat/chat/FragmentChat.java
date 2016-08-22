@@ -2,6 +2,8 @@ package com.incode_it.spychat.chat;
 
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -18,10 +20,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +44,7 @@ import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
 import com.incode_it.spychat.amazon.UploadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
+import com.incode_it.spychat.interfaces.OnPickMediaListener;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
@@ -56,11 +62,12 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.OnChatAdapterListener,
-        TimePickerDialog.OnTimeSetListener{
+        TimePickerDialog.OnTimeSetListener, OnPickMediaListener{
 
     static final int REQUEST_IMAGE_CAPTURE = 11;
     static final int REQUEST_VIDEO_CAPTURE = 12;
-    static final int REQUEST_GALLERY = 13;
+    static final int REQUEST_PHOTO_PICK = 13;
+    static final int REQUEST_VIDEO_PICK = 14;
 
     private static final int SEND_MESSAGE_DELAY = 500;
     private static final String TAG = "chatm";
@@ -151,21 +158,36 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d("qwerty", "onActivityResult");
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
             String photoPath = sharedPreferences.getString(C.SHARED_NEW_PHOTO_PATH, "error");
+            //Log.d("qwerty", data.getType()+" - "+photoPath);
             uploadImage(photoPath);
         } else if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == Activity.RESULT_OK) {
             String videoPath = sharedPreferences.getString(C.SHARED_NEW_VIDEO_PATH, "error");
+            //Log.d("qwerty", data.getType()+" - "+videoPath);
             uploadVideo(videoPath);
-        } else if (requestCode == REQUEST_GALLERY && resultCode == Activity.RESULT_OK) {
+        } else if (requestCode == REQUEST_PHOTO_PICK && resultCode == Activity.RESULT_OK) {
+
+            /*if (path.startsWith("content://media/external/video")) {
+
+            } else if (path.startsWith("content://media/external/images")
+                    || path.startsWith("content://com.google.android.apps.photos")
+                    || path.startsWith("content://com.android.providers.media.documents/document/image")) {
+
+            }*/
             String path = data.getData().toString();
-            if (path.startsWith("content://media/external/video")) {
-                String realPath = getRealPath(path);
-                uploadVideo(realPath);
-            } else if (path.startsWith("content://media/external/images")) {
-                String realPath = getRealPath(path);
-                uploadImage(realPath);
-            }
+            Log.d("qwerty", data.getType()+" - "+path);
+            String realPath = getRealPath(path);
+            uploadImage(realPath);
+        }
+        else if (requestCode == REQUEST_VIDEO_PICK && resultCode == Activity.RESULT_OK)
+        {
+            String path = data.getData().toString();
+            Log.d("qwerty", data.getType()+" - "+path);
+            String realPath = getRealPath(path);
+            uploadVideo(realPath);
         }
     }
 
@@ -335,9 +357,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         fakeToolbar.setOnGalleryClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent photoPickerIntent = new Intent(Intent.ACTION_PICK);
-                photoPickerIntent.setType("image/*,video/*");
-                startActivityForResult(photoPickerIntent, REQUEST_GALLERY);
+                DialogFragment newFragment = PickMediaDialogFragment.newInstance(FragmentChat.this);
+                newFragment.show(getActivity().getSupportFragmentManager(), PickMediaDialogFragment.TAG);
             }
         });
         fakeToolbar.setOnTimerClickListener(new View.OnClickListener() {
@@ -347,6 +368,84 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             }
         });
 
+    }
+
+    /*@Override
+    public void onResult(int requestCode, int resultCode, Intent data) {
+        Log.d("qwerty", "onResult");
+        if (requestCode == REQUEST_PHOTO_PICK && resultCode == Activity.RESULT_OK) {
+            String path = data.getData().toString();
+            Log.d("qwerty", data.getType()+" - "+path);
+            *//*if (path.startsWith("content://media/external/video")) {
+
+            } else if (path.startsWith("content://media/external/images")
+                    || path.startsWith("content://com.google.android.apps.photos")
+                    || path.startsWith("content://com.android.providers.media.documents/document/image")) {
+
+            }*//*
+            String realPath = getRealPath(path);
+            uploadImage(realPath);
+        }
+        else if (requestCode == REQUEST_VIDEO_PICK && resultCode == Activity.RESULT_OK)
+        {
+            String path = data.getData().toString();
+            Log.d("qwerty", data.getType()+" - "+path);
+            String realPath = getRealPath(path);
+            uploadVideo(realPath);
+        }
+    }*/
+
+    @Override
+    public void onPickMedia(Intent intent, int requestCode) {
+        startActivityForResult(intent, requestCode);
+    }
+
+    public static class PickMediaDialogFragment extends DialogFragment {
+
+        public static final String TAG = "PickMediaDialogFragment";
+        private OnPickMediaListener listener;
+
+        public static PickMediaDialogFragment newInstance(OnPickMediaListener listener)
+        {
+            PickMediaDialogFragment newFragment = new PickMediaDialogFragment();
+            newFragment.listener = listener;
+            return newFragment;
+        }
+
+
+        @Override
+        public void onDismiss(DialogInterface dialog) {
+            super.onDismiss(dialog);
+            OrientationUtils.unlockOrientation(getActivity());
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            OrientationUtils.lockOrientation(getActivity());
+            int arr = R.array.pick_media_dialog;
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setItems(arr, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            Intent intent = new Intent(Intent.ACTION_PICK);
+                            switch (which)
+                            {
+                                case 0:
+                                    intent.setType("image/*");
+                                    listener.onPickMedia(intent, REQUEST_PHOTO_PICK);
+                                    break;
+
+                                case 1:
+                                    intent.setType("video/*");
+                                    listener.onPickMedia(intent, REQUEST_VIDEO_PICK);
+                                    break;
+                            }
+                            dismiss();
+                        }
+                    });
+
+            return builder.create();
+        }
     }
 
 
@@ -518,6 +617,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         String header = "Bearer "+accessToken;
 
         String response = MyConnection.post(url, sbParams.toString(), header);
+        Log.d(TAG, "trySendMessage: " + response);
 
         String result = null;
         if (response.equals("Access token is expired"))

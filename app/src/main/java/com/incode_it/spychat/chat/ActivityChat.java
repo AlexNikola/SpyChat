@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -59,6 +60,7 @@ public class ActivityChat extends AppCompatActivity implements
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Log.d("qwerty", "OnActivityResult");
         requestPin = true;
     }
 

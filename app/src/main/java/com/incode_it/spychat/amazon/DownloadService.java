@@ -153,6 +153,7 @@ public class DownloadService extends IntentService {
         intent.putExtra(C.EXTRA_MEDIA_STATE, state);
         intent.putExtra(C.EXTRA_MEDIA_LOCAL_PATH, localPath);
         LocalBroadcastManager.getInstance(DownloadService.this).sendBroadcast(intent);
+
     }
 
 }

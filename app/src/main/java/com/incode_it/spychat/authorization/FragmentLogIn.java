@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -256,6 +257,7 @@ public class FragmentLogIn extends Fragment
 
         @Override
         protected void onPostExecute(String result) {
+            Log.d("chatm", "trySendMessage: " + result);
             logInBtnView.setEnabled(true);
             progressBarView.setVisibility(View.INVISIBLE);
             logInBtnText.setVisibility(View.VISIBLE);

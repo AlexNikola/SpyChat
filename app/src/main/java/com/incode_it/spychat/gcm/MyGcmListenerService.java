@@ -40,7 +40,7 @@ public class MyGcmListenerService extends GcmListenerService {
         String phone = data.getString("phone");
 
 
-        sendNotification(textMessage, phone);
+
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
@@ -59,6 +59,8 @@ public class MyGcmListenerService extends GcmListenerService {
             message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_SUCCESS, Message.NOT_MY_MESSAGE_TEXT);
         }
 
+        sendNotification(message);
+
         MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), message);
         Intent intent = new Intent(QuickstartPreferences.RECEIVE_MESSAGE);
         intent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
@@ -75,10 +77,10 @@ public class MyGcmListenerService extends GcmListenerService {
      *
      * @param message GCM message received.
      */
-    private void sendNotification(String message, String phone) {
+    private void sendNotification(Message message) {
 
         Intent resultIntent = new Intent(this, ActivityMain.class);
-        resultIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
+        resultIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, message.getSenderPhoneNumber());
         resultIntent.putExtra(C.EXTRA_IS_FROM_NOTIFICATION, true);
         resultIntent.putExtra(C.EXTRA_REQUEST_PIN, false);
 
@@ -96,9 +98,13 @@ public class MyGcmListenerService extends GcmListenerService {
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_chat_24dp)
                 .setContentTitle("Spy Message")
-                .setContentText(message)
                 .setAutoCancel(true)
                 .setContentIntent(resultPendingIntent);
+
+        if (message.messageType == Message.NOT_MY_MESSAGE_TEXT)
+        {
+            notificationBuilder.setContentText(message.getMessage());
+        }
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean isSoundOn = sharedPreferences.getBoolean(C.SETTING_SOUND, true);
@@ -110,7 +116,7 @@ public class MyGcmListenerService extends GcmListenerService {
         NotificationManager notificationManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-        long longId = Long.parseLong(phone.substring(1));
+        long longId = Long.parseLong(message.getSenderPhoneNumber().substring(1));
         int id = (int) longId;
         notificationManager.notify(id /* ID of notification */, notificationBuilder.build());
     }

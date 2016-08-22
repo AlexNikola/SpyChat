@@ -65,6 +65,10 @@
         <item>Delete message</item>
         <item>Send again</item>
     </string-array>
+    <string-array name="pick_media_dialog">
+        <item>Pick image</item>
+        <item>Pick video</item>
+    </string-array>
     <string-array name="error_not_my_message_dialog">
         <item>Delete message</item>
     </string-array>
