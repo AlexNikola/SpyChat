@@ -11,12 +11,14 @@ import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
+import android.media.MediaPlayer;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,10 +35,13 @@ import com.incode_it.spychat.alarm.AlarmReceiverIndividual;
 import com.incode_it.spychat.amazon.DownloadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
+import com.vanniktech.emoji.EmojiTextView;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Timer;
 
 public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecyclerViewAdapter.MessageViewHolder>
@@ -50,6 +55,8 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     private Bitmap noPhotoBitmap;
     private Context context;
     private LruCache<String, Bitmap> mMemoryCache;
+
+    public AudioService mService;
     private static final String DOWNLOAD_TAG = "amaz_download";
 
     public MyChatRecyclerViewAdapter(Context context,
@@ -110,6 +117,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 view = LayoutInflater.from(parent.getContext())
                         .inflate(R.layout.not_my_message_video_item, parent, false);
                 return new MessageVideoViewHolder(view);
+            case Message.MY_MESSAGE_AUDIO:
+                view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.my_message_audio_item, parent, false);
+                return new MessageAudioViewHolder(view);
+            case Message.NOT_MY_MESSAGE_AUDIO:
+                view = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.not_my_message_audio_item, parent, false);
+                return new MessageAudioViewHolder(view);
         }
 
         return null;
@@ -408,12 +423,13 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
     public class MessageTextViewHolder extends MessageViewHolder
     {
-        public TextView textMessage;
+        public EmojiTextView textMessage;
 
         public MessageTextViewHolder(View itemView) {
             super(itemView);
 
-            textMessage = (TextView) itemView.findViewById(R.id.text_message);
+            textMessage = (EmojiTextView) itemView.findViewById(R.id.text_message);
+            textMessage.setEmojiSize((int) context.getResources().getDimension(R.dimen.emoji_size));
         }
 
         @Override
@@ -438,6 +454,227 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 }
             }
         }
+    }
+
+    public class MessageAudioViewHolder extends MessageViewHolder implements AudioService.Callback {
+        public ImageView playAudioBtn, stopAudioBtn;
+        public TextView audioTimer;
+        public Message message;
+
+        public MessageAudioViewHolder(View itemView) {
+            super(itemView);
+
+            audioTimer = (TextView) itemView.findViewById(R.id.audio_timer_tv);
+
+            itemView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Message message = messages.get(getAdapterPosition());
+                    if (mService != null && message.state == Message.STATE_PLAYING) {
+                        mService.stopAudio();
+                    }
+                    else if (mService != null && message.state != Message.STATE_PLAYING)
+                    {
+                        if (message.state != Message.STATE_DOWNLOADING && message.state != Message.STATE_ADDED){
+                            mService.stopAudio();
+                            mService.setCallback(MessageAudioViewHolder.this);
+                            mService.playAudio(message);
+                        }
+                    }
+
+                }
+            });
+            playAudioBtn = (ImageView) itemView.findViewById(R.id.playAudioBtn);
+            stopAudioBtn = (ImageView) itemView.findViewById(R.id.stopAudioBtn);
+        }
+
+        public void removeCallback() {
+            if (mService != null) {
+                mService.removeCallback(message);
+            }
+        }
+
+        public void addCallback() {
+            if (mService != null) {
+                if (mService.message == messages.get(getAdapterPosition())) {
+                    mService.setCallback(this);
+                }
+            }
+        }
+
+        @Override
+        public void bindViewHolder(Message message) {
+            Log.e("dfgddddd", "bindViewHolder: ");
+            this.message = messages.get(getAdapterPosition());
+            addCallback();
+
+            timeText.setText(message.getDate());
+            timerTextView.setText("");
+            startTimer();
+
+            if (message.audioDuration == 0) {
+                MediaPlayer mPlayer = new MediaPlayer();
+                try {
+                    mPlayer.setDataSource(message.getMessage());
+                    mPlayer.prepare();
+                    message.audioDuration = mPlayer.getDuration();
+                } catch (IOException ignored) {
+                }
+            }
+
+            if (mService != null && mService.timerTask != null)
+            {
+                audioTimer.setText(getStringTime(mService.timerTask.secondsUntilFinished * 1000));
+            }
+            else {
+                audioTimer.setText("");
+            }
+
+            if (!message.getSenderPhoneNumber().equals(myPhoneNumber))
+            {
+                profileImageView.setVisibility(View.VISIBLE);
+                if (contactBitmap == null) profileImageView.setImageBitmap(noPhotoBitmap);
+                else profileImageView.setImageBitmap(contactBitmap);
+                setState();
+            } else {
+                profileImageView.setVisibility(View.GONE);
+                setState();
+            }
+
+
+        }
+
+        public void setState()
+        {
+            boolean isMyMessage = true;
+            if (!message.getSenderPhoneNumber().equals(myPhoneNumber)) {
+                isMyMessage = false;
+            }
+
+            switch (message.state)
+            {
+                case Message.STATE_PLAYING:
+                    Log.d("dfgddddd", "STATE_PLAYING: ");
+                    if (isMyMessage) {
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_success);
+                    } else {
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+                    }
+                    progressBar.setVisibility(View.INVISIBLE);
+                    playAudioBtn.setVisibility(View.GONE);
+                    stopAudioBtn.setVisibility(View.VISIBLE);
+                    audioTimer.setVisibility(View.VISIBLE);
+                    break;
+                case Message.STATE_SUCCESS:
+                    Log.d("dfgddddd", "STATE_SUCCESS: ");
+                    if (isMyMessage) {
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_success);
+                    } else {
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+                    }
+                    progressBar.setVisibility(View.INVISIBLE);
+                    playAudioBtn.setVisibility(View.VISIBLE);
+                    stopAudioBtn.setVisibility(View.GONE);
+                    audioTimer.setVisibility(View.VISIBLE);
+                    audioTimer.setText(getStringTime(message.audioDuration));
+                    break;
+                case Message.STATE_ERROR:
+                    Log.d("dfgddddd", "STATE_ERROR: ");
+                    messageContainer.setBackgroundResource(R.drawable.bg_my_message_error);
+                    progressBar.setVisibility(View.INVISIBLE);
+                    playAudioBtn.setVisibility(View.VISIBLE);
+                    stopAudioBtn.setVisibility(View.GONE);
+                    audioTimer.setVisibility(View.GONE);
+                    break;
+                case Message.STATE_DOWNLOADING:
+                    Log.d("dfgddddd", "STATE_DOWNLOADING: ");
+                    if (isMyMessage) {
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_success);
+                    } else {
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message);
+                    }
+                    progressBar.setVisibility(View.VISIBLE);
+                    playAudioBtn.setVisibility(View.VISIBLE);
+                    stopAudioBtn.setVisibility(View.GONE);
+                    audioTimer.setVisibility(View.GONE);
+                    break;
+                case Message.STATE_ADDED:
+                    Log.d("dfgddddd", "STATE_ADDED: ");
+                    if (isMyMessage) {
+                        messageContainer.setBackgroundResource(R.drawable.bg_my_message_added);
+                    } else {
+                        messageContainer.setBackgroundResource(R.drawable.bg_not_my_message_added);
+                    }
+                    progressBar.setVisibility(View.VISIBLE);
+                    playAudioBtn.setVisibility(View.VISIBLE);
+                    stopAudioBtn.setVisibility(View.GONE);
+                    audioTimer.setVisibility(View.GONE);
+                    break;
+            }
+
+        }
+
+        public String getStringTime(long milliseconds){
+            long second = (milliseconds / 1000) % 60;
+            long minute = (milliseconds / (1000 * 60)) % 60;
+            long hour = (milliseconds / (1000 * 60 * 60)) % 24;
+
+            String timeString = String.format(Locale.getDefault(), "%02d:%02d:%02d", hour, minute, second);
+            if (timeString.startsWith("00")) {
+                timeString = timeString.substring(3);
+            }
+            return timeString;
+        }
+
+        @Override
+        public void onDeleteMessage() {
+            Message message = messages.get(getAdapterPosition());
+            File file = new File(message.getMessage());
+            file.delete();
+            super.onDeleteMessage();
+        }
+
+        @Override
+        public void onStartAudio() {
+            Log.d("dfgddddd", "onPlayAudio: ");
+            setState();
+        }
+
+        @Override
+        public void onStopAudio() {
+            Log.d("dfgddddd", "onStopAudio: ");
+            setState();
+        }
+
+        @Override
+        public void onAudioTimerOut() {
+            Log.d("dfgddddd", "onAudioTimerOut: ");
+            setState();
+        }
+
+        @Override
+        public void onError() {
+            Log.d("dfgddddd", "onError: ");
+            setState();
+        }
+
+        @Override
+        public void onAudioTimerTick(long time) {
+            Log.d("dfgddddd", "onAudioTimerTick: ");
+            audioTimer.setText(getStringTime(time));
+        }
+
+
+    }
+
+    @Override
+    public void onViewRecycled(MessageViewHolder holder) {
+        if (holder instanceof MessageAudioViewHolder) {
+            Log.e("dfgddddd", "onViewRecycled: ");
+            MessageAudioViewHolder messageAudioViewHolder = (MessageAudioViewHolder) holder;
+            messageAudioViewHolder.removeCallback();
+        }
+        super.onViewRecycled(holder);
     }
 
     public class MessageViewHolder extends RecyclerView.ViewHolder implements OnMessageDialogListener {

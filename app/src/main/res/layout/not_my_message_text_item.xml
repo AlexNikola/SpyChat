@@ -30,7 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
-                <TextView
+                <com.vanniktech.emoji.EmojiTextView
                     android:id="@+id/text_message"
                     android:text="efetuf fvbgdfdsdf dsfdfsdfsd fdsdsfsdfsdfd sdfdfsdffdsf fsds dfsdf df sd s fgdfgfdgd "
                     android:textSize="16sp"

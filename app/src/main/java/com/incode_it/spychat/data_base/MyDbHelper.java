@@ -42,7 +42,8 @@ public class MyDbHelper extends SQLiteOpenHelper
                     Chat.MESSAGE_ID + TYPE_INT + COMMA_SEP +
                     Chat.REMOVAL_TIME + TYPE_INT  + COMMA_SEP +
                     Chat.MESSAGE_TYPE + TYPE_INT  + COMMA_SEP +
-                    Chat.IS_VIEWED + TYPE_INT + " )";
+                    Chat.IS_VIEWED + TYPE_INT + COMMA_SEP +
+                    Chat.AUDIO_DURATION + TYPE_INT + " )";
 
 
     private static final String SQL_DELETE_CHAT_TABLE =
@@ -63,7 +64,7 @@ public class MyDbHelper extends SQLiteOpenHelper
     private static final String SQL_DELETE_COUNTRIES_TABLE =
             "DROP TABLE IF EXISTS " + Countries.TABLE_NAME;
 
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 7;
     public static final String DATABASE_NAME = "SpyChat.db";
 
     public MyDbHelper(Context context) {
@@ -104,6 +105,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         values.put(Chat.REMOVAL_TIME, message.getRemovalTime());
         values.put(Chat.MESSAGE_TYPE, message.messageType);
         values.put(Chat.IS_VIEWED, message.isViewed);
+        values.put(Chat.AUDIO_DURATION, message.audioDuration);
 
         db.insert(Chat.TABLE_NAME, null, values);
         db.close();
@@ -169,8 +171,10 @@ public class MyDbHelper extends SQLiteOpenHelper
                 long removalTime = cursor.getLong(7);
                 int messageType = cursor.getInt(8);
                 int isViewed = cursor.getInt(9);
+                int audioDuration = cursor.getInt(10);
                 Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType);
                 message.isViewed = isViewed;
+                message.audioDuration = audioDuration;
                 messagesArr.add(message);
             }
             while (cursor.moveToNext());
@@ -197,8 +201,10 @@ public class MyDbHelper extends SQLiteOpenHelper
         long removalTime = cursor.getLong(7);
         int messageType = cursor.getInt(8);
         int isViewed = cursor.getInt(9);
+        int audioDuration = cursor.getInt(10);
         Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType);
         message.isViewed = isViewed;
+        message.audioDuration = audioDuration;
         cursor.close();
         db.close();
         return message;

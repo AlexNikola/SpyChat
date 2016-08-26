@@ -28,4 +28,6 @@
 
     <dimen name="chat_pop_up_y">?attr/actionBarSize</dimen>
 
+    <dimen name="emoji_size">26dp</dimen>
+
 </resources>

@@ -27,7 +27,7 @@ public class FakeToolbar extends FrameLayout {
     private View toolbarUpper;
     private View toolbarLower;
     private boolean isPopupVisible;
-    private ImageView takePhoto, takeVideo, openGallery;
+    private ImageView takePhoto, takeVideo, openGallery, takeAudio;
     private TextView title;
     private View backBtn;
 
@@ -69,6 +69,7 @@ public class FakeToolbar extends FrameLayout {
                 else showPopup();
             }
         });
+        takeAudio = (ImageView) findViewById(R.id.take_audio);
         takePhoto = (ImageView) findViewById(R.id.take_photo);
         takeVideo = (ImageView) findViewById(R.id.take_video);
         openGallery = (ImageView) findViewById(R.id.open_gallery);
@@ -127,6 +128,11 @@ public class FakeToolbar extends FrameLayout {
     public void setOnBackClickListener(OnClickListener listener)
     {
         backBtn.setOnClickListener(listener);
+    }
+
+    public void setOnAudioClickListener(OnClickListener listener)
+    {
+        takeAudio.setOnClickListener(listener);
     }
 
     public void setOnPhotoClickListener(OnClickListener listener)

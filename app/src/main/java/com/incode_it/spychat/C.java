@@ -41,6 +41,7 @@ public class C
 
     public static final String MEDIA_TYPE_IMAGE = "images";
     public static final String MEDIA_TYPE_VIDEO = "videos";
+    public static final String MEDIA_TYPE_AUDIO = "audios";
 
     public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
 

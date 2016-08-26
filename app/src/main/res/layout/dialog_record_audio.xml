@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:background="@drawable/bg_dialog_record_audio"
+        android:orientation="vertical"
+        android:id="@+id/container"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_gravity="center"
+        android:gravity="center">
+
+        <ImageView
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:id="@+id/recordBtn"
+            android:layout_gravity="center"
+            android:src="@drawable/mic_white"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:visibility="gone"
+            android:id="@+id/resultContainer"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_margin="16dp"
+                android:id="@+id/cancelBtn"
+                android:layout_gravity="center"
+                android:src="@drawable/cancel_white_big"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+            <ImageView
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_margin="16dp"
+                android:id="@+id/doneBtn"
+                android:layout_gravity="center"
+                android:src="@drawable/done_white_big"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+        <com.incode_it.spychat.TextViewDigital
+            android:id="@+id/timerTextView"
+            android:layout_marginTop="24dp"
+            android:layout_gravity="center_horizontal"
+            android:text="00:19"
+            android:textSize="30sp"
+            android:textColor="#ffffff"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </FrameLayout>
+
+
+
+
+
+
+
+</FrameLayout>

@@ -29,11 +29,12 @@ import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 public class ActivityChat extends AppCompatActivity implements
         FragmentChat.OnFragmentChatInteractionListener,
         FragmentPin.FragmentPinListener
-        {
-
+{
     private SharedPreferences sharedPreferences;
     private boolean requestPin;
     private String phone;
+
+    FragmentChat fragment;
 
 
     @Override
@@ -48,13 +49,15 @@ public class ActivityChat extends AppCompatActivity implements
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
-        Fragment fr = fragmentManager.findFragmentByTag(FragmentChat.TAG_FRAGMENT);
-        if (fr == null)
+        fragment = (FragmentChat) fragmentManager.findFragmentByTag(FragmentChat.TAG_FRAGMENT);
+        Log.d("fdfsfs", "onCreate: " + fragment);
+        if (fragment == null)
         {
-            FragmentChat fragment = FragmentChat.newInstance(phone);
+            fragment = FragmentChat.newInstance(phone);
             fragmentTransaction.add(R.id.fragment_chat_container, fragment, FragmentChat.TAG_FRAGMENT);
             fragmentTransaction.commit();
         }
+
     }
 
     @Override
@@ -287,6 +290,8 @@ public class ActivityChat extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        if (fragment.backPressed()) {
+            super.onBackPressed();
+        }
     }
 }

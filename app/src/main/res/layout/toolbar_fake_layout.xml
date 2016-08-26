@@ -17,6 +17,15 @@
         <ImageView
             android:padding="13dp"
             android:background="@drawable/bg_attachments"
+            android:id="@+id/take_audio"
+            android:src="@drawable/mic_white"
+            android:adjustViewBounds="true"
+            android:layout_width="?attr/actionBarSize"
+            android:layout_height="match_parent" />
+
+        <ImageView
+            android:padding="13dp"
+            android:background="@drawable/bg_attachments"
             android:id="@+id/take_photo"
             android:src="@drawable/photo_camera"
             android:adjustViewBounds="true"

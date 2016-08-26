@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".chat.ActivityChat">
@@ -26,7 +27,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <EditText
+        <ImageButton
+            android:layout_marginStart="8dp"
+            android:id="@+id/emojiBtn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="center"
+            android:src="@drawable/emoji_black"
+            tools:ignore="ContentDescription"/>
+
+        <com.vanniktech.emoji.EmojiEditText
             android:background="@drawable/bg_text_input_message"
             android:layout_margin="16dp"
             android:textCursorDrawable="@drawable/color_cursor"

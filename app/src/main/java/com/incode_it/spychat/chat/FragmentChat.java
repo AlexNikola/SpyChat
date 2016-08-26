@@ -6,18 +6,22 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -31,7 +35,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -41,10 +45,20 @@ import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
+import com.incode_it.spychat.amazon.DownloadService;
 import com.incode_it.spychat.amazon.UploadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.interfaces.OnPickMediaListener;
+import com.vanniktech.emoji.EmojiEditText;
+import com.vanniktech.emoji.EmojiPopup;
+import com.vanniktech.emoji.emoji.Emoji;
+import com.vanniktech.emoji.listeners.OnEmojiBackspaceClickListener;
+import com.vanniktech.emoji.listeners.OnEmojiClickedListener;
+import com.vanniktech.emoji.listeners.OnEmojiPopupDismissListener;
+import com.vanniktech.emoji.listeners.OnEmojiPopupShownListener;
+import com.vanniktech.emoji.listeners.OnSoftKeyboardCloseListener;
+import com.vanniktech.emoji.listeners.OnSoftKeyboardOpenListener;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
@@ -62,7 +76,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.OnChatAdapterListener,
-        TimePickerDialog.OnTimeSetListener, OnPickMediaListener{
+        TimePickerDialog.OnTimeSetListener, OnPickMediaListener, RecordAudioDialog.Callback {
 
     static final int REQUEST_IMAGE_CAPTURE = 11;
     static final int REQUEST_VIDEO_CAPTURE = 12;
@@ -75,7 +89,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public static final String TAG_FRAGMENT = "FragmentChat";
     private String opponentPhone;
     private RecyclerView recyclerView;
-    private EditText editText;
+    private EmojiEditText editText;
     private MyChatRecyclerViewAdapter adapter;
     private Bitmap contactBitmap;
     private String myPhoneNumber;
@@ -95,6 +109,27 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private MyContacts.Contact contact;
     private SharedPreferences sharedPreferences;
     private FakeToolbar fakeToolbar;
+
+    private ViewGroup rootView;
+    private ImageView emojiButton;
+    private EmojiPopup emojiPopup;
+
+    private AudioService mService;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            AudioService.AudioBinder binder = (AudioService.AudioBinder) service;
+            mService = binder.getService();
+            adapter.mService = mService;
+            adapter.notifyDataSetChanged();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            mService = null;
+        }
+    };
 
     public FragmentChat() {
         // Required empty public constructor
@@ -123,11 +158,15 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
     }
 
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         messageArrayList = new ArrayList<>();
+
+        rootView = (ViewGroup) view.findViewById(R.id.root_view);
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         findContactByNumber();
@@ -136,9 +175,18 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         loadOpponentBitmap();
 
         initRecyclerView(view);
-        editText = (EditText) view.findViewById(R.id.edit_text);
+        editText = (EmojiEditText) view.findViewById(R.id.edit_text);
         initFakeToolbar(view);
         initSendMessageView(view);
+
+        emojiButton = (ImageView) view.findViewById(R.id.emojiBtn);
+        emojiButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                emojiPopup.toggle();
+            }
+        });
+        setUpEmojiPopup();
 
         return view;
     }
@@ -153,6 +201,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         updateViewedStateInDB();
         loadMessages();
         fakeToolbar.startTimer();
+
+        Intent intent = new Intent(getContext(), AudioService.class);
+        getContext().startService(intent);
+        getContext().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
         super.onResume();
     }
 
@@ -204,6 +256,11 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mDeleteMessagesReceiver);
         isDeleteMessagesReceiverRegistered = false;
+
+        getContext().unbindService(mConnection);
+        getContext().stopService(new Intent(getContext(), AudioService.class));
+        mService = null;
+        adapter.mService = null;
         super.onPause();
     }
 
@@ -255,6 +312,34 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
         serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
         serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_VIDEO);
+        getContext().getApplicationContext().startService(serviceIntent);
+    }
+
+    private void uploadAudio(String audioPath)
+    {
+        MediaPlayer mPlayer = new MediaPlayer();
+        int duration = 0;
+        try {
+            mPlayer.setDataSource(audioPath);
+            mPlayer.prepare();
+            duration = mPlayer.getDuration();
+        } catch (IOException e) {
+            Log.e(TAG, "prepare() failed");
+        }
+
+        final Message message = new Message(audioPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_AUDIO);
+        message.isViewed = 1;
+        message.audioDuration = duration;
+        messageArrayList.add(message);
+        adapter.notifyItemInserted(messageArrayList.size() - 1);
+        recyclerView.scrollToPosition(messageArrayList.size() - 1);
+        MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
+
+        Intent serviceIntent = new Intent(getContext(), UploadService.class);
+        serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, audioPath);
+        serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+        serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
+        serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_AUDIO);
         getContext().getApplicationContext().startService(serviceIntent);
     }
 
@@ -331,6 +416,12 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     {
         fakeToolbar = (FakeToolbar) view.findViewById(R.id.toolbar_fake_layout);
         fakeToolbar.setTitle(contact.name);
+        fakeToolbar.setOnAudioClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showRecordAudioDialog();
+            }
+        });
         fakeToolbar.setOnPhotoClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -370,6 +461,17 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     }
 
+    private void showRecordAudioDialog()
+    {
+        RecordAudioDialog recordAudioDialog = RecordAudioDialog.newInstance(this);
+        recordAudioDialog.show(getChildFragmentManager(), RecordAudioDialog.FRAGMENT_TAG);
+    }
+
+    @Override
+    public void onRecordAudioCompleted(String audioPath) {
+        uploadAudio(audioPath);
+    }
+
     /*@Override
     public void onResult(int requestCode, int resultCode, Intent data) {
         Log.d("qwerty", "onResult");
@@ -399,6 +501,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public void onPickMedia(Intent intent, int requestCode) {
         startActivityForResult(intent, requestCode);
     }
+
+
 
     public static class PickMediaDialogFragment extends DialogFragment {
 
@@ -539,6 +643,15 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
             serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
             serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_VIDEO);
+            getContext().getApplicationContext().startService(serviceIntent);
+        }
+        else if (message.messageType == Message.MY_MESSAGE_AUDIO)
+        {
+            Intent serviceIntent = new Intent(getContext(), UploadService.class);
+            serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, message.getMessage());
+            serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+            serviceIntent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, opponentPhone);
+            serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_AUDIO);
             getContext().getApplicationContext().startService(serviceIntent);
         }
         else
@@ -892,6 +1005,50 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             alarmReceiverGlobal.setAlarm(getContext(), removalTime, timer);
         }
         fakeToolbar.startTimer();
+    }
+
+    private void setUpEmojiPopup() {
+        emojiPopup = EmojiPopup.Builder.fromRootView(rootView).setOnEmojiBackspaceClickListener(new OnEmojiBackspaceClickListener() {
+            @Override
+            public void onEmojiBackspaceClicked(final View v) {
+                Log.d("MainActivity", "Clicked on Backspace");
+            }
+        }).setOnEmojiClickedListener(new OnEmojiClickedListener() {
+            @Override
+            public void onEmojiClicked(final Emoji emoji) {
+                Log.d("MainActivity", "Clicked on emoji");
+            }
+        }).setOnEmojiPopupShownListener(new OnEmojiPopupShownListener() {
+            @Override
+            public void onEmojiPopupShown() {
+                emojiButton.setImageResource(R.drawable.keyboard_black);
+            }
+        }).setOnSoftKeyboardOpenListener(new OnSoftKeyboardOpenListener() {
+            @Override
+            public void onKeyboardOpen(final int keyBoardHeight) {
+                Log.d("MainActivity", "Opened soft keyboard");
+            }
+        }).setOnEmojiPopupDismissListener(new OnEmojiPopupDismissListener() {
+            @Override
+            public void onEmojiPopupDismiss() {
+                emojiButton.setImageResource(R.drawable.emoji_black);
+            }
+        }).setOnSoftKeyboardCloseListener(new OnSoftKeyboardCloseListener() {
+            @Override
+            public void onKeyboardClose() {
+                emojiPopup.dismiss();
+            }
+        }).build(editText);
+    }
+
+    public boolean backPressed()
+    {
+        if (emojiPopup != null && emojiPopup.isShowing()) {
+            emojiPopup.dismiss();
+            return false;
+        } else {
+            return true;
+        }
     }
 
 

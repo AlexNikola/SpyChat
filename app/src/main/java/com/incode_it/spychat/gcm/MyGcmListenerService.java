@@ -12,10 +12,12 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
+import android.view.View;
 
 import com.google.android.gms.gcm.GcmListenerService;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
+import com.incode_it.spychat.amazon.DownloadService;
 import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.QuickstartPreferences;
@@ -54,6 +56,10 @@ public class MyGcmListenerService extends GcmListenerService {
         {
             message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_VIDEO);
         }
+        else if (textMessage.startsWith(C.MEDIA_TYPE_AUDIO + "/+"))
+        {
+            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_DOWNLOADING, Message.NOT_MY_MESSAGE_AUDIO);
+        }
         else
         {
             message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_SUCCESS, Message.NOT_MY_MESSAGE_TEXT);
@@ -68,6 +74,16 @@ public class MyGcmListenerService extends GcmListenerService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
 
+        if (textMessage.startsWith(C.MEDIA_TYPE_AUDIO + "/+"))
+        {
+            String remotePath = message.getMessage();
+            Intent serviceIntent = new Intent(this, DownloadService.class);
+            serviceIntent.putExtra(C.EXTRA_MEDIA_FILE_PATH, remotePath);
+            serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+            serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_VIDEO);
+            startService(serviceIntent);
+            MyDbHelper.updateMessageState(new MyDbHelper(this).getWritableDatabase(), message.state, message.getMessageId());
+        }
         // [END_EXCLUDE]
     }
     // [END receive_message]

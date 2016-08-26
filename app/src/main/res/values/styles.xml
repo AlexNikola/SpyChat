@@ -19,6 +19,15 @@
         <item name="colorControlActivated">@color/colorPrimary</item>-->
     </style>
 
+    <style name="ChatTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimarySettings</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkSettings</item>
+        <item name="colorAccent">@color/colorAccentSettings</item>
+        <!--<item name="colorControlNormal">@color/colorPrimary</item>
+        <item name="colorControlActivated">@color/colorPrimary</item>-->
+    </style>
+
     <style name="ChangePassTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimarySettings</item>
@@ -73,6 +82,10 @@
 
     <style name="MyDialog" parent="@android:style/Theme.Dialog">
 
+    </style>
+
+    <style name="RecordAudioDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:windowBackground">@color/transparent</item>
     </style>
 
 

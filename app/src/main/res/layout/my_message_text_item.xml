@@ -32,7 +32,7 @@
                 android:layout_height="match_parent"
                 android:padding="8dp">
 
-                <TextView
+                <com.vanniktech.emoji.EmojiTextView
                     android:id="@+id/text_message"
                     android:text=" ll fdfsf  ffdf dfdf "
                     android:textSize="16sp"

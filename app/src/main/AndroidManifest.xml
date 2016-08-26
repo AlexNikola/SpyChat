@@ -16,6 +16,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERACT_ACROSS_USERS_FULL" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <!-- [START gcm_permission] -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
@@ -64,7 +65,8 @@
         <activity
             android:name=".chat.ActivityChat"
             android:label="@string/title_activity_activity_chat"
-            android:theme="@style/AppTheme" />
+            android:theme="@style/ChatTheme"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".authorization.ActivityAuth"
             android:theme="@style/AuthTheme"
@@ -140,6 +142,10 @@
 
         <service
             android:name=".amazon.DownloadService"
+            android:exported="false" />
+        <service
+            android:name=".chat.AudioService"
+            android:enabled="true"
             android:exported="false"></service>
     </application>
 

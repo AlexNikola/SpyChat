@@ -18,6 +18,7 @@ public final class MReaderContract
         public static final String REMOVAL_TIME = "removal_time";
         public static final String MESSAGE_TYPE = "message_time";
         public static final String IS_VIEWED = "is_viewed";
+        public static final String AUDIO_DURATION = "audio_duration";
     }
 
     public static abstract class RegisteredContact implements BaseColumns {

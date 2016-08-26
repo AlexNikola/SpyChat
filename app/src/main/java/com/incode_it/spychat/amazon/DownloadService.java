@@ -3,6 +3,7 @@ package com.incode_it.spychat.amazon;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 
@@ -66,6 +67,14 @@ public class DownloadService extends IntentService {
         {
             try {
                 localFile = createVideoFile(remoteFile.getName());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else if (remotePath.startsWith(C.MEDIA_TYPE_AUDIO + "/"))
+        {
+            try {
+                localFile = createAudioFile(remoteFile.getName());
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -141,6 +150,13 @@ public class DownloadService extends IntentService {
     private File createVideoFile(String fileName) throws IOException {
         File storageDir = this.getExternalFilesDir(null);
         String fullDir = storageDir.getAbsolutePath() + "/" + fileName;
+
+        return new File(fullDir);
+    }
+
+    private File createAudioFile(String fileName) throws IOException {
+        File storageDir = this.getExternalFilesDir(null);
+        String fullDir = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + fileName;
 
         return new File(fullDir);
     }

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">SpyChat</string>
+    <string name="app_name">SpyChatter</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -137,6 +137,6 @@
 
     <string name="description_2">You can set time to delete each message individually by long pressing the message bubble.</string>
 
-    <string name="description_3">The SPYChat Contact List is synchronized with your smartphone - to add one simply add it to phone Contacts.</string>
+    <string name="description_3">The SpyChatter Contact List is synchronized with your smartphone - to add one simply add it to phone Contacts.</string>
 
 </resources>

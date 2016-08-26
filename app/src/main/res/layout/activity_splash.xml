@@ -18,7 +18,7 @@
 
     <ImageView
         android:scaleType="centerCrop"
-        android:src="@drawable/spychatlogo"
+        android:src="@drawable/spychatterlogo"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:adjustViewBounds="true"/>
