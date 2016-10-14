@@ -139,4 +139,5 @@
 
     <string name="description_3">The SpyChatter Contact List is synchronized with your smartphone - to add one simply add it to phone Contacts.</string>
 
+    <string name="pick_color_dialog_title">Pick color</string>
 </resources>

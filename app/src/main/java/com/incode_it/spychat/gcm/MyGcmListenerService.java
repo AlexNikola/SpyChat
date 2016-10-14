@@ -12,16 +12,20 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
-import android.view.View;
+import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
+import com.incode_it.spychat.QuickstartPreferences;
+import com.incode_it.spychat.R;
 import com.incode_it.spychat.amazon.DownloadService;
 import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.data_base.MyDbHelper;
-import com.incode_it.spychat.QuickstartPreferences;
-import com.incode_it.spychat.R;
+import com.incode_it.spychat.utils.Cypher;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class MyGcmListenerService extends GcmListenerService {
 
@@ -37,8 +41,25 @@ public class MyGcmListenerService extends GcmListenerService {
     // [START receive_message]
     @Override
     public void onMessageReceived(String from, Bundle data) {
-        String textMessage = data.getString("message");
-        if (textMessage == null) return;
+        String receivedTextMessage;
+        int receivedColor;
+        float receivetTextSize;
+        boolean receivedIsAnimated;
+
+        try {
+            JSONObject jsonObject = new JSONObject(data.getString("message"));
+            receivedTextMessage = jsonObject.getString("textmessage");
+            receivedColor = jsonObject.getInt("color");
+            receivetTextSize = (float) jsonObject.getDouble("size");
+            receivedIsAnimated = jsonObject.getBoolean("animation");
+            Log.d(TAG, "received is Animated: " + receivedIsAnimated);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        if (receivedTextMessage == null) return;
         String phone = data.getString("phone");
 
 
@@ -48,21 +69,24 @@ public class MyGcmListenerService extends GcmListenerService {
         String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
 
         Message message;
-        if (textMessage.startsWith(C.MEDIA_TYPE_IMAGE + "/+"))
+        if (receivedTextMessage.startsWith(C.MEDIA_TYPE_IMAGE + "/+"))
         {
-            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_IMAGE);
+            message = new Message(receivedTextMessage, phone, myPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_IMAGE);
         }
-        else if (textMessage.startsWith(C.MEDIA_TYPE_VIDEO + "/+"))
+        else if (receivedTextMessage.startsWith(C.MEDIA_TYPE_VIDEO + "/+"))
         {
-            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_VIDEO);
+            message = new Message(receivedTextMessage, phone, myPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_VIDEO);
         }
-        else if (textMessage.startsWith(C.MEDIA_TYPE_AUDIO + "/+"))
+        else if (receivedTextMessage.startsWith(C.MEDIA_TYPE_AUDIO + "/+"))
         {
-            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_DOWNLOADING, Message.NOT_MY_MESSAGE_AUDIO);
+            message = new Message(receivedTextMessage, phone, myPhoneNumber, Message.STATE_DOWNLOADING, Message.NOT_MY_MESSAGE_AUDIO);
         }
         else
         {
-            message = new Message(textMessage, phone, myPhoneNumber, Message.STATE_SUCCESS, Message.NOT_MY_MESSAGE_TEXT);
+            message = new Message(receivedTextMessage, phone, myPhoneNumber, Message.STATE_SUCCESS, Message.NOT_MY_MESSAGE_TEXT);
+            message.setColor(receivedColor);
+            message.setTextSize(receivetTextSize);
+            message.setAnimated(receivedIsAnimated);
         }
 
         sendNotification(message);
@@ -74,7 +98,7 @@ public class MyGcmListenerService extends GcmListenerService {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
 
-        if (textMessage.startsWith(C.MEDIA_TYPE_AUDIO + "/+"))
+        if (receivedTextMessage.startsWith(C.MEDIA_TYPE_AUDIO + "/+"))
         {
             String remotePath = message.getMessage();
             Intent serviceIntent = new Intent(this, DownloadService.class);
@@ -119,7 +143,7 @@ public class MyGcmListenerService extends GcmListenerService {
 
         if (message.messageType == Message.NOT_MY_MESSAGE_TEXT)
         {
-            notificationBuilder.setContentText(message.getMessage());
+            notificationBuilder.setContentText(Cypher.decrypt(message.getMessage()));
         }
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);

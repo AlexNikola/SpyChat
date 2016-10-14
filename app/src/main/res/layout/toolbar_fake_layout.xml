@@ -6,7 +6,7 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:visibility="visible"
+        android:visibility="gone"
         android:id="@+id/toolbar_lower"
         android:orientation="horizontal"
         android:layout_width="match_parent"
@@ -46,6 +46,44 @@
             android:padding="13dp"
             android:id="@+id/open_gallery"
             android:src="@drawable/photo_library"
+            android:adjustViewBounds="true"
+            android:layout_width="?attr/actionBarSize"
+            android:layout_height="match_parent" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/toolbar_lower_palette"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:gravity="end">
+
+        <ImageView
+            android:id="@+id/change_color"
+            android:padding="13dp"
+            android:background="@drawable/bg_attachments"
+            android:src="@drawable/palette"
+            android:adjustViewBounds="true"
+            android:layout_width="?attr/actionBarSize"
+            android:layout_height="match_parent" />
+
+        <ImageView
+            android:id="@+id/change_size"
+            android:padding="13dp"
+            android:background="@drawable/bg_attachments"
+            android:src="@drawable/format_size"
+            android:adjustViewBounds="true"
+            android:layout_width="?attr/actionBarSize"
+            android:layout_height="match_parent" />
+
+        <ImageView
+            android:id="@+id/change_blink"
+            android:padding="13dp"
+            android:background="@drawable/bg_attachments"
+            android:src="@drawable/texture"
             android:adjustViewBounds="true"
             android:layout_width="?attr/actionBarSize"
             android:layout_height="match_parent" />
@@ -133,6 +171,14 @@
                     android:layout_height="wrap_content" />
 
             </FrameLayout>
+
+            <ImageView
+                android:id="@+id/palette"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginRight="16dp"
+                android:src="@drawable/palette_advanced"/>
 
         </LinearLayout>
 

@@ -1,5 +1,7 @@
 package com.incode_it.spychat.chat;
 
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorSet;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -7,7 +9,6 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
@@ -35,6 +36,7 @@ import com.incode_it.spychat.alarm.AlarmReceiverIndividual;
 import com.incode_it.spychat.amazon.DownloadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
+import com.incode_it.spychat.utils.Cypher;
 import com.vanniktech.emoji.EmojiTextView;
 
 import java.io.File;
@@ -424,34 +426,48 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     public class MessageTextViewHolder extends MessageViewHolder
     {
         public EmojiTextView textMessage;
+        private AnimatorSet animation;
 
         public MessageTextViewHolder(View itemView) {
             super(itemView);
-
             textMessage = (EmojiTextView) itemView.findViewById(R.id.text_message);
             textMessage.setEmojiSize((int) context.getResources().getDimension(R.dimen.emoji_size));
+            animation = (AnimatorSet) AnimatorInflater
+                    .loadAnimator(context, R.animator.blink);
+            animation.setTarget(textMessage);
         }
 
         @Override
         public void bindViewHolder(Message message) {
             super.bindViewHolder(message);
-            textMessage.setText(message.getMessage());
+
+            animation.cancel();
+            textMessage.setText(Cypher.decrypt(message.getMessage()));
 
             if (!message.getSenderPhoneNumber().equals(myPhoneNumber)) {
-                textMessage.setTextColor(Color.parseColor("#000000"));
+                setTextStyle(message);
             } else {
                 switch (message.state)
                 {
                     case Message.STATE_ADDED:
-                        textMessage.setTextColor(Color.parseColor("#55000000"));
+                        setTextStyle(message);
                         break;
                     case Message.STATE_SUCCESS:
-                        textMessage.setTextColor(Color.parseColor("#000000"));
+                        setTextStyle(message);
                         break;
                     case Message.STATE_ERROR:
-                        textMessage.setTextColor(Color.parseColor("#000000"));
+                        setTextStyle(message);
                         break;
                 }
+            }
+        }
+
+        private void setTextStyle(Message message) {
+            textMessage.setTextColor(message.getColor());
+            textMessage.setTextSize(message.getTextSize());
+            textMessage.setAlpha(1);
+            if (message.isAnimated()) {
+                animation.start();
             }
         }
     }

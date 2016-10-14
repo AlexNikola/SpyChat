@@ -1,6 +1,8 @@
 package com.incode_it.spychat.chat;
 
 
+import android.animation.AnimatorInflater;
+import android.animation.AnimatorSet;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -27,6 +29,7 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -45,11 +48,11 @@ import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
-import com.incode_it.spychat.amazon.DownloadService;
 import com.incode_it.spychat.amazon.UploadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.interfaces.OnPickMediaListener;
+import com.incode_it.spychat.utils.Cypher;
 import com.vanniktech.emoji.EmojiEditText;
 import com.vanniktech.emoji.EmojiPopup;
 import com.vanniktech.emoji.emoji.Emoji;
@@ -64,6 +67,8 @@ import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xdty.preference.colorpicker.ColorPickerDialog;
+import org.xdty.preference.colorpicker.ColorPickerSwatch;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -87,6 +92,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private static final String TAG = "chatm";
     private static final String DOWNLOAD_TAG = "amaz_download";
     public static final String TAG_FRAGMENT = "FragmentChat";
+    public static final int REQUEST_TEXT_SIZE = 99;
+
     private String opponentPhone;
     private RecyclerView recyclerView;
     private EmojiEditText editText;
@@ -115,6 +122,11 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private EmojiPopup emojiPopup;
 
     private AudioService mService;
+
+    private int selectedColor;
+    private float selectedSize;
+    private boolean isAnimated;
+    private AnimatorSet animation;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -156,9 +168,12 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         if (getArguments() != null) {
             opponentPhone = getArguments().getString(C.EXTRA_OPPONENT_PHONE_NUMBER);
         }
+
+        if (savedInstanceState == null) {
+            selectedColor = ContextCompat.getColor(getActivity(), R.color.black);
+            selectedSize = 16;
+        }
     }
-
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -176,6 +191,14 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
         initRecyclerView(view);
         editText = (EmojiEditText) view.findViewById(R.id.edit_text);
+        editText.setTextColor(selectedColor);
+        editText.setTextSize(selectedSize);
+        if (animation != null) {
+            animation.setTarget(editText);
+            if (isAnimated) {
+                animation.start();
+            }
+        }
         initFakeToolbar(view);
         initSendMessageView(view);
 
@@ -188,8 +211,70 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         });
         setUpEmojiPopup();
 
+        ImageView changeColor = (ImageView) view.findViewById(R.id.change_color);
+        ImageView changeSize = (ImageView) view.findViewById(R.id.change_size);
+        ImageView changeBlink = (ImageView) view.findViewById(R.id.change_blink);
+
+        changeColor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                int[] mColors = getResources().getIntArray(R.array.default_rainbow);
+
+                ColorPickerDialog dialog = ColorPickerDialog.newInstance(R.string.pick_color_dialog_title,
+                        mColors,
+                        selectedColor,
+                        5,
+                        ColorPickerDialog.SIZE_SMALL);
+
+                dialog.setOnColorSelectedListener(new ColorPickerSwatch.OnColorSelectedListener() {
+
+                    @Override
+                    public void onColorSelected(int color) {
+                        selectedColor = color;
+                        editText.setTextColor(selectedColor);
+                    }
+                });
+
+                dialog.show(getActivity().getFragmentManager(), "color_dialog_test");
+            }
+        });
+
+        changeSize.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ChatTextSizeDialog dialog = new ChatTextSizeDialog();
+                dialog.setTargetFragment(FragmentChat.this, REQUEST_TEXT_SIZE);
+                dialog.show(getActivity().getSupportFragmentManager(), "change_text_size_dialog");
+            }
+        });
+
+        changeBlink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+             if (animation == null) {
+                    animation = (AnimatorSet) AnimatorInflater.loadAnimator(getActivity(), R.animator.blink);
+                }
+                animation.setTarget(editText);
+
+                if (!isAnimated) {
+                    animation.start();
+                    isAnimated = true;
+                } else {
+                    animation.cancel();
+                    editText.setAlpha(1);
+                    isAnimated = false;
+                }
+            }
+        });
+
         return view;
     }
+
+    private void resetPickerColor() {
+        selectedColor = ContextCompat.getColor(getActivity(), R.color.black);
+        editText.setTextColor(selectedColor);
+    }
+
 
     @Override
     public void onResume() {
@@ -240,6 +325,12 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             Log.d("qwerty", data.getType()+" - "+path);
             String realPath = getRealPath(path);
             uploadVideo(realPath);
+        } else if (requestCode == REQUEST_TEXT_SIZE) {
+            if (resultCode == Activity.RESULT_OK) {
+                selectedSize = data.getFloatExtra(ChatTextSizeDialog.EXTRA_TEXT_SIZE, 16);
+                Log.d(TAG, "result from dialog: " + selectedSize);
+                editText.setTextSize(selectedSize);
+            }
         }
     }
 
@@ -502,8 +593,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         startActivityForResult(intent, requestCode);
     }
 
-
-
     public static class PickMediaDialogFragment extends DialogFragment {
 
         public static final String TAG = "PickMediaDialogFragment";
@@ -607,13 +696,17 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 editText.setText("");
                 if (textMessage.length() > 0)
                 {
-                    final Message message = new Message(textMessage, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_TEXT);
+                    final Message message = new Message(Cypher.encrypt(textMessage), myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_TEXT);
                     message.isViewed = 1;
+                    message.setColor(selectedColor);
+                    message.setTextSize(selectedSize);
+                    message.setAnimated(isAnimated);
+                    initStyleFlags();
+                    editText.setTextSize(selectedSize);
                     messageArrayList.add(message);
                     adapter.notifyItemInserted(messageArrayList.size() - 1);
                     recyclerView.scrollToPosition(messageArrayList.size() - 1);
                     MyDbHelper.insertMessage(new MyDbHelper(getContext()).getWritableDatabase(), message);
-
                     new Handler().postDelayed(new Runnable() {
                         public void run() {
                             new SendMessageTask(getContext()).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, message);
@@ -623,6 +716,16 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 }
             }
         });
+    }
+
+    private void initStyleFlags() {
+        selectedSize = 16;
+        isAnimated = false;
+        if (animation != null && animation.isRunning()) {
+            animation.cancel();
+        }
+        editText.setAlpha(1);
+        resetPickerColor();
     }
 
     @Override
@@ -681,10 +784,21 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         protected String doInBackground(Message... params) {
             message = params[0];
             String textMessage = message.getMessage();
+            JSONObject object = new JSONObject();
+            try {
+                object.put("textmessage", textMessage);
+                object.put("color", message.getColor());
+                object.put("size", (double) message.getTextSize());
+                object.put("animation", message.isAnimated());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
             String result = null;
             try
             {
-                result = trySendMessage(textMessage, context);
+//                result = trySendMessage(textMessage, context);
+                result = trySendMessage(object.toString(), context);
             }
             catch (IOException | JSONException e)
             {

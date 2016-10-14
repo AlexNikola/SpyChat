@@ -1,6 +1,8 @@
 package com.incode_it.spychat;
 
 
+import android.graphics.Color;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -35,6 +37,9 @@ public class Message
     public int messageType;
     public int isViewed;
     public int audioDuration;
+    private int color = Color.BLACK;
+    private float textSize;
+    private boolean isAnimated;
 
     public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state, int messageType)
     {
@@ -106,5 +111,29 @@ public class Message
                 "yyyy-MM-dd HH:mm", Locale.getDefault());
         Date date = new Date();
         return dateFormat.format(date);
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+    }
+
+    public float getTextSize() {
+        return textSize;
+    }
+
+    public void setTextSize(float textSize) {
+        this.textSize = textSize;
+    }
+
+    public boolean isAnimated() {
+        return isAnimated;
+    }
+
+    public void setAnimated(boolean animated) {
+        isAnimated = animated;
     }
 }

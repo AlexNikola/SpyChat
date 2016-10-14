@@ -8,9 +8,11 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyContacts;
-import com.incode_it.spychat.country_selection.Country;
-import com.incode_it.spychat.data_base.MReaderContract.*;
 import com.incode_it.spychat.alarm.TimeHolder;
+import com.incode_it.spychat.country_selection.Country;
+import com.incode_it.spychat.data_base.MReaderContract.Chat;
+import com.incode_it.spychat.data_base.MReaderContract.Countries;
+import com.incode_it.spychat.data_base.MReaderContract.RegisteredContact;
 
 import java.util.ArrayList;
 
@@ -21,6 +23,7 @@ public class MyDbHelper extends SQLiteOpenHelper
 
     private static final String TYPE_TEXT = " TEXT";
     private static final String TYPE_INT = " INTEGER";
+    private static final String TYPE_REAL = " REAL";
     private static final String COMMA_SEP = ",";
 
     private static final String SQL_CREATE_CONTACT_TABLE =
@@ -43,7 +46,10 @@ public class MyDbHelper extends SQLiteOpenHelper
                     Chat.REMOVAL_TIME + TYPE_INT  + COMMA_SEP +
                     Chat.MESSAGE_TYPE + TYPE_INT  + COMMA_SEP +
                     Chat.IS_VIEWED + TYPE_INT + COMMA_SEP +
-                    Chat.AUDIO_DURATION + TYPE_INT + " )";
+                    Chat.AUDIO_DURATION + TYPE_INT + COMMA_SEP +
+                    Chat.COLOR + TYPE_INT + COMMA_SEP  +
+                    Chat.SIZE + TYPE_REAL  + COMMA_SEP +
+                    Chat.ANIMATION + TYPE_INT + " )";
 
 
     private static final String SQL_DELETE_CHAT_TABLE =
@@ -64,7 +70,7 @@ public class MyDbHelper extends SQLiteOpenHelper
     private static final String SQL_DELETE_COUNTRIES_TABLE =
             "DROP TABLE IF EXISTS " + Countries.TABLE_NAME;
 
-    public static final int DATABASE_VERSION = 7;
+    public static final int DATABASE_VERSION = 8;
     public static final String DATABASE_NAME = "SpyChat.db";
 
     public MyDbHelper(Context context) {
@@ -106,6 +112,9 @@ public class MyDbHelper extends SQLiteOpenHelper
         values.put(Chat.MESSAGE_TYPE, message.messageType);
         values.put(Chat.IS_VIEWED, message.isViewed);
         values.put(Chat.AUDIO_DURATION, message.audioDuration);
+        values.put(Chat.COLOR, message.getColor());
+        values.put(Chat.SIZE, message.getTextSize());
+        values.put(Chat.ANIMATION, message.isAnimated() ? 1 : 0);
 
         db.insert(Chat.TABLE_NAME, null, values);
         db.close();
@@ -173,6 +182,9 @@ public class MyDbHelper extends SQLiteOpenHelper
                 int isViewed = cursor.getInt(9);
                 int audioDuration = cursor.getInt(10);
                 Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType);
+                message.setColor(cursor.getInt(11));
+                message.setTextSize(cursor.getFloat(12));
+                message.setAnimated(cursor.getFloat(13) == 1);
                 message.isViewed = isViewed;
                 message.audioDuration = audioDuration;
                 messagesArr.add(message);
@@ -203,6 +215,9 @@ public class MyDbHelper extends SQLiteOpenHelper
         int isViewed = cursor.getInt(9);
         int audioDuration = cursor.getInt(10);
         Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType);
+        message.setColor(cursor.getInt(11));
+        message.setTextSize(cursor.getFloat(12));
+        message.setAnimated(cursor.getFloat(13) == 1);
         message.isViewed = isViewed;
         message.audioDuration = audioDuration;
         cursor.close();

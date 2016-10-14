@@ -7,4 +7,17 @@
         <item>What is your mother`s maiden name?</item>
     </string-array>
 
+    <array name="default_rainbow">
+        <item>@color/tomato</item>
+        <item>@color/tangerine</item>
+        <item>@color/banana</item>
+        <item>@color/basil</item>
+        <item>@color/sage</item>
+        <item>@color/peacock</item>
+        <item>@color/blueberry</item>
+        <item>@color/lavender</item>
+        <item>@color/grape</item>
+        <item>@color/flamingo</item>
+        <item>@color/black</item>
+    </array>
 </resources>
