@@ -18,6 +18,7 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -39,6 +40,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -53,6 +55,7 @@ import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.interfaces.OnPickMediaListener;
 import com.incode_it.spychat.utils.Cypher;
+import com.incode_it.spychat.utils.FontHelper;
 import com.vanniktech.emoji.EmojiEditText;
 import com.vanniktech.emoji.EmojiPopup;
 import com.vanniktech.emoji.emoji.Emoji;
@@ -93,6 +96,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private static final String DOWNLOAD_TAG = "amaz_download";
     public static final String TAG_FRAGMENT = "FragmentChat";
     public static final int REQUEST_TEXT_SIZE = 99;
+    public static final int REQUEST_TEXT_FONT = 100;
 
     private String opponentPhone;
     private RecyclerView recyclerView;
@@ -127,6 +131,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private float selectedSize;
     private boolean isAnimated;
     private AnimatorSet animation;
+    private String selectedFont;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -193,6 +198,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         editText = (EmojiEditText) view.findViewById(R.id.edit_text);
         editText.setTextColor(selectedColor);
         editText.setTextSize(selectedSize);
+        FontHelper.setCustomFont(getActivity(), editText, selectedFont);
         if (animation != null) {
             animation.setTarget(editText);
             if (isAnimated) {
@@ -211,9 +217,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         });
         setUpEmojiPopup();
 
-        ImageView changeColor = (ImageView) view.findViewById(R.id.change_color);
-        ImageView changeSize = (ImageView) view.findViewById(R.id.change_size);
-        ImageView changeBlink = (ImageView) view.findViewById(R.id.change_blink);
+        TextView changeColor = (TextView) view.findViewById(R.id.change_color);
+        TextView changeSize = (TextView) view.findViewById(R.id.change_size);
+        TextView changeBlink = (TextView) view.findViewById(R.id.change_blink);
+        TextView changeFont  = (TextView) view.findViewById(R.id.change_font);
 
         changeColor.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -264,6 +271,15 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                     editText.setAlpha(1);
                     isAnimated = false;
                 }
+            }
+        });
+
+        changeFont.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ChatTextFontDialog dialog = new ChatTextFontDialog();
+                dialog.setTargetFragment(FragmentChat.this, REQUEST_TEXT_FONT);
+                dialog.show(getActivity().getSupportFragmentManager(), "change_text_font_dialog");
             }
         });
 
@@ -330,6 +346,11 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 selectedSize = data.getFloatExtra(ChatTextSizeDialog.EXTRA_TEXT_SIZE, 16);
                 Log.d(TAG, "result from dialog: " + selectedSize);
                 editText.setTextSize(selectedSize);
+            }
+        } else if (requestCode == REQUEST_TEXT_FONT) {
+            if (resultCode == Activity.RESULT_OK) {
+                selectedFont = data.getStringExtra(ChatTextFontDialog.EXTRA_TEXT_FONT);
+                FontHelper.setCustomFont(getActivity(), editText, selectedFont);
             }
         }
     }
@@ -549,7 +570,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 startTimerDialog();
             }
         });
-
     }
 
     private void showRecordAudioDialog()
@@ -692,6 +712,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         view.findViewById(R.id.send_view).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                fakeToolbar.hidePalettePopup();
                 String textMessage = editText.getText().toString();
                 editText.setText("");
                 if (textMessage.length() > 0)
@@ -701,6 +722,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                     message.setColor(selectedColor);
                     message.setTextSize(selectedSize);
                     message.setAnimated(isAnimated);
+                    message.setFont(selectedFont);
+
                     initStyleFlags();
                     editText.setTextSize(selectedSize);
                     messageArrayList.add(message);
@@ -726,6 +749,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
         editText.setAlpha(1);
         resetPickerColor();
+        selectedFont = null;
+        editText.setTypeface(Typeface.DEFAULT);
     }
 
     @Override
@@ -782,6 +807,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
         @Override
         protected String doInBackground(Message... params) {
+            String font = "default";
             message = params[0];
             String textMessage = message.getMessage();
             JSONObject object = new JSONObject();
@@ -790,6 +816,11 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 object.put("color", message.getColor());
                 object.put("size", (double) message.getTextSize());
                 object.put("animation", message.isAnimated());
+                if (message.getFont() != null) {
+                  font = message.getFont();
+                }
+                object.put("font", font);
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }

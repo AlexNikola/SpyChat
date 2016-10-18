@@ -65,7 +65,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         assert toolbar != null;
-        toolbar.setTitle("SPYchat");
+        toolbar.setTitle("SpyChatter");
         setSupportActionBar(toolbar);
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.fragment_view_pager);

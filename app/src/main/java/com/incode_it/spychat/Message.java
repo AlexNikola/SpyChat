@@ -40,6 +40,7 @@ public class Message
     private int color = Color.BLACK;
     private float textSize;
     private boolean isAnimated;
+    private String font;
 
     public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state, int messageType)
     {
@@ -135,5 +136,13 @@ public class Message
 
     public void setAnimated(boolean animated) {
         isAnimated = animated;
+    }
+
+    public String getFont() {
+        return font;
+    }
+
+    public void setFont(String font) {
+        this.font = font;
     }
 }

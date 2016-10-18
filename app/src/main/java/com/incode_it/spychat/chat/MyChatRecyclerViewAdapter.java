@@ -37,6 +37,7 @@ import com.incode_it.spychat.amazon.DownloadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.utils.Cypher;
+import com.incode_it.spychat.utils.FontHelper;
 import com.vanniktech.emoji.EmojiTextView;
 
 import java.io.File;
@@ -469,6 +470,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             if (message.isAnimated()) {
                 animation.start();
             }
+            FontHelper.setCustomFont(context, textMessage, message.getFont());
         }
     }
 

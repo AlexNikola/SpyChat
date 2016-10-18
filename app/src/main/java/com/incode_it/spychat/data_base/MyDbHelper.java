@@ -49,8 +49,8 @@ public class MyDbHelper extends SQLiteOpenHelper
                     Chat.AUDIO_DURATION + TYPE_INT + COMMA_SEP +
                     Chat.COLOR + TYPE_INT + COMMA_SEP  +
                     Chat.SIZE + TYPE_REAL  + COMMA_SEP +
-                    Chat.ANIMATION + TYPE_INT + " )";
-
+                    Chat.ANIMATION + TYPE_INT+ COMMA_SEP +
+                    Chat.FONT + TYPE_TEXT + " )";
 
     private static final String SQL_DELETE_CHAT_TABLE =
             "DROP TABLE IF EXISTS " + Chat.TABLE_NAME;
@@ -70,7 +70,7 @@ public class MyDbHelper extends SQLiteOpenHelper
     private static final String SQL_DELETE_COUNTRIES_TABLE =
             "DROP TABLE IF EXISTS " + Countries.TABLE_NAME;
 
-    public static final int DATABASE_VERSION = 8;
+    public static final int DATABASE_VERSION = 9;
     public static final String DATABASE_NAME = "SpyChat.db";
 
     public MyDbHelper(Context context) {
@@ -115,6 +115,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         values.put(Chat.COLOR, message.getColor());
         values.put(Chat.SIZE, message.getTextSize());
         values.put(Chat.ANIMATION, message.isAnimated() ? 1 : 0);
+        values.put(Chat.FONT, message.getFont());
 
         db.insert(Chat.TABLE_NAME, null, values);
         db.close();
@@ -185,6 +186,7 @@ public class MyDbHelper extends SQLiteOpenHelper
                 message.setColor(cursor.getInt(11));
                 message.setTextSize(cursor.getFloat(12));
                 message.setAnimated(cursor.getFloat(13) == 1);
+                message.setFont(cursor.getString(14));
                 message.isViewed = isViewed;
                 message.audioDuration = audioDuration;
                 messagesArr.add(message);
@@ -218,6 +220,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         message.setColor(cursor.getInt(11));
         message.setTextSize(cursor.getFloat(12));
         message.setAnimated(cursor.getFloat(13) == 1);
+        message.setFont(cursor.getString(14));
         message.isViewed = isViewed;
         message.audioDuration = audioDuration;
         cursor.close();

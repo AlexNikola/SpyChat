@@ -32,7 +32,7 @@ public class FakeToolbar extends FrameLayout {
     private ImageView takePhoto, takeVideo, openGallery, takeAudio;
     private TextView title;
     private View backBtn;
-    private ImageView buttonPalette;
+    private TextView buttonPalette;
 
     public FakeToolbar(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -65,7 +65,7 @@ public class FakeToolbar extends FrameLayout {
         popUpTranslationY = toolbarUpper.getLayoutParams().height;
         toolbarPalette = findViewById(R.id.toolbar_lower_palette);
         toolbarLower = findViewById(R.id.toolbar_lower);
-        buttonPalette = (ImageView) findViewById(R.id.palette);
+        buttonPalette = (TextView) findViewById(R.id.palette);
         attachmentsBtn = findViewById(R.id.attachments);
         attachmentsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -130,7 +130,7 @@ public class FakeToolbar extends FrameLayout {
         toolbarPalette.animate().translationY(popUpTranslationY).start();
     }
 
-    private void hidePalettePopup() {
+    public void hidePalettePopup() {
         isPalettePopupVisible = false;
         toolbarPalette.animate()
                 .translationY(0f)

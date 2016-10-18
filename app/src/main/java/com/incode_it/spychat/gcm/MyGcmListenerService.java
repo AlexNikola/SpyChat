@@ -12,7 +12,6 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
 import com.incode_it.spychat.C;
@@ -45,6 +44,7 @@ public class MyGcmListenerService extends GcmListenerService {
         int receivedColor;
         float receivetTextSize;
         boolean receivedIsAnimated;
+        String receivedFont;
 
         try {
             JSONObject jsonObject = new JSONObject(data.getString("message"));
@@ -52,7 +52,7 @@ public class MyGcmListenerService extends GcmListenerService {
             receivedColor = jsonObject.getInt("color");
             receivetTextSize = (float) jsonObject.getDouble("size");
             receivedIsAnimated = jsonObject.getBoolean("animation");
-            Log.d(TAG, "received is Animated: " + receivedIsAnimated);
+            receivedFont = jsonObject.getString("font");
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -87,6 +87,11 @@ public class MyGcmListenerService extends GcmListenerService {
             message.setColor(receivedColor);
             message.setTextSize(receivetTextSize);
             message.setAnimated(receivedIsAnimated);
+            if (receivedFont.equals("default")) {
+                message.setFont(null);
+            } else {
+                message.setFont(receivedFont);
+            }
         }
 
         sendNotification(message);

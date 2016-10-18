@@ -6,19 +6,19 @@
               android:gravity="center">
 
     <TextView
-        android:id="@+id/small"
+        android:id="@+id/guilty"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:layout_gravity="center"
         android:textColor="@color/black"
-        android:textSize="14sp"
-        android:text="Small"
+        android:textSize="16sp"
+        android:text="Alpha Echo"
         android:padding="8dp"
         android:background="@drawable/button_light_selector"/>
 
     <TextView
-        android:id="@+id/normal"
+        android:id="@+id/innocent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -27,30 +27,29 @@
         android:textSize="16sp"
         android:textColor="@color/black"
         android:background="@drawable/button_light_selector"
-        android:text="Normal"/>
+        android:text="Nervous  Rex"/>
 
     <TextView
-        android:id="@+id/large"
+        android:id="@+id/tusi"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:textSize="28sp"
+        android:textSize="16sp"
         android:layout_margin="8dp"
         android:padding="8dp"
         android:textColor="@color/black"
         android:background="@drawable/button_light_selector"
-        android:text="Large"/>
+        android:text="Zero and Zero"/>
 
     <TextView
-        android:id="@+id/huge"
+        android:id="@+id/default_font"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:textSize="36sp"
+        android:textSize="16sp"
         android:layout_margin="8dp"
         android:padding="8dp"
         android:textColor="@color/black"
         android:background="@drawable/button_light_selector"
-        android:text="Huge"/>
-
+        android:text="Default"/>
 </LinearLayout>

@@ -59,37 +59,54 @@
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
         android:background="@color/colorPrimary"
+        android:padding="8dp"
         android:gravity="end">
 
-        <ImageView
+        <TextView
+            android:id="@+id/change_font"
+            android:paddingStart="13dp"
+            android:paddingEnd="13dp"
+            android:background="@drawable/button_dark_selector"
+            android:text="Font"
+            android:textColor="#ffffff"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"/>
+
+        <TextView
             android:id="@+id/change_color"
-            android:padding="13dp"
-            android:background="@drawable/bg_attachments"
-            android:src="@drawable/palette"
-            android:adjustViewBounds="true"
-            android:layout_width="?attr/actionBarSize"
-            android:layout_height="match_parent" />
+            android:paddingStart="13dp"
+            android:paddingEnd="13dp"
+            android:background="@drawable/button_dark_selector"
+            android:text="Text color"
+            android:textColor="#ffffff"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"/>
 
-        <ImageView
+        <TextView
             android:id="@+id/change_size"
-            android:padding="13dp"
-            android:background="@drawable/bg_attachments"
-            android:src="@drawable/format_size"
-            android:adjustViewBounds="true"
-            android:layout_width="?attr/actionBarSize"
-            android:layout_height="match_parent" />
+            android:paddingStart="13dp"
+            android:paddingEnd="13dp"
+            android:text="Text size"
+            android:textColor="#ffffff"
+            android:background="@drawable/button_dark_selector"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"/>
 
-        <ImageView
+        <TextView
             android:id="@+id/change_blink"
-            android:padding="13dp"
-            android:background="@drawable/bg_attachments"
-            android:src="@drawable/texture"
-            android:adjustViewBounds="true"
-            android:layout_width="?attr/actionBarSize"
-            android:layout_height="match_parent" />
+            android:paddingStart="13dp"
+            android:paddingEnd="13dp"
+            android:text="Blinking"
+            android:textColor="#ffffff"
+            android:background="@drawable/button_dark_selector"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical"/>
 
     </LinearLayout>
-
 
     <RelativeLayout
         android:id="@+id/toolbar_upper"
@@ -148,8 +165,8 @@
             <com.incode_it.spychat.TextViewDigital
                 android:background="@drawable/bg_attachments"
                 android:gravity="center"
-                android:paddingRight="10dp"
-                android:paddingLeft="10dp"
+                android:paddingRight="4dp"
+                android:paddingLeft="4dp"
                 custom:typefaceAsset="fonts/digital.ttf"
                 android:text="19:00:25"
                 android:textSize="30sp"
@@ -172,13 +189,17 @@
 
             </FrameLayout>
 
-            <ImageView
+            <TextView
                 android:id="@+id/palette"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginRight="16dp"
-                android:src="@drawable/palette_advanced"/>
+                android:text="Text Art"
+                android:padding="8dp"
+                android:textSize="14sp"
+                android:background="@drawable/button_dark_selector"
+                android:textColor="#ffffff"/>
 
         </LinearLayout>
 

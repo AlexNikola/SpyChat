@@ -22,6 +22,7 @@ public final class MReaderContract
         public static final String COLOR = "color";
         public static final String SIZE = "size";
         public static final String ANIMATION = "animation";
+        public static final String FONT = "font";
     }
 
     public static abstract class RegisteredContact implements BaseColumns {
