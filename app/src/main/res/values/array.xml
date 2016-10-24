@@ -19,5 +19,9 @@
         <item>@color/grape</item>
         <item>@color/flamingo</item>
         <item>@color/black</item>
+        <item>@color/gold</item>
+        <item>@color/silver</item>
+        <item>@color/brown</item>
+        <item>@color/pink</item>
     </array>
 </resources>

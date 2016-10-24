@@ -36,4 +36,9 @@
     <color name="colorAttachPressed">#26ffffff</color>
 
     <color name="transparent">#00000000</color>
+
+    <color name="gold">#F2A900</color>
+    <color name="silver">#ACACAC</color>
+    <color name="brown">#7B3F00</color>
+    <color name="pink">#FF69B4</color>
 </resources>
