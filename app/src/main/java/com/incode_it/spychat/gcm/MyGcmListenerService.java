@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import com.google.android.gms.gcm.GcmListenerService;
 import com.incode_it.spychat.C;
@@ -42,18 +43,20 @@ public class MyGcmListenerService extends GcmListenerService {
     public void onMessageReceived(String from, Bundle data) {
         String receivedTextMessage;
         int receivedColor;
-        float receivetTextSize;
+        float receivedTextSize;
         boolean receivedIsAnimated;
         String receivedFont;
+        String receiverPhoneNumber;
 
         try {
             JSONObject jsonObject = new JSONObject(data.getString("message"));
             receivedTextMessage = jsonObject.getString("textmessage");
             receivedColor = jsonObject.getInt("color");
-            receivetTextSize = (float) jsonObject.getDouble("size");
+            receivedTextSize = (float) jsonObject.getDouble("size");
             receivedIsAnimated = jsonObject.getBoolean("animation");
             receivedFont = jsonObject.getString("font");
-
+            receiverPhoneNumber = jsonObject.getString("receiverPhoneNumber");
+            Log.d("rfddffdfg", "onMessageReceived: " + receiverPhoneNumber);
         } catch (JSONException e) {
             e.printStackTrace();
             return;
@@ -62,30 +65,27 @@ public class MyGcmListenerService extends GcmListenerService {
         if (receivedTextMessage == null) return;
         String phone = data.getString("phone");
 
-
-
-
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         String myPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
 
         Message message;
         if (receivedTextMessage.startsWith(C.MEDIA_TYPE_IMAGE + "/+"))
         {
-            message = new Message(receivedTextMessage, phone, myPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_IMAGE);
+            message = new Message(receivedTextMessage, phone, receiverPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_IMAGE, receiverPhoneNumber);
         }
         else if (receivedTextMessage.startsWith(C.MEDIA_TYPE_VIDEO + "/+"))
         {
-            message = new Message(receivedTextMessage, phone, myPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_VIDEO);
+            message = new Message(receivedTextMessage, phone, receiverPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_VIDEO, receiverPhoneNumber);
         }
         else if (receivedTextMessage.startsWith(C.MEDIA_TYPE_AUDIO + "/+"))
         {
-            message = new Message(receivedTextMessage, phone, myPhoneNumber, Message.STATE_DOWNLOADING, Message.NOT_MY_MESSAGE_AUDIO);
+            message = new Message(receivedTextMessage, phone, receiverPhoneNumber, Message.STATE_DOWNLOADING, Message.NOT_MY_MESSAGE_AUDIO, receiverPhoneNumber);
         }
         else
         {
-            message = new Message(receivedTextMessage, phone, myPhoneNumber, Message.STATE_SUCCESS, Message.NOT_MY_MESSAGE_TEXT);
+            message = new Message(receivedTextMessage, phone, receiverPhoneNumber, Message.STATE_SUCCESS, Message.NOT_MY_MESSAGE_TEXT, receiverPhoneNumber);
             message.setColor(receivedColor);
-            message.setTextSize(receivetTextSize);
+            message.setTextSize(receivedTextSize);
             message.setAnimated(receivedIsAnimated);
             if (receivedFont.equals("default")) {
                 message.setFont(null);
@@ -94,14 +94,7 @@ public class MyGcmListenerService extends GcmListenerService {
             }
         }
 
-        sendNotification(message);
-
-        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), message);
-        Intent intent = new Intent(QuickstartPreferences.RECEIVE_MESSAGE);
-        intent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
-        intent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
-
+        MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), message, MyGcmListenerService.this);
 
         if (receivedTextMessage.startsWith(C.MEDIA_TYPE_AUDIO + "/+"))
         {
@@ -111,8 +104,20 @@ public class MyGcmListenerService extends GcmListenerService {
             serviceIntent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
             serviceIntent.putExtra(C.EXTRA_MEDIA_TYPE, C.MEDIA_TYPE_VIDEO);
             startService(serviceIntent);
-            MyDbHelper.updateMessageState(new MyDbHelper(this).getWritableDatabase(), message.state, message.getMessageId());
+            MyDbHelper.updateMessageState(new MyDbHelper(this).getWritableDatabase(), message.state, message.getMessageId(), MyGcmListenerService.this);
         }
+
+        if (myPhoneNumber.equals(receiverPhoneNumber)) {
+            sendNotification(message);
+
+            Intent intent = new Intent(QuickstartPreferences.RECEIVE_MESSAGE);
+            intent.putExtra(C.EXTRA_OPPONENT_PHONE_NUMBER, phone);
+            intent.putExtra(C.EXTRA_MESSAGE_ID, message.getMessageId());
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+
+        }
+
         // [END_EXCLUDE]
     }
     // [END receive_message]

@@ -184,7 +184,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
                     progressBar.setVisibility(View.VISIBLE);
                     message.state = Message.STATE_DOWNLOADING;
-                    MyDbHelper.updateMessageState(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), Message.STATE_DOWNLOADING, message.getMessageId());
+                    MyDbHelper.updateMessageState(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), Message.STATE_DOWNLOADING, message.getMessageId(), context);
                     download.setVisibility(View.INVISIBLE);
                     play.setVisibility(View.INVISIBLE);
                 }
@@ -337,7 +337,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
                     progressBar.setVisibility(View.VISIBLE);
                     message.state = Message.STATE_DOWNLOADING;
-                    MyDbHelper.updateMessageState(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), Message.STATE_DOWNLOADING, message.getMessageId());
+                    MyDbHelper.updateMessageState(new MyDbHelper(context.getApplicationContext()).getWritableDatabase(), Message.STATE_DOWNLOADING, message.getMessageId(), context);
                     download.setVisibility(View.INVISIBLE);
                 }
             });
@@ -781,7 +781,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         @Override
         public void onDeleteMessage() {
             Message message = messages.get(getAdapterPosition());
-            MyDbHelper.removeMessage(new MyDbHelper(context).getWritableDatabase(), message.getMessageId());
+            MyDbHelper.removeMessageFromUI(new MyDbHelper(context).getWritableDatabase(), message.getMessageId(), context);
             AlarmReceiverIndividual alarmReceiverIndividual = new AlarmReceiverIndividual();
             alarmReceiverIndividual.cancelAlarm(context, messages.get(getAdapterPosition()).getMessageId());
             messages.remove(getAdapterPosition());
@@ -816,13 +816,13 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             if (timer == 0)
             {
                 message.setRemovalTime(0);
-                MyDbHelper.updateMessageTimer(new MyDbHelper((Context) listener).getWritableDatabase(), message.getMessageId(), 0);
+                MyDbHelper.updateMessageTimer(new MyDbHelper((Context) listener).getWritableDatabase(), message.getMessageId(), 0, context);
                 alarmReceiverIndividual.cancelAlarm((Context)listener, message.getMessageId());
             }
             else
             {
                 message.setRemovalTime(removalTime);
-                MyDbHelper.updateMessageTimer(new MyDbHelper((Context) listener).getWritableDatabase(), message.getMessageId(), removalTime);
+                MyDbHelper.updateMessageTimer(new MyDbHelper((Context) listener).getWritableDatabase(), message.getMessageId(), removalTime, context);
                 alarmReceiverIndividual.setAlarm((Context)listener, removalTime, message.getMessageId());
             }
 

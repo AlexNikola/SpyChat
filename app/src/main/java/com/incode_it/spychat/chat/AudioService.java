@@ -45,7 +45,7 @@ public class AudioService extends Service {
     public void playAudio(Message message) {
         Log.d("dfgddddd", "AudioService playAudio: ");
         message.state = Message.STATE_PLAYING;
-        MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), message.state, message.getMessageId());
+        MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), message.state, message.getMessageId(), AudioService.this);
 
         this.message = message;
         player = new MediaPlayer();
@@ -57,7 +57,7 @@ public class AudioService extends Service {
             if (callback != null) callback.onStartAudio();
         } catch (IOException ignored) {
             message.state = Message.STATE_ERROR;
-            MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), message.state, message.getMessageId());
+            MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), message.state, message.getMessageId(), AudioService.this);
             if (callback != null) callback.onError();
         }
     }
@@ -74,7 +74,7 @@ public class AudioService extends Service {
         Log.d("dfgddddd", "AudioService stopAudio: ");
         if (message != null && message.state != Message.STATE_ERROR) {
             message.state = Message.STATE_SUCCESS;
-            MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), message.state, message.getMessageId());
+            MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), message.state, message.getMessageId(), AudioService.this);
         }
 
         if (player != null) {
@@ -94,7 +94,7 @@ public class AudioService extends Service {
     private void audioTimerOut() {
         Log.d("dfgddddd", "AudioService audioTimerOut: ");
         message.state = Message.STATE_SUCCESS;
-        MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), message.state, message.getMessageId());
+        MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), message.state, message.getMessageId(), AudioService.this);
         if (player != null) {
             if (player.isPlaying()) {
                 player.stop();

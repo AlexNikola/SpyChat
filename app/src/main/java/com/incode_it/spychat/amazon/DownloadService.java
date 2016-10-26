@@ -103,8 +103,8 @@ public class DownloadService extends IntentService {
             public void onStateChanged(int id, TransferState state) {
                 if (state.toString().equals("COMPLETED"))
                 {
-                    MyDbHelper.updateMediaPath(new MyDbHelper(getApplicationContext()).getWritableDatabase(), finalLocalPath.getAbsolutePath(), messageId);
-                    MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_SUCCESS, messageId);
+                    MyDbHelper.updateMediaPath(new MyDbHelper(getApplicationContext()).getWritableDatabase(), finalLocalPath.getAbsolutePath(), messageId, DownloadService.this);
+                    MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_SUCCESS, messageId, DownloadService.this);
                     deleteRemoteFile(s3, C.amazonBucket, remotePath);
                     sendBroadcast(messageId, "COMPLETED", mediaType, finalLocalPath.getAbsolutePath());
                 }
@@ -123,7 +123,7 @@ public class DownloadService extends IntentService {
 
             @Override
             public void onError(int id, Exception ex) {
-                MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
+                MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId, DownloadService.this);
                 sendBroadcast(messageId, "FAILED", mediaType, finalLocalPath.getAbsolutePath());
             }
         });

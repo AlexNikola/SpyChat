@@ -62,6 +62,11 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
         logOutBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                sharedPreferences.edit()
+                        .remove(C.SHARED_MY_PHONE_NUMBER)
+                        .remove(C.SHARED_ACCESS_TOKEN)
+                        .remove(C.SHARED_REFRESH_TOKEN)
+                        .apply();
                 fragmentPinListener.onSecurityLogOut();
             }
         });
@@ -185,6 +190,8 @@ public class FragmentPin extends DialogFragment implements View.OnClickListener 
         }
 
         currentPinText ++;
+
+
 
     }
 

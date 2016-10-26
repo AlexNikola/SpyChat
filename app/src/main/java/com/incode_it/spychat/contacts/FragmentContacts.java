@@ -14,6 +14,7 @@ import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -148,7 +149,7 @@ public class FragmentContacts extends Fragment {
     {
         for(MyContacts.Contact contact: MyContacts.getContacts(getContext()))
         {
-            ArrayList<Message> messages = MyDbHelper.readContactMessages(new MyDbHelper(getContext()).getReadableDatabase(), contact);
+            ArrayList<Message> messages = MyDbHelper.readContactMessages(new MyDbHelper(getContext()).getReadableDatabase(), contact, getContext());
             int count = 0;
             for (Message message: messages)
             {
@@ -241,6 +242,10 @@ public class FragmentContacts extends Fragment {
 
         @Override
         protected void onPostExecute(ArrayList<String> regContacts) {
+            for (String phoneNumber: regContacts)
+            {
+                Log.d("rfddffdfg", "reg: " + phoneNumber);
+            }
             Context context = getContext();
             if (context != null)
             {

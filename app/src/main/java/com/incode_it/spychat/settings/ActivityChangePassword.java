@@ -197,7 +197,6 @@ public class ActivityChangePassword extends AppCompatActivity implements View.On
     @Override
     public void onSecurityLogOut() {
         setResult(C.RESULT_EXIT);
-        sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
         Intent intent = new Intent(this, ActivityAuth.class);
         startActivity(intent);
         finish();

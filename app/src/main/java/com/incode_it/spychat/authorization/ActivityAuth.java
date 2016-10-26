@@ -136,6 +136,9 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
                 .putString(C.SHARED_REFRESH_TOKEN, refreshToken)
                 .putString(C.SHARED_MY_PHONE_NUMBER, myPhoneNumber)
                 .apply();
+
+
+
         Intent intent = new Intent(this, ActivityMain.class);
         intent.putExtra(C.EXTRA_REQUEST_PIN, false);
         startActivity(intent);

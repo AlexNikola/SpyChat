@@ -96,7 +96,7 @@ public class UploadService extends IntentService {
 
             @Override
             public void onError(int id, Exception ex) {
-                MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
+                MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId, UploadService.this);
                 sendBroadcast(messageId, "FAILED");
             }
         });
@@ -124,7 +124,7 @@ public class UploadService extends IntentService {
         @Override
         protected String doInBackground(Integer... params) {
 
-            message = MyDbHelper.readMessage(new MyDbHelper(getApplicationContext()).getReadableDatabase(), messageId);
+            message = MyDbHelper.readMessage(new MyDbHelper(getApplicationContext()).getReadableDatabase(), messageId, UploadService.this);
             String path = message.getMessage();
             File file = new File(path);
             String remoteMediaPath = type + "/" + opponentPhone + "/" + file.getName();
@@ -147,7 +147,7 @@ public class UploadService extends IntentService {
             if (result == null)
             {
                 message.state = Message.STATE_ERROR;
-                MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
+                MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId, UploadService.this);
                 sendBroadcast(messageId, "FAILED");
             }
             else
@@ -155,13 +155,13 @@ public class UploadService extends IntentService {
                 if (result.equals("success"))
                 {
                     message.state = Message.STATE_SUCCESS;
-                    MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_SUCCESS, messageId);
+                    MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_SUCCESS, messageId, UploadService.this);
                     sendBroadcast(messageId, "COMPLETED");
                 }
                 else if (result.equals("error"))
                 {
                     message.state = Message.STATE_ERROR;
-                    MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId);
+                    MyDbHelper.updateMessageState(new MyDbHelper(getApplicationContext()).getWritableDatabase(), Message.STATE_ERROR, messageId, UploadService.this);
                     sendBroadcast(messageId, "FAILED");
                 }
             }

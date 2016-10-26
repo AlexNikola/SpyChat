@@ -21,14 +21,14 @@ public class AlarmReceiverIndividual extends WakefulBroadcastReceiver
     public void onReceive(Context context, Intent intent) {
 
         int mId = intent.getIntExtra(C.ID_TO_DELETE, 0);
-        Message message = MyDbHelper.readMessage(new MyDbHelper(context).getReadableDatabase(), mId);
+        Message message = MyDbHelper.readMessage(new MyDbHelper(context).getReadableDatabase(), mId, context);
 
         if (message.messageType != Message.MY_MESSAGE_TEXT && message.messageType != Message.NOT_MY_MESSAGE_TEXT)
         {
             File file = new File(message.getMessage());
             file.delete();
         }
-        MyDbHelper.removeMessage(new MyDbHelper(context).getWritableDatabase(), mId);
+        MyDbHelper.removeMessageFromIndividualTimer(new MyDbHelper(context).getWritableDatabase(), mId);
 
         Intent serviceIntent = new Intent(context, UpdateUIService.class);
         serviceIntent.putExtra(C.ID_TO_DELETE, mId);

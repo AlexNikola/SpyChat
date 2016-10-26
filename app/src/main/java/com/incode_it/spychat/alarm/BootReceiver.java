@@ -25,13 +25,13 @@ public class BootReceiver extends BroadcastReceiver {
 
     private void startIndividualAlarms(Context context, Intent intent)
     {
-        ArrayList<TimeHolder> timeHolderArrayList = MyDbHelper.readTime(new MyDbHelper(context).getReadableDatabase());
+        ArrayList<TimeHolder> timeHolderArrayList = MyDbHelper.readTime(new MyDbHelper(context).getReadableDatabase(), context);
         for (TimeHolder timeHolder: timeHolderArrayList)
         {
-            if (timeHolder.removalTime != 0)
+            if (timeHolder.individualRemovalTime != 0)
             {
                 AlarmReceiverIndividual receiverIndividual = new AlarmReceiverIndividual();
-                receiverIndividual.setAlarm(context, timeHolder.removalTime, timeHolder.mId);
+                receiverIndividual.setAlarm(context, timeHolder.individualRemovalTime, timeHolder.mId);
             }
         }
     }

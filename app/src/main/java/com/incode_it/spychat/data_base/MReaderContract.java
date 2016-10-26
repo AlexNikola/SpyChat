@@ -8,7 +8,7 @@ public final class MReaderContract
     }
 
     public static abstract class Chat implements BaseColumns {
-        public static final String TABLE_NAME = "chat";
+        public static final String TABLE_NAME = "table_name";
         public static final String MESSAGE = "message";
         public static final String SENDER_PHONE_NUMBER = "sender_phone_number";
         public static final String RECEIVER_PHONE_NUMBER = "receiver_phone_number";
@@ -23,6 +23,7 @@ public final class MReaderContract
         public static final String SIZE = "size";
         public static final String ANIMATION = "animation";
         public static final String FONT = "font";
+        public static final String OWNER = "OWNER";
     }
 
     public static abstract class RegisteredContact implements BaseColumns {
@@ -40,7 +41,6 @@ public final class MReaderContract
         public static final String CAPITAL = "capital";
         public static final String CURRENCY = "currency";
         public static final String LANGUAGES = "languages";
-
     }
 
 }

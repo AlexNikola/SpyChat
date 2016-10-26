@@ -264,7 +264,10 @@ public class ActivityMain extends AppCompatActivity implements
         logOutImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
+                sharedPreferences.edit()
+                        .remove(C.SHARED_MY_PHONE_NUMBER)
+                        .remove(C.SHARED_ACCESS_TOKEN)
+                        .remove(C.SHARED_REFRESH_TOKEN).apply();
                 Intent intent = new Intent(ActivityMain.this, ActivityAuth.class);
                 startActivity(intent);
                 finish();
@@ -373,7 +376,6 @@ public class ActivityMain extends AppCompatActivity implements
 
     @Override
     public void onSecurityLogOut() {
-        sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
         Intent intent = new Intent(ActivityMain.this, ActivityAuth.class);
         startActivity(intent);
         finish();

@@ -31,6 +31,7 @@ import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.authorization.ActivityAuth;
+import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.pin.FragmentPin;
 
 import org.json.JSONException;
@@ -95,7 +96,6 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
     @Override
     public void onSecurityLogOut() {
         setResult(C.RESULT_EXIT);
-        sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
         Intent intent = new Intent(this, ActivityAuth.class);
         startActivity(intent);
         finish();
@@ -444,7 +444,11 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
             if (result == null) {
                 shoeError("Connection error");
             } else if (result.equals("success")){
-                sharedPreferences.edit().remove(C.SHARED_ACCESS_TOKEN).remove(C.SHARED_REFRESH_TOKEN).apply();
+                sharedPreferences.edit()
+                        .remove(C.SHARED_MY_PHONE_NUMBER)
+                        .remove(C.SHARED_ACCESS_TOKEN)
+                        .remove(C.SHARED_REFRESH_TOKEN)
+                        .apply();
                 Intent intent = new Intent(ActivitySettings.this, ActivityAuth.class);
                 startActivity(intent);
                 setResult(C.RESULT_EXIT);

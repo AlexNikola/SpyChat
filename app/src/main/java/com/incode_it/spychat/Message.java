@@ -41,8 +41,9 @@ public class Message
     private float textSize;
     private boolean isAnimated;
     private String font;
+    public String ownerPhoneNumber;
 
-    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state, int messageType)
+    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state, int messageType, String ownerPhoneNumber)
     {
         this.message = message;
         this.senderPhoneNumber = senderPhoneNumber;
@@ -52,9 +53,11 @@ public class Message
         messageId = C.getMyId();
         removalTime = 0;
         this.messageType = messageType;
+        this.ownerPhoneNumber = ownerPhoneNumber;
     }
 
-    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, String date, int state, int messageId, long removalTime, int messageType)
+    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber,
+                   String date, int state, int messageId, long removalTime, int messageType, String ownerPhoneNumber)
     {
         this.message = message;
         this.senderPhoneNumber = senderPhoneNumber;
@@ -64,6 +67,7 @@ public class Message
         this.messageId = messageId;
         this.removalTime = removalTime;
         this.messageType = messageType;
+        this.ownerPhoneNumber = ownerPhoneNumber;
     }
 
     public void setRemovalTime(long removalTime) {

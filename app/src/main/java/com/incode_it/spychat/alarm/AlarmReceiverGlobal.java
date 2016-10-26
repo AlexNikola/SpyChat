@@ -32,14 +32,14 @@ public class AlarmReceiverGlobal extends WakefulBroadcastReceiver
     {
         boolean hasId = false;
 
-        ArrayList<TimeHolder> timeHolderArrayList = MyDbHelper.readTime(new MyDbHelper(context).getReadableDatabase());
+        ArrayList<TimeHolder> timeHolderArrayList = MyDbHelper.readTime(new MyDbHelper(context).getReadableDatabase(), context);
         for (TimeHolder timeHolder: timeHolderArrayList)
         {
-            if (timeHolder.removalTime == 0)
+            if (timeHolder.individualRemovalTime == 0)
             {
                 hasId = true;
-                Message message = MyDbHelper.readMessage(new MyDbHelper(context).getReadableDatabase(), timeHolder.mId);
-                MyDbHelper.removeMessage(new MyDbHelper(context).getWritableDatabase(), timeHolder.mId);
+                Message message = MyDbHelper.readMessage(new MyDbHelper(context).getReadableDatabase(), timeHolder.mId, context);
+                MyDbHelper.removeMessageFromGlobalTimer(new MyDbHelper(context).getWritableDatabase(), timeHolder.mId);
                 if (message.messageType != Message.MY_MESSAGE_TEXT && message.messageType != Message.NOT_MY_MESSAGE_TEXT)
                 {
                     File file = new File(message.getMessage());

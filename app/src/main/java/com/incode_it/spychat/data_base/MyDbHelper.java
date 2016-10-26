@@ -2,10 +2,13 @@ package com.incode_it.spychat.data_base;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.preference.PreferenceManager;
 
+import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.alarm.TimeHolder;
@@ -20,19 +23,12 @@ public class MyDbHelper extends SQLiteOpenHelper
 {
     public static final String LOG_TAG = "curs";
     ArrayList<Message> messageArrayList;
+    private Context context;
 
     private static final String TYPE_TEXT = " TEXT";
     private static final String TYPE_INT = " INTEGER";
     private static final String TYPE_REAL = " REAL";
     private static final String COMMA_SEP = ",";
-
-    private static final String SQL_CREATE_CONTACT_TABLE =
-            "CREATE TABLE " + RegisteredContact.TABLE_NAME + " (" +
-                    RegisteredContact._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
-                    RegisteredContact.PHONE_NUMBER + TYPE_TEXT+ " )";
-
-    private static final String SQL_DELETE_CONTACT_TABLE =
-            "DROP TABLE IF EXISTS " + RegisteredContact.TABLE_NAME;
 
     private static final String SQL_CREATE_CHAT_TABLE =
             "CREATE TABLE " + Chat.TABLE_NAME + " (" +
@@ -43,17 +39,26 @@ public class MyDbHelper extends SQLiteOpenHelper
                     Chat.DATE + TYPE_TEXT + COMMA_SEP +
                     Chat.STATE + TYPE_INT + COMMA_SEP +
                     Chat.MESSAGE_ID + TYPE_INT + COMMA_SEP +
-                    Chat.REMOVAL_TIME + TYPE_INT  + COMMA_SEP +
-                    Chat.MESSAGE_TYPE + TYPE_INT  + COMMA_SEP +
+                    Chat.REMOVAL_TIME + TYPE_INT + COMMA_SEP +
+                    Chat.MESSAGE_TYPE + TYPE_INT + COMMA_SEP +
                     Chat.IS_VIEWED + TYPE_INT + COMMA_SEP +
                     Chat.AUDIO_DURATION + TYPE_INT + COMMA_SEP +
                     Chat.COLOR + TYPE_INT + COMMA_SEP  +
-                    Chat.SIZE + TYPE_REAL  + COMMA_SEP +
-                    Chat.ANIMATION + TYPE_INT+ COMMA_SEP +
-                    Chat.FONT + TYPE_TEXT + " )";
+                    Chat.SIZE + TYPE_REAL + COMMA_SEP +
+                    Chat.ANIMATION + TYPE_INT + COMMA_SEP +
+                    Chat.FONT + TYPE_TEXT + COMMA_SEP +
+                    Chat.OWNER + TYPE_TEXT + " )";
 
     private static final String SQL_DELETE_CHAT_TABLE =
             "DROP TABLE IF EXISTS " + Chat.TABLE_NAME;
+
+    private static final String SQL_CREATE_CONTACT_TABLE =
+            "CREATE TABLE " + RegisteredContact.TABLE_NAME + " (" +
+                    RegisteredContact._ID + " INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    RegisteredContact.PHONE_NUMBER + TYPE_TEXT+ " )";
+
+    private static final String SQL_DELETE_CONTACT_TABLE =
+            "DROP TABLE IF EXISTS " + RegisteredContact.TABLE_NAME;
 
     private static final String SQL_CREATE_COUNTRIES_TABLE =
             "CREATE TABLE " + Countries.TABLE_NAME + " (" +
@@ -70,11 +75,12 @@ public class MyDbHelper extends SQLiteOpenHelper
     private static final String SQL_DELETE_COUNTRIES_TABLE =
             "DROP TABLE IF EXISTS " + Countries.TABLE_NAME;
 
-    public static final int DATABASE_VERSION = 10;
+    public static final int DATABASE_VERSION = 17;
     public static final String DATABASE_NAME = "SpyChat.db";
 
     public MyDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        this.context = context;
     }
 
     @Override
@@ -83,23 +89,23 @@ public class MyDbHelper extends SQLiteOpenHelper
         db.execSQL(SQL_CREATE_CONTACT_TABLE);
         db.execSQL(SQL_CREATE_COUNTRIES_TABLE);
 
-        ArrayList<String> c = new ArrayList<>();
-        c.add("+380669997588");
-
-        //insertRegisteredContacts(db, c);
-
         insertCountries(db);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL(SQL_DELETE_CHAT_TABLE);
-        db.execSQL(SQL_DELETE_CONTACT_TABLE);
-        db.execSQL(SQL_DELETE_COUNTRIES_TABLE);
+        drop(db);
         onCreate(db);
     }
 
-    public static synchronized void insertMessage(SQLiteDatabase db, Message message)
+    public static synchronized void drop(SQLiteDatabase db)
+    {
+        db.execSQL(SQL_DELETE_CHAT_TABLE);
+        db.execSQL(SQL_DELETE_CONTACT_TABLE);
+        db.execSQL(SQL_DELETE_COUNTRIES_TABLE);
+    }
+
+    public static synchronized void insertMessage(SQLiteDatabase db, Message message, Context context)
     {
         ContentValues values = new ContentValues();
         values.put(Chat.MESSAGE, message.getMessage());
@@ -116,19 +122,24 @@ public class MyDbHelper extends SQLiteOpenHelper
         values.put(Chat.SIZE, message.getTextSize());
         values.put(Chat.ANIMATION, message.isAnimated() ? 1 : 0);
         values.put(Chat.FONT, message.getFont());
+        values.put(Chat.OWNER, message.ownerPhoneNumber);
 
         db.insert(Chat.TABLE_NAME, null, values);
         db.close();
     }
 
-    public static synchronized ArrayList<TimeHolder> readTime(SQLiteDatabase db)
+    public static synchronized ArrayList<TimeHolder> readTime(SQLiteDatabase db, Context context)
     {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String ownerPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+
         ArrayList<TimeHolder> arrayList = new ArrayList<>();
 
         String sql = "SELECT " +
                 Chat.MESSAGE_ID + COMMA_SEP +
-                Chat.REMOVAL_TIME +
-                " FROM Chat";
+                " " + Chat.REMOVAL_TIME +
+                " FROM " + Chat.TABLE_NAME +
+                " WHERE " + Chat.OWNER + " LIKE '%" + ownerPhoneNumber + "%'";
 
         Cursor cursor = db.rawQuery(sql, null);
 
@@ -139,7 +150,7 @@ public class MyDbHelper extends SQLiteOpenHelper
                 TimeHolder timeHolder = new TimeHolder();
 
                 timeHolder.mId = cursor.getInt(0);
-                timeHolder.removalTime = cursor.getLong(1);
+                timeHolder.individualRemovalTime = cursor.getLong(1);
 
                 arrayList.add(timeHolder);
             }
@@ -152,19 +163,43 @@ public class MyDbHelper extends SQLiteOpenHelper
         return arrayList;
     }
 
-    public static synchronized void removeMessage(SQLiteDatabase db, long mId)
+    public static synchronized void removeMessageFromGlobalTimer(SQLiteDatabase db, long mId)
     {
-        String whereClause = Chat.MESSAGE_ID + "=" + mId;
+        String whereClause = Chat.MESSAGE_ID + " = " + mId;
         db.delete(Chat.TABLE_NAME, whereClause, null);
         db.close();
     }
 
-    public static synchronized ArrayList<Message> readContactMessages(SQLiteDatabase db, MyContacts.Contact contact)
+    public static synchronized void removeMessageFromIndividualTimer(SQLiteDatabase db, long mId)
     {
+        String whereClause = Chat.MESSAGE_ID + " = " + mId;
+        db.delete(Chat.TABLE_NAME, whereClause, null);
+        db.close();
+    }
+
+    public static synchronized void removeMessageFromUI(SQLiteDatabase db, long mId, Context context)
+    {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String ownerPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+
+        String whereClause = Chat.MESSAGE_ID + " = " + mId + " AND " + Chat.OWNER + " LIKE '%" + ownerPhoneNumber + "%'";
+
+        db.delete(Chat.TABLE_NAME, whereClause, null);
+        db.close();
+    }
+
+    public static synchronized ArrayList<Message> readContactMessages(SQLiteDatabase db, MyContacts.Contact contact, Context context)
+    {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String ownerPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+
         String orderBy = "datetime("+Chat.DATE+")" + " ASC";
 
-        String sql = "SELECT * FROM Chat WHERE " + Chat.SENDER_PHONE_NUMBER + " LIKE '%"+contact.phoneNumber+"%' OR "
-                + Chat.RECEIVER_PHONE_NUMBER + " LIKE '%"+contact.phoneNumber+"%' ORDER BY " + orderBy;
+        String sql = "SELECT * FROM " + Chat.TABLE_NAME
+                + " WHERE (" + Chat.SENDER_PHONE_NUMBER + " LIKE '%"+contact.phoneNumber+"%' OR "
+                + Chat.RECEIVER_PHONE_NUMBER + " LIKE '%"+contact.phoneNumber+"%') AND "
+                + Chat.OWNER + " LIKE '%" + ownerPhoneNumber + "%'"
+                + " ORDER BY " + orderBy;
         Cursor cursor = db.rawQuery(sql, null);
 
         ArrayList<Message> messagesArr = new ArrayList<>();
@@ -182,13 +217,15 @@ public class MyDbHelper extends SQLiteOpenHelper
                 int messageType = cursor.getInt(8);
                 int isViewed = cursor.getInt(9);
                 int audioDuration = cursor.getInt(10);
-                Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType);
+
+                Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType, ownerPhoneNumber);
                 message.setColor(cursor.getInt(11));
                 message.setTextSize(cursor.getFloat(12));
                 message.setAnimated(cursor.getFloat(13) == 1);
                 message.setFont(cursor.getString(14));
                 message.isViewed = isViewed;
                 message.audioDuration = audioDuration;
+
                 messagesArr.add(message);
             }
             while (cursor.moveToNext());
@@ -199,9 +236,13 @@ public class MyDbHelper extends SQLiteOpenHelper
         return messagesArr;
     }
 
-    public static synchronized Message readMessage(SQLiteDatabase db, int messageId)
+    public static synchronized Message readMessage(SQLiteDatabase db, int messageId, Context context)
     {
-        String sql = "SELECT * FROM Chat WHERE " + Chat.MESSAGE_ID + " = "+messageId;
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String ownerPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+
+        String sql = "SELECT * FROM " + Chat.TABLE_NAME + " WHERE " + Chat.MESSAGE_ID + " = "+messageId
+                + " AND "+ Chat.OWNER + " LIKE '%" + ownerPhoneNumber + "%'";
         Cursor cursor = db.rawQuery(sql, null);
 
         cursor.moveToFirst();
@@ -216,7 +257,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         int messageType = cursor.getInt(8);
         int isViewed = cursor.getInt(9);
         int audioDuration = cursor.getInt(10);
-        Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType);
+        Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType, ownerPhoneNumber);
         message.setColor(cursor.getInt(11));
         message.setTextSize(cursor.getFloat(12));
         message.setAnimated(cursor.getFloat(13) == 1);
@@ -264,57 +305,81 @@ public class MyDbHelper extends SQLiteOpenHelper
         //db.close();
     }
 
-    public static synchronized void updateMessageState(SQLiteDatabase db, int state, int messageId)
+    public static synchronized void updateMessageState(SQLiteDatabase db, int state, int messageId, Context context)
     {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String ownerPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+
         ContentValues values = new ContentValues();
 
-        String whereClause = Chat.MESSAGE_ID + "=" + messageId;
+        String whereClause = Chat.MESSAGE_ID + "=" + messageId
+                + " AND "+ Chat.OWNER + " LIKE '%" + ownerPhoneNumber + "%'";
 
         values.put(Chat.STATE, state);
-        int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
+
+        db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
     }
 
-    public static synchronized void updateMessageViewedState(SQLiteDatabase db, int isViewed, int messageId)
+    public static synchronized void updateMessageViewedState(SQLiteDatabase db, int isViewed, int messageId, Context context)
     {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String ownerPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+
         ContentValues values = new ContentValues();
 
-        String whereClause = Chat.MESSAGE_ID + "=" + messageId;
+        String whereClause = Chat.MESSAGE_ID + "=" + messageId
+                + " AND "+ Chat.OWNER + " LIKE '%" + ownerPhoneNumber + "%'";
 
         values.put(Chat.IS_VIEWED, isViewed);
-        int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
+
+        db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
     }
 
-    public static synchronized void updateMediaPath(SQLiteDatabase db, String path, int messageId)
+    public static synchronized void updateMediaPath(SQLiteDatabase db, String path, int messageId, Context context)
     {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String ownerPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+
         ContentValues values = new ContentValues();
 
-        String whereClause = Chat.MESSAGE_ID + "=" + messageId;
+        String whereClause = Chat.MESSAGE_ID + "=" + messageId
+                + " AND "+ Chat.OWNER + " LIKE '%" + ownerPhoneNumber + "%'";
 
         values.put(Chat.MESSAGE, path);
+
         int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
     }
 
-    public static synchronized void updateAllMessagesViewState(SQLiteDatabase db, MyContacts.Contact contact)
+    public static synchronized void updateAllMessagesViewState(SQLiteDatabase db, MyContacts.Contact contact, Context context)
     {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String ownerPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+
         ContentValues values = new ContentValues();
 
-        String whereClause = Chat.SENDER_PHONE_NUMBER + " LIKE '%" + contact.phoneNumber + "%'";
+        String whereClause = Chat.SENDER_PHONE_NUMBER + " LIKE '%" + contact.phoneNumber + "%'"
+                + " AND "+ Chat.OWNER + " LIKE '%" + ownerPhoneNumber + "%'";
         values.put(Chat.IS_VIEWED, 1);
+
         int num = db.update(Chat.TABLE_NAME, values, whereClause, null);
         db.close();
 
     }
 
-    public static synchronized void updateMessageTimer(SQLiteDatabase db, long mId, long removalTime)
+    public static synchronized void updateMessageTimer(SQLiteDatabase db, long mId, long removalTime, Context context)
     {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        String ownerPhoneNumber = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+
         ContentValues values = new ContentValues();
-        String whereClause = Chat.MESSAGE_ID + "=" + mId;
+        String whereClause = Chat.MESSAGE_ID + "=" + mId
+                + " AND "+ Chat.OWNER + " LIKE '%" + ownerPhoneNumber + "%'";
 
         values.put(Chat.REMOVAL_TIME, removalTime);
 
@@ -324,7 +389,7 @@ public class MyDbHelper extends SQLiteOpenHelper
 
     public static synchronized  ArrayList<Country> readCountries(SQLiteDatabase db)
     {
-        String sql = "SELECT name, native, code, phone FROM countries ORDER BY name ASC";
+        String sql = "SELECT name, native, code, phone FROM " + Countries.TABLE_NAME + " ORDER BY name ASC";
         Cursor cursor = db.rawQuery(sql, null);
 
         ArrayList<Country> countries = new ArrayList<>();
