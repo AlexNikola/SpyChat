@@ -45,21 +45,19 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         checkPlayServices();
-        if (checkIsLoggedIn())
-        {
+
+        if (checkIsLoggedIn(this)) {
             Intent intent = new Intent(this, ActivityMain.class);
             intent.putExtra(C.EXTRA_REQUEST_PIN, true);
             startActivity(intent);
             finish();
             return;
-        }
-        else
-        {
+        } else {
             setContentView(R.layout.activity_auth);
         }
 
         findCountyCode();
-        myPhoneNumber = getPhoneNumber();
+        myPhoneNumber = getPhoneNumber(this);
 
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator);
 
@@ -78,9 +76,9 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
         tabLayout.setupWithViewPager(viewPager);
     }
 
-    private boolean checkIsLoggedIn()
+    public static boolean checkIsLoggedIn(Context context)
     {
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, null);
         return accessToken != null;
     }
@@ -92,31 +90,14 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     }
 
     @Override
-    public void onSignUp(String phone) {
+    public void onHideKeyBoard() {
         hideKeyBoard();
-    }
-
-    private void showPhone(String phone)
-    {
-        Snackbar snackbar = Snackbar.make(coordinatorLayout, phone, Snackbar.LENGTH_INDEFINITE)
-                .setActionTextColor(Color.RED)
-                .setAction("OK", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-
-                    }
-                });
-
-        TextView textView = (TextView) snackbar.getView().findViewById(android.support.design.R.id.snackbar_text);
-        textView.setTextColor(Color.YELLOW);
-        snackbar.show();
     }
 
     public void findCountyCode() {
         ArrayList<Country> countryArrayList = MyDbHelper.readCountries(new MyDbHelper(this).getReadableDatabase());
         TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         myCountryISO = tm.getSimCountryIso();
-        //simCountry = "in";
         if (myCountryISO == null) return;
         for (Country country: countryArrayList)
         {
@@ -129,15 +110,28 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     }
 
     @Override
-    public void onAuthorizationSuccess(String accessToken, String refreshToken, String myPhoneNumber) {
+    public void onLogInSuccess(String accessToken, String refreshToken, String phone) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.edit()
+                .putString(C.SHARED_ACCESS_TOKEN, accessToken)
+                .putString(C.SHARED_REFRESH_TOKEN, refreshToken)
+                .putString(C.SHARED_MY_PHONE_NUMBER, phone)
+                .apply();
+
+        Intent intent = new Intent(this, ActivityMain.class);
+        intent.putExtra(C.EXTRA_REQUEST_PIN, false);
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    public void onSignUpSuccess(String accessToken, String refreshToken, String myPhoneNumber) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.edit()
                 .putString(C.SHARED_ACCESS_TOKEN, accessToken)
                 .putString(C.SHARED_REFRESH_TOKEN, refreshToken)
                 .putString(C.SHARED_MY_PHONE_NUMBER, myPhoneNumber)
                 .apply();
-
-
 
         Intent intent = new Intent(this, ActivityMain.class);
         intent.putExtra(C.EXTRA_REQUEST_PIN, false);
@@ -161,24 +155,13 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
         snackbar.show();
     }
 
-    private boolean hasConnection() {
-        ConnectivityManager cm = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-        return activeNetwork != null && activeNetwork.isConnected();
-    }
-
-    public String getPhoneNumber()
+    public static String getPhoneNumber(Context context)
     {
-        TelephonyManager tm = (TelephonyManager)getSystemService(TELEPHONY_SERVICE);
+        TelephonyManager tm = (TelephonyManager)context.getSystemService(TELEPHONY_SERVICE);
         return tm.getLine1Number();
 
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-    }
 
     public class AuthFragmentPagerAdapter extends FragmentPagerAdapter {
         ArrayList<Fragment> fragmentArrayList;

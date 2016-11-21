@@ -208,7 +208,7 @@ public class FragmentContacts extends Fragment {
 
         @Override
         protected ArrayList<String> doInBackground(Void... params) {
-            ArrayList<String> registeredContacts = null;
+            ArrayList<String> registeredContacts = new ArrayList<>();
             try
             {
                 JSONArray jsonArray = tryUpdateContacts(contactsNumbers);

@@ -25,15 +25,24 @@
     <string name="conf_new_pass_hint">Confirm new password</string>
     <string name="sign_up">Sign Up</string>
     <string name="log_in">LOG IN</string>
+    <string name="ok">Ok</string>
     <string name="conf_pass_hint">Confirm Password</string>
     <string name="pass_hint">Password</string>
-    <string name="phone_number_hint">Phone Number</string>
+    <string name="phone_or_email_hint">Phone or email</string>
+    <string name="email_code_hint">Enter code</string>
+    <string name="phone_number_hint">Phone number</string>
+    <string name="email_hint">Email</string>
 
     <!--errors-->
     <string name="enter_answer">Enter answer</string>
     <string name="wrong_answer">Wrong answer</string>
 
+    <string name="incorrect_input">Incorrect input</string>
+    <string name="enter_phone_or_email">Enter phone or email</string>
     <string name="enter_phone_number">Enter phone number</string>
+    <string name="enter_code">Enter code</string>
+    <string name="enter_email">Enter email</string>
+    <string name="email_not_valid">Email is not valid</string>
     <string name="enter_country_code">Enter country code</string>
     <string name="incorrect_country_code">Incorrect country code</string>
     <string name="passwords_not_match">Passwords do not match</string>
@@ -140,4 +149,6 @@
     <string name="description_3">The SpyChatter Contact List is synchronized with your smartphone - to add one simply add it to phone Contacts.</string>
 
     <string name="pick_color_dialog_title">Pick color</string>
+    <string name="title_activity_check_email_code">CheckEmailCodeActivity</string>
+    <string name="title_activity_check_email">CheckEmailActivity</string>
 </resources>

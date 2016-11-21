@@ -1,33 +1,35 @@
 package com.incode_it.spychat.authorization;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.incode_it.spychat.country_selection.ActivitySelectCountry;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.R;
+import com.incode_it.spychat.interfaces.AsyncTaskCallback;
 import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class FragmentLogIn extends Fragment
+public class FragmentLogIn extends Fragment implements AsyncTaskCallback
 {
     private static final String TAG = "myhttp";
     private Context context;
@@ -42,15 +44,12 @@ public class FragmentLogIn extends Fragment
     private View logInBtnText;
     private View progressBarView;
     private View logInBtnView;
-    private View selectCountryBtnView;
-
-    private TextView countryCodeTextView;
 
     private String myPhoneNumber = "";
-    private String countryCode = "+....";
-    private String countryISO = "";
+    private String email = "";
+    private String password = "";
 
-    private View forgotPassView;
+    private static LogInTask logInTask;
 
     public FragmentLogIn() {
         // Required empty public constructor
@@ -75,39 +74,16 @@ public class FragmentLogIn extends Fragment
 
         View view = inflater.inflate(R.layout.fragment_log_in, container, false);
 
-        if (countryCode.equals("+...."))
-        {
-            if (ActivityAuth.myCountryCode != null) countryCode = ActivityAuth.myCountryCode;
-        }
-        if (countryISO.equals(""))
-        {
-            if (ActivityAuth.myCountryISO != null) countryISO = ActivityAuth.myCountryISO;
-        }
         if (ActivityAuth.myPhoneNumber != null) myPhoneNumber = ActivityAuth.myPhoneNumber;
 
         initPhoneInputLayout(view);
         initPassInputLayout(view);
-        initSelectCountryView(view);
 
-        forgotPassView = view.findViewById(R.id.forgot);
+        View forgotPassView = view.findViewById(R.id.forgot);
         forgotPassView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                String phone = phoneET.getText().toString();
-                String code = (String) countryCodeTextView.getText();
-                if ((phone.length() < 1 && code.equals("+....")) || myPhoneNumber.length() < 1)
-                {
-                    errorPhoneTextView.setText(R.string.enter_phone_number);
-                }
-                else
-                {
-                    errorPhoneTextView.setText("");
-                    Intent intent = new Intent(getContext(), ActivityForgotPassword.class);
-                    intent.putExtra(C.EXTRA_MY_PHONE_NUMBER, code + phone);
-                    startActivity(intent);
-                }
-
+                onForgotPassClicked();
             }
         });
 
@@ -121,79 +97,83 @@ public class FragmentLogIn extends Fragment
         logInBtnView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                myPhoneNumber = phoneET.getText().toString();
-                String password = passET.getText().toString();
-                boolean isValid = true;
-                if ((myPhoneNumber.length() < 1 && countryCode.equals("+....")) || myPhoneNumber.length() < 1)
-                {
-                    errorPhoneTextView.setText(R.string.enter_phone_number);
-                    isValid = false;
-                }
-                else if (countryCode.equals("+...."))
-                {
-                    errorPhoneTextView.setText(R.string.enter_country_code);
-                    isValid = false;
-                }
-                else if (!countryCode.startsWith("+"))
-                {
-                    errorPhoneTextView.setText(R.string.enter_country_code);
-                    isValid = false;
-                }
-                else errorPhoneTextView.setText("");
-                if (password.length() < 6)
-                {
-                    if (password.length() == 0) errorPassTextView.setText(R.string.enter_password);
-                    else errorPassTextView.setText(R.string.short_password);
-                    isValid = false;
-                }
-                else errorPassTextView.setText("");
-                if (!isValid) return;
-
-                fragmentListener.onLogIn(countryCode + myPhoneNumber);
-                new LogInTask().execute(countryCode + myPhoneNumber, password);
+                onLogInClicked();
             }
         });
+
+        checkIsLoading();
 
         return view;
     }
 
-    private void initSelectCountryView(View view)
+    private void onForgotPassClicked()
     {
-        selectCountryBtnView = view.findViewById(R.id.select_country_btn_view);
-        selectCountryBtnView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getContext(), ActivitySelectCountry.class);
-                intent.putExtra(C.EXTRA_COUNTRY_ISO, countryISO);
-                startActivityForResult(intent, C.REQUEST_CODE_SELECT_COUNTRY);
-            }
-        });
-
-        countryCodeTextView = (TextView) view.findViewById(R.id.country_code);
-        countryCodeTextView.setText(countryCode);
+        errorPhoneTextView.setText("");
+        Intent intent = new Intent(getContext(), ActivityForgotPassword.class);
+        startActivity(intent);
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == C.REQUEST_CODE_SELECT_COUNTRY) {
-            if (resultCode == Activity.RESULT_OK) {
-                countryCode = data.getStringExtra(C.EXTRA_COUNTRY_CODE);
-                countryISO = data.getStringExtra(C.EXTRA_COUNTRY_ISO);
-                countryCodeTextView.setText(countryCode);
-            }
+    private void onLogInClicked()
+    {
+        String str = phoneET.getText().toString();
+        password = passET.getText().toString();
+        boolean isValid = true;
+
+        if (str.length() == 0) {
+            errorPhoneTextView.setText(R.string.enter_phone_or_email);
+            isValid = false;
+        } else if (!validCellPhone(str) && !validEmail(str)) {
+            errorPhoneTextView.setText(R.string.incorrect_input);
+            isValid = false;
+        } else if (validCellPhone(str)) {
+            myPhoneNumber = str;
+            email = "";
+            errorPhoneTextView.setText("");
+        } else if (validEmail(str)) {
+            myPhoneNumber = "";
+            email = str;
+            errorPhoneTextView.setText("");
         }
+
+        if (password.length() < 6) {
+            if (password.length() == 0) errorPassTextView.setText(R.string.enter_password);
+            else errorPassTextView.setText(R.string.short_password);
+            isValid = false;
+        } else {
+            errorPassTextView.setText("");
+        }
+
+        if (!isValid) {
+            return;
+        }
+
+        fragmentListener.onLogIn(myPhoneNumber);
+        startTask();
     }
 
-    private void initPhoneInputLayout(View view)
+    private void startTask()
     {
+        logInTask = new LogInTask(getContext());
+        logInTask.setCallback(this);
+        logInTask.execute(myPhoneNumber, email, password);
+    }
+
+
+    public boolean validCellPhone(String number) {
+        return Patterns.PHONE.matcher(number).matches();
+    }
+
+
+    public boolean validEmail(String email) {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+
+
+    private void initPhoneInputLayout(View view) {
         phoneET = (TextInputEditText) view.findViewById(R.id.edit_text_phone);
-        if (ActivityAuth.myPhoneNumber != null)
-        {
-            if (myPhoneNumber.startsWith(countryCode))
-            {
-                String ph = myPhoneNumber.substring(countryCode.length());
-                phoneET.setText(ph);
-            }
+        if (ActivityAuth.myPhoneNumber != null) {
+            phoneET.setText(myPhoneNumber);
         }
 
         view.findViewById(R.id.edit_text_clear_phone).setOnClickListener(new View.OnClickListener() {
@@ -204,8 +184,7 @@ public class FragmentLogIn extends Fragment
         });
     }
 
-    private void initPassInputLayout(View view)
-    {
+    private void initPassInputLayout(View view) {
         passET = (TextInputEditText) view.findViewById(R.id.edit_text_pass);
         view.findViewById(R.id.edit_text_clear_pass).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -215,39 +194,116 @@ public class FragmentLogIn extends Fragment
         });
     }
 
-    private class LogInTask extends AsyncTask<String, Void, String>
+
+    private void checkIsLoading()
     {
-        public LogInTask() {
+        if (logInTask != null && logInTask.isRunning) {
+            logInTask.setCallback(this);
+            setLoadingState(true);
+        } else {
+            setLoadingState(false);
+        }
+    }
+
+    private void setLoadingState(boolean isLoading)
+    {
+        if (isLoading) {
+            progressBarView.setVisibility(View.VISIBLE);
+            logInBtnText.setVisibility(View.INVISIBLE);
+            logInBtnView.setEnabled(false);
+        } else {
+            logInBtnView.setEnabled(true);
+            progressBarView.setVisibility(View.INVISIBLE);
+            logInBtnText.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onPreExecute() {
+        setLoadingState(true);
+    }
+
+    @Override
+    public void onPostExecute(String result) {
+        setLoadingState(false);
+
+        if (result == null) {
+            fragmentListener.onError("Error");
+        } else {
+            try {
+                JSONObject jsonResponse = new JSONObject(result);
+                String res = jsonResponse.getString("result");
+                if (res.equals("success")) {
+                    String accessToken = jsonResponse.getString("accessToken");
+                    String refreshToken = jsonResponse.getString("refreshToken");
+
+                    fragmentListener.onLogInSuccess(accessToken, refreshToken, myPhoneNumber);
+
+                } else if (res.equals("error")) {
+                    String message = jsonResponse.getString("message");
+                    if (message.equals("Incorrect password")){
+                        errorPassTextView.setText(R.string.incorrect_password);
+                    } else if (message.equals("User not found")) {
+                        errorPhoneTextView.setText(R.string.user_not_found);
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+
+
+
+    private static class LogInTask extends AsyncTask<String, Void, String>
+    {
+        WeakReference<AsyncTaskCallback> weekCallback;
+        WeakReference<Context> weekContext;
+        boolean isRunning = false;
+
+        public LogInTask(Context context) {
+            weekContext = new WeakReference<>(context);
+        }
+
+        public void setCallback(AsyncTaskCallback asyncTaskCallback) {
+            weekCallback = new WeakReference<>(asyncTaskCallback);
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressBarView.setVisibility(View.VISIBLE);
-            logInBtnText.setVisibility(View.INVISIBLE);
-            logInBtnView.setEnabled(false);
+            isRunning = true;
+            AsyncTaskCallback callback = weekCallback.get();
+            if (callback != null) {
+                callback.onPreExecute();
+            }
         }
 
         @Override
         protected String doInBackground(String... params) {
             String phoneNumber = params[0];
-            String password = params[1];
+            String email = params[1];
+            String password = params[2];
             String regToken;
-            try
-            {
-                regToken = MyConnection.getRegToken(context);
+
+            try {
+                regToken = MyConnection.getRegToken(weekContext.get());
 
                 phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
+                email = URLEncoder.encode(email, "UTF-8");
                 password = URLEncoder.encode(password, "UTF-8");
-                String urlParameters = "phone=" + phoneNumber + "&" +
-                        "password=" + password + "&" +
+                String urlParameters =
+                        "phone="    + phoneNumber   + "&" +
+                        "email="    + email         + "&" +
+                        "password=" + password      + "&" +
                         "regToken=" + regToken;
 
                 URL url = new URL(C.BASE_URL + "api/v1/auth/getAccessToke/");
 
                 return MyConnection.post(url, urlParameters, null);
-            }
-            catch (IOException e)
+            } catch (Exception e)
             {
                 e.printStackTrace();
             }
@@ -257,37 +313,11 @@ public class FragmentLogIn extends Fragment
 
         @Override
         protected void onPostExecute(String result) {
-            Log.d("chatm", "trySendMessage: " + result);
-            logInBtnView.setEnabled(true);
-            progressBarView.setVisibility(View.INVISIBLE);
-            logInBtnText.setVisibility(View.VISIBLE);
-
-            if (result == null) {
-                fragmentListener.onError("Connection error");
-            } else {
-                try {
-                    JSONObject jsonResponse = new JSONObject(result);
-                    String res = jsonResponse.getString("result");
-                    if (res.equals("success")) {
-                        String accessToken = jsonResponse.getString("accessToken");
-                        String refreshToken = jsonResponse.getString("refreshToken");
-
-                        fragmentListener.onAuthorizationSuccess(accessToken, refreshToken, countryCode + myPhoneNumber);
-
-                    } else if (res.equals("error")) {
-                        String message = jsonResponse.getString("message");
-                        if (message.equals("Incorrect password")){
-                            errorPassTextView.setText(R.string.incorrect_password);
-                        } else if (message.equals("User not found")) {
-                            errorPhoneTextView.setText(R.string.user_not_found);
-                        }
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+            isRunning = false;
+            AsyncTaskCallback callback = weekCallback.get();
+            if (callback != null) {
+                callback.onPostExecute(result);
             }
-
         }
     }
-
 }

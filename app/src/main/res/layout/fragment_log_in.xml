@@ -19,31 +19,6 @@
             android:layout_height="wrap_content">
 
             <FrameLayout
-                android:id="@+id/select_country_btn_view"
-                android:background="@drawable/bg_phone_input"
-                android:layout_gravity="bottom"
-                android:layout_marginBottom="@dimen/auth_bg_edit_text_margin_bottom"
-                android:layout_marginRight="@dimen/auth_bg_edit_text_margin_bottom"
-                android:layout_marginEnd="@dimen/auth_bg_edit_text_margin_bottom"
-                android:layout_width="wrap_content"
-                android:layout_height="@dimen/auth_bg_edit_text_height">
-
-                <TextView
-                    android:id="@+id/country_code"
-                    android:paddingLeft="@dimen/auth_edit_text_padding"
-                    android:paddingStart="@dimen/auth_edit_text_padding"
-                    android:paddingRight="@dimen/auth_edit_text_padding"
-                    android:paddingEnd="@dimen/auth_edit_text_padding"
-                    android:gravity="center"
-                    android:text="+..."
-                    android:textColor="#000000"
-                    android:textSize="20sp"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-
-            </FrameLayout>
-
-            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
@@ -57,7 +32,7 @@
                 <android.support.design.widget.TextInputLayout
                     android:id="@+id/text_input_layout_phone"
                     android:textColorHint="@color/colorHintAuth"
-                    android:hint="@string/phone_number_hint"
+                    android:hint="@string/phone_or_email_hint"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
 
@@ -70,7 +45,7 @@
                         android:textCursorDrawable="@drawable/color_cursor_auth"
                         android:paddingLeft="@dimen/auth_edit_text_padding"
                         android:paddingStart="@dimen/auth_edit_text_padding"
-                        android:inputType="phone"
+                        android:inputType="textEmailAddress"
                         android:ems="10"/>
 
                 </android.support.design.widget.TextInputLayout>
@@ -94,9 +69,6 @@
 
         </LinearLayout>
 
-
-
-
         <TextView
             android:id="@+id/error_phone"
             android:textColor="@color/errorColor"
@@ -104,8 +76,9 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/auth_error_text_height" />
 
+
+
         <FrameLayout
-            xmlns:android="http://schemas.android.com/apk/res/android"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 

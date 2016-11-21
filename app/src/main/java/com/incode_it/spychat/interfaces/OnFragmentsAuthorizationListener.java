@@ -4,9 +4,11 @@ public interface OnFragmentsAuthorizationListener {
 
     void onLogIn(String phone);
 
-    void onSignUp(String phone);
+    void onHideKeyBoard();
 
-    void onAuthorizationSuccess(String accessToken, String refreshToken, String myPhoneNumber);
+    void onLogInSuccess(String accessToken, String refreshToken, String myPhoneNumber);
+
+    void onSignUpSuccess(String accessToken, String refreshToken, String myPhoneNumber);
 
     void onError(String error);
 }

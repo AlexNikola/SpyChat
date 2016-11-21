@@ -41,7 +41,7 @@
             android:name=".ActivitySplash"
             android:noHistory="true"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AuthTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -76,14 +76,21 @@
             android:name=".settings.ActivitySettings"
             android:theme="@style/SettingsTheme"
             android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".CheckEmailCodeActivity"
+            android:label="@string/title_activity_check_email_code"
+            android:theme="@style/AuthTheme" />
 
-        <!--appnext start-->
-        <receiver android:name="com.appnext.appnextsdk.ReferralReceiver" android:exported="true">
+        <!-- appnext start -->
+        <receiver
+            android:name="com.appnext.appnextsdk.ReferralReceiver"
+            android:exported="true">
             <intent-filter>
-                <action android:name="com.android.vending.INSTALL_REFERRER"/>
+                <action android:name="com.android.vending.INSTALL_REFERRER" />
             </intent-filter>
         </receiver>
-        <!--appnext end-->
+        <!-- appnext end -->
+
 
         <!-- alarm start -->
         <receiver android:name=".alarm.AlarmReceiverGlobal" />
@@ -155,7 +162,12 @@
         <service
             android:name=".chat.AudioService"
             android:enabled="true"
-            android:exported="false"></service>
+            android:exported="false" />
+
+        <activity
+            android:name=".AddEmailActivity"
+            android:label="@string/title_activity_check_email"
+            android:theme="@style/AppTheme"></activity>
     </application>
 
 </manifest>

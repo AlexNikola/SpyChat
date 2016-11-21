@@ -1,48 +1,55 @@
 package com.incode_it.spychat.authorization;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
+import android.util.Log;
+import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.incode_it.spychat.C;
+import com.incode_it.spychat.CheckEmailCodeActivity;
 import com.incode_it.spychat.MyConnection;
-import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.country_selection.ActivitySelectCountry;
+import com.incode_it.spychat.interfaces.AsyncTaskCallback;
 import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class FragmentSingUp extends Fragment implements OnDialogListener {
+public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
     private static final String TAG = "myhttp";
     private Context context;
 
+    public static final int REQUEST_CODE_CHECK_EMAIL = 12;
+    public static final String EXTRA_PONE_NUMBER = "EXTRA_PONE_NUMBER";
+    public static final String EXTRA_EMAIL = "EXTRA_EMAIL";
+    public static final String EXTRA_PASSWORD = "EXTRA_PASSWORD";
+    public static final String EXTRA_ACCESS_TOKEN = "EXTRA_ACCESS_TOKEN";
+    public static final String EXTRA_REFRESH_TOKEN = "EXTRA_REFRESH_TOKEN";
+
     private OnFragmentsAuthorizationListener fragmentListener;
     private TextInputEditText phoneET;
+    private TextInputEditText emailET;
     private TextInputEditText passET;
     private TextInputEditText passConfET;
 
     private TextView errorPhoneTextView;
+    private TextView errorEmailTextView;
     private TextView errorPassTextView;
     private TextView errorPassConfTextView;
 
@@ -52,18 +59,13 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
     private View selectCountryBtnView;
     private TextView countryCodeTextView;
 
-    private String myPhoneNumber;
+    private String phoneNumber;
+    private String email;
+    private String password;
     private String countryCode = "+....";
     private String countryISO = "";
 
-    private TextView questionTextView;
-    private TextInputEditText answerET;
-    private View clearAnswer;
-    private TextView errorAnswer;
-    private String [] questions;
-    private String currentQuestion;
-    private View selectQuestion;
-    private int questionPosition;
+    private static SignUpTask signUpTask;
 
 
     public FragmentSingUp() {
@@ -91,6 +93,15 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
                 countryISO = data.getStringExtra(C.EXTRA_COUNTRY_ISO);
                 countryCodeTextView.setText(countryCode);
             }
+        } else if (requestCode == REQUEST_CODE_CHECK_EMAIL) {
+            if (resultCode == Activity.RESULT_OK) {
+
+                String accessToken = data.getStringExtra(EXTRA_ACCESS_TOKEN);
+                String refreshToken = data.getStringExtra(EXTRA_REFRESH_TOKEN);
+                String myPhoneNumber = data.getStringExtra(EXTRA_PONE_NUMBER);
+                String email = data.getStringExtra(EXTRA_EMAIL);
+                fragmentListener.onSignUpSuccess(accessToken, refreshToken, myPhoneNumber);
+            }
         }
     }
 
@@ -100,22 +111,26 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
 
         View view = inflater.inflate(R.layout.fragment_sign_up, container, false);
 
-        if (countryCode.equals("+...."))
-        {
+        if (countryCode.equals("+....")) {
             if (ActivityAuth.myCountryCode != null) countryCode = ActivityAuth.myCountryCode;
         }
-        if (countryISO.equals(""))
-        {
+
+        if (countryISO.equals("")) {
             if (ActivityAuth.myCountryISO != null) countryISO = ActivityAuth.myCountryISO;
         }
-        if (ActivityAuth.myPhoneNumber != null) myPhoneNumber = ActivityAuth.myPhoneNumber;
+
+        if (ActivityAuth.myPhoneNumber != null){
+            phoneNumber = ActivityAuth.myPhoneNumber;
+        }
 
         initPhoneInputLayout(view);
+        initEmailInputLayout(view);
         initPassInputLayout(view);
         initPassConfInputLayout(view);
         initSelectCountryView(view);
 
         errorPhoneTextView = (TextView) view.findViewById(R.id.error_phone);
+        errorEmailTextView = (TextView) view.findViewById(R.id.error_email);
         errorPassTextView = (TextView) view.findViewById(R.id.error_pass);
         errorPassConfTextView = (TextView) view.findViewById(R.id.error_pass_conf);
 
@@ -126,88 +141,85 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
         signUpBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                myPhoneNumber = phoneET.getText().toString();
-                String password = passET.getText().toString();
-                String passwordConf = passConfET.getText().toString();
-                String answer = answerET.getText().toString();
-                boolean isValid = true;
-                if (myPhoneNumber.length() < 1) {
-                    errorPhoneTextView.setText(R.string.enter_phone_number);
-                    isValid = false;
-                } else errorPhoneTextView.setText("");
-
-                if (!password.equals(passwordConf))
-                {
-                    errorPassTextView.setText(R.string.passwords_not_match);
-                    errorPassConfTextView.setText(R.string.passwords_not_match);
-                    isValid = false;
-                }
-                else
-                {
-                    if (password.length() == 0)
-                    {
-                        errorPassTextView.setText(R.string.enter_password);
-                        errorPassConfTextView.setText(R.string.enter_password);
-                        isValid = false;
-                    }
-                    else if (password.length() < 6)
-                    {
-                        errorPassTextView.setText(R.string.short_password);
-                        errorPassConfTextView.setText(R.string.short_password);
-                        isValid = false;
-                    }
-                    else
-                    {
-                        errorPassTextView.setText("");
-                        errorPassConfTextView.setText("");
-                    }
-                }
-
-                if (answer.length() < 1)
-                {
-                    errorAnswer.setText(R.string.enter_answer);
-                    isValid = false;
-                }
-                else
-                {
-                    errorAnswer.setText("");
-                }
-
-                if (!isValid) return;
-
-                fragmentListener.onLogIn(countryCode + myPhoneNumber);
-                new SignUpTask().execute(countryCode + myPhoneNumber, password, currentQuestion, answer);
+                onSignUpClicked();
             }
         });
 
-        questionTextView = (TextView) view.findViewById(R.id.question_tv);
-        answerET = (TextInputEditText) view.findViewById(R.id.edit_text_answer);
-        clearAnswer = view.findViewById(R.id.edit_text_clear_answer);
-        clearAnswer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                answerET.setText("");
-            }
-        });
-        errorAnswer = (TextView) view.findViewById(R.id.error_answer);
-
-        questions = getResources().getStringArray(R.array.questions);
-        if (currentQuestion == null) currentQuestion = questions[0];
-        questionTextView.setText(currentQuestion);
-
-        selectQuestion = view.findViewById(R.id.select_question);
-        selectQuestion.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                OrientationUtils.lockOrientation(getActivity());
-                FragmentManager fm = getActivity().getSupportFragmentManager();
-                SelectQuestionDialogFragment fragment = SelectQuestionDialogFragment.newInstance(questionPosition, FragmentSingUp.this);
-
-                fragment.show(fm, "fragment_select_question");
-            }
-        });
+        checkIsLoading();
 
         return view;
+    }
+
+    private void onSignUpClicked()
+    {
+        phoneNumber = countryCode + phoneET.getText().toString();
+        email = emailET.getText().toString();
+        password = passET.getText().toString();
+        String passwordConf = passConfET.getText().toString();
+
+        boolean isValid = true;
+
+        if (phoneNumber.equals("+....")) {
+            errorPhoneTextView.setText(R.string.enter_phone_number);
+            isValid = false;
+        } else if (!validCellPhone(phoneNumber)) {
+            errorPhoneTextView.setText(R.string.incorrect_input);
+            isValid = false;
+        } else {
+            errorPhoneTextView.setText("");
+        }
+
+        if (email.length() == 0) {
+            errorEmailTextView.setText(R.string.enter_email);
+            isValid = false;
+        } else if (!validEmail(email)) {
+            errorEmailTextView.setText(R.string.email_not_valid);
+            isValid = false;
+        } else {
+            errorEmailTextView.setText("");
+        }
+
+        if (!password.equals(passwordConf)) {
+            errorPassTextView.setText(R.string.passwords_not_match);
+            errorPassConfTextView.setText(R.string.passwords_not_match);
+            isValid = false;
+        } else {
+            if (password.length() == 0) {
+                errorPassTextView.setText(R.string.enter_password);
+                errorPassConfTextView.setText(R.string.enter_password);
+                isValid = false;
+            } else if (password.length() < 6) {
+                errorPassTextView.setText(R.string.short_password);
+                errorPassConfTextView.setText(R.string.short_password);
+                isValid = false;
+            } else {
+                errorPassTextView.setText("");
+                errorPassConfTextView.setText("");
+            }
+        }
+
+        if (!isValid) return;
+
+        fragmentListener.onLogIn(phoneNumber);
+
+        startTask();
+    }
+
+    private void startTask()
+    {
+        signUpTask = new  SignUpTask(getContext());
+        signUpTask.setCallback(this);
+        signUpTask.execute(phoneNumber, email, password);
+    }
+
+
+    public boolean validEmail(String email) {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
+    }
+
+    public boolean validCellPhone(String number)
+    {
+        return Patterns.PHONE.matcher(number).matches();
     }
 
     private void initSelectCountryView(View view)
@@ -231,9 +243,9 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
         phoneET = (TextInputEditText) view.findViewById(R.id.edit_text_phone);
         if (ActivityAuth.myPhoneNumber != null)
         {
-            if (myPhoneNumber.startsWith(countryCode))
+            if (phoneNumber.startsWith(countryCode))
             {
-                String ph = myPhoneNumber.substring(countryCode.length());
+                String ph = phoneNumber.substring(countryCode.length());
                 phoneET.setText(ph);
             }
         }
@@ -242,6 +254,17 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
             @Override
             public void onClick(View v) {
                 phoneET.setText("");
+            }
+        });
+    }
+
+    private void initEmailInputLayout(View view)
+    {
+        emailET = (TextInputEditText) view.findViewById(R.id.edit_text_email);
+        view.findViewById(R.id.edit_text_clear_email).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                emailET.setText("");
             }
         });
     }
@@ -270,49 +293,114 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
         });
     }
 
-    @Override
-    public void onSelect(int position) {
-        questionPosition = position;
-        currentQuestion = questions[position];
-        questionTextView.setText(currentQuestion);
+
+
+    private void checkIsLoading()
+    {
+        if (signUpTask != null && signUpTask.isRunning) {
+            signUpTask.setCallback(this);
+            setLoadingState(true);
+        } else {
+            setLoadingState(false);
+        }
     }
 
-    private class SignUpTask extends AsyncTask<String, Void, String>
+    private void setLoadingState(boolean isLoading)
     {
+        if (isLoading) {
+            progressBarView.setVisibility(View.VISIBLE);
+            signUpBtnText.setVisibility(View.INVISIBLE);
+            signUpBtn.setEnabled(false);
+        } else {
+            signUpBtn.setEnabled(true);
+            progressBarView.setVisibility(View.INVISIBLE);
+            signUpBtnText.setVisibility(View.VISIBLE);
+        }
+    }
 
-        public SignUpTask() {
+    @Override
+    public void onPreExecute() {
+        setLoadingState(true);
+    }
+
+    @Override
+    public void onPostExecute(String result) {
+        setLoadingState(false);
+
+        if (result == null) {
+            fragmentListener.onError("Connection error");
+        } else {
+            try {
+                JSONObject jsonResponse = new JSONObject(result);
+                String res = jsonResponse.getString("result");
+                if (res.equals("success")) {
+                    if (getContext() == null) return;
+                    Intent intent = new Intent(getContext(), CheckEmailCodeActivity.class);
+                    intent.putExtra(EXTRA_PONE_NUMBER, phoneNumber);
+                    intent.putExtra(EXTRA_EMAIL, email);
+                    intent.putExtra(EXTRA_PASSWORD, password);
+
+                    startActivityForResult(intent, REQUEST_CODE_CHECK_EMAIL);
+
+                } else if (res.equals("error")) {
+                    String message = jsonResponse.getString("message");
+                    if (message.equals("There is an existing user connected to this phone number.")) {
+                        errorPhoneTextView.setText(R.string.existing_user);
+                    } else
+                    {
+                        fragmentListener.onError("Error");
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    private static class SignUpTask extends AsyncTask<String, Void, String>
+    {
+        WeakReference<AsyncTaskCallback> weekCallback;
+        WeakReference<Context> weekContext;
+        boolean isRunning = false;
+
+        public SignUpTask(Context context) {
+            weekContext = new WeakReference<>(context);
+        }
+
+        public void setCallback(AsyncTaskCallback asyncTaskCallback) {
+            weekCallback = new WeakReference<>(asyncTaskCallback);
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            progressBarView.setVisibility(View.VISIBLE);
-            signUpBtnText.setVisibility(View.INVISIBLE);
-            signUpBtn.setEnabled(false);
+            isRunning = true;
+            AsyncTaskCallback callback = weekCallback.get();
+            if (callback != null) {
+                callback.onPreExecute();
+            }
         }
 
         @Override
         protected String doInBackground(String... params) {
             String phoneNumber = params[0];
-            String password = params[1];
-            String question = params[2];
-            String answer = params[3];
+            String email = params[1];
+            String password = params[2];
             String regToken;
 
             try {
                 phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
+                email = URLEncoder.encode(email, "UTF-8");
                 password = URLEncoder.encode(password, "UTF-8");
-                question = URLEncoder.encode(question, "UTF-8");
-                answer = URLEncoder.encode(answer, "UTF-8");
 
-                regToken = MyConnection.getRegToken(context);
+                regToken = MyConnection.getRegToken(weekContext.get());
 
                 String urlParameters =  "phone="    + phoneNumber   + "&" +
+                                        "email="    + email         + "&" +
                                         "password=" + password      + "&" +
                                         "confirm="  + password      + "&" +
-                                        "regToken=" + regToken      + "&" +
-                                        "secret="   + question      + "&" +
-                                        "answer="    + answer;
+                                        "regToken=" + regToken;
 
                 URL url = new URL(C.BASE_URL + "api/v1/users/register/");
 
@@ -328,80 +416,12 @@ public class FragmentSingUp extends Fragment implements OnDialogListener {
 
         @Override
         protected void onPostExecute(String result) {
-            signUpBtn.setEnabled(true);
-            progressBarView.setVisibility(View.INVISIBLE);
-            signUpBtnText.setVisibility(View.VISIBLE);
-
-            if (result == null) {
-                fragmentListener.onError("Connection error");
-            } else {
-                try {
-                    JSONObject jsonResponse = new JSONObject(result);
-                    String res = jsonResponse.getString("result");
-                    if (res.equals("success")) {
-                        String accessToken = jsonResponse.getString("accessToken");
-                        String refreshToken = jsonResponse.getString("refreshToken");
-
-                        fragmentListener.onAuthorizationSuccess(accessToken, refreshToken, countryCode + myPhoneNumber);
-
-                    } else if (res.equals("error")) {
-                        String message = jsonResponse.getString("message");
-                        if (message.equals("There is an existing user connected to this phone number.")) {
-                            errorPhoneTextView.setText(R.string.existing_user);
-                        }
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+            isRunning = false;
+            AsyncTaskCallback callback = weekCallback.get();
+            if (callback != null) {
+                callback.onPostExecute(result);
             }
 
         }
     }
-
-
-    public static class SelectQuestionDialogFragment extends DialogFragment {
-
-        public static final String TAG = "SelectQuestionDialogFragment";
-        private OnDialogListener listener;
-        private int position;
-
-        public static SelectQuestionDialogFragment newInstance(int position, OnDialogListener listener)
-        {
-            SelectQuestionDialogFragment newFragment = new SelectQuestionDialogFragment();
-            newFragment.setListener(listener);
-            newFragment.setPosition(position);
-            return newFragment;
-        }
-
-        @NonNull
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle(R.string.select_question)
-                    .setSingleChoiceItems(R.array.questions, position, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            listener.onSelect(which);
-                        }
-                    });
-
-            builder.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    OrientationUtils.unlockOrientation(getActivity());
-                }
-            });
-            return builder.create();
-        }
-
-        public void setListener(OnDialogListener listener) {
-            this.listener = listener;
-        }
-
-        public void setPosition(int position) {
-            this.position = position;
-        }
-    }
-
-
-
 }

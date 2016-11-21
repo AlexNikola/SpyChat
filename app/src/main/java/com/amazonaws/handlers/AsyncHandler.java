@@ -18,7 +18,7 @@ package com.amazonaws.handlers;
 import com.amazonaws.AmazonWebServiceRequest;
 
 /**
- * Callback interface for notification on web service requests executed with the
+ * AsyncTaskCallback interface for notification on web service requests executed with the
  * asynchronous clients in the AWS SDK for Java.
  */
 public interface AsyncHandler<REQUEST extends AmazonWebServiceRequest, RESULT> {

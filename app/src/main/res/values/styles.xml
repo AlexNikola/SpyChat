@@ -56,7 +56,6 @@
     </style>
 
 
-
     <style name="error_appearance" parent="@android:style/TextAppearance">
         <item name="android:textColor">#ff4343</item>
         <item name="android:textSize">12sp</item>
@@ -87,7 +86,6 @@
     <style name="RecordAudioDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
         <item name="android:windowBackground">@color/transparent</item>
     </style>
-
 
 
 </resources>

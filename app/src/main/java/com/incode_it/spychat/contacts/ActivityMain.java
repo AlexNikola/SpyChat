@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
@@ -17,6 +18,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
@@ -24,9 +26,12 @@ import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.incode_it.spychat.AddEmailActivity;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
+import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.MyGlobalTimerTask;
 import com.incode_it.spychat.MyTimerTask;
 import com.incode_it.spychat.OrientationUtils;
@@ -41,6 +46,12 @@ import com.incode_it.spychat.settings.ActivitySettings;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Timer;
 
@@ -89,7 +100,9 @@ public class ActivityMain extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getIntent().getBooleanExtra(C.EXTRA_IS_FROM_NOTIFICATION, false))
+        if (ActivityAuth.checkIsLoggedIn(this)) {
+            finish();
+        } else if (getIntent().getBooleanExtra(C.EXTRA_IS_FROM_NOTIFICATION, false))
         {
             getIntent().putExtra(C.EXTRA_IS_FROM_NOTIFICATION, false);
             String phoneNumber = getIntent().getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
@@ -98,6 +111,8 @@ public class ActivityMain extends AppCompatActivity implements
             intent.putExtra(C.EXTRA_REQUEST_PIN, true);
             startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_CHAT);
         }
+
+
         setContentView(R.layout.activity_main);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         requestPin = getIntent().getBooleanExtra(C.EXTRA_REQUEST_PIN, true);
@@ -123,6 +138,8 @@ public class ActivityMain extends AppCompatActivity implements
         initOpenContainerAnimations();
         initOpenIconsAnimations();
         initCloseIconsAnimations();
+
+        //new CheckEmailTask().execute();
     }
 
     @Override
@@ -602,4 +619,72 @@ public class ActivityMain extends AppCompatActivity implements
             }
         });
     }
+
+
+
+
+
+
+
+    private class CheckEmailTask extends AsyncTask<String, Void, String>
+    {
+        public CheckEmailTask() {
+        }
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+            String phoneNumber = ActivityAuth.getPhoneNumber(ActivityMain.this);
+            try
+            {
+                phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
+                String urlParameters =
+                                "phone=" + phoneNumber;
+
+                URL url = new URL(C.BASE_URL + "api/v1/usersJob/check-email/");
+
+                return MyConnection.post(url, urlParameters, null);
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            Log.d("chatm", "trySendMessage: " + result);
+
+            if (result == null) {
+                Toast.makeText(ActivityMain.this, "Error", Toast.LENGTH_SHORT).show();
+            } else {
+                try {
+                    JSONObject jsonResponse = new JSONObject(result);
+                    String res = jsonResponse.getString("result");
+                    if (res.equals("success")) {
+                        String message = jsonResponse.getString("message");
+                        if (message.equals("true")){
+
+                        } else if (message.equals("false")) {
+                            Intent intent = new Intent(ActivityMain.this, AddEmailActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }
+                    } else if (res.equals("error")) {
+
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+    }
+
 }
