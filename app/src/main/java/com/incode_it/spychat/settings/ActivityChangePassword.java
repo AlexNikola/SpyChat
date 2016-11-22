@@ -156,28 +156,20 @@ public class ActivityChangePassword extends AppCompatActivity implements View.On
             isValid = false;
         } else errorOldPassTextView.setText("");
 
-        if (!newPassword.equals(newPasswordConf))
-        {
+        if (!newPassword.equals(newPasswordConf)) {
             errorNewPassTextView.setText(R.string.passwords_not_match);
             errorNewPassConfTextView.setText(R.string.passwords_not_match);
             isValid = false;
-        }
-        else
-        {
-            if (newPassword.length() == 0)
-            {
+        } else {
+            if (newPassword.length() == 0) {
                 errorNewPassTextView.setText(R.string.enter_password);
                 errorNewPassConfTextView.setText(R.string.enter_password);
                 isValid = false;
-            }
-            else if (newPassword.length() < 6)
-            {
+            } else if (newPassword.length() < 6) {
                 errorNewPassTextView.setText(R.string.short_password);
                 errorNewPassConfTextView.setText(R.string.short_password);
                 isValid = false;
-            }
-            else
-            {
+            } else {
                 errorNewPassTextView.setText("");
                 errorNewPassConfTextView.setText("");
             }
@@ -202,8 +194,7 @@ public class ActivityChangePassword extends AppCompatActivity implements View.On
         finish();
     }
 
-    private class ChangePasswordTask extends AsyncTask<String, Void, String>
-    {
+    private class ChangePasswordTask extends AsyncTask<String, Void, String> {
 
         public ChangePasswordTask() {
         }

@@ -3,39 +3,29 @@ package com.incode_it.spychat.authorization;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.Fragment;
-import android.util.Log;
-import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.incode_it.spychat.C;
-import com.incode_it.spychat.CheckEmailCodeActivity;
+import com.incode_it.spychat.VerifyEmailActivity;
+import com.incode_it.spychat.FragmentLoader;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.country_selection.ActivitySelectCountry;
-import com.incode_it.spychat.interfaces.AsyncTaskCallback;
 import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
+public class FragmentSingUp extends FragmentLoader {
     private static final String TAG = "myhttp";
     private Context context;
 
-    public static final int REQUEST_CODE_CHECK_EMAIL = 12;
     public static final String EXTRA_PONE_NUMBER = "EXTRA_PONE_NUMBER";
     public static final String EXTRA_EMAIL = "EXTRA_EMAIL";
     public static final String EXTRA_PASSWORD = "EXTRA_PASSWORD";
@@ -65,9 +55,6 @@ public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
     private String countryCode = "+....";
     private String countryISO = "";
 
-    private static SignUpTask signUpTask;
-
-
     public FragmentSingUp() {
         // Required empty public constructor
     }
@@ -80,12 +67,6 @@ public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-    }
-
-    @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == C.REQUEST_CODE_SELECT_COUNTRY) {
             if (resultCode == Activity.RESULT_OK) {
@@ -93,7 +74,7 @@ public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
                 countryISO = data.getStringExtra(C.EXTRA_COUNTRY_ISO);
                 countryCodeTextView.setText(countryCode);
             }
-        } else if (requestCode == REQUEST_CODE_CHECK_EMAIL) {
+        } else if (requestCode == C.REQUEST_CODE_CHECK_EMAIL) {
             if (resultCode == Activity.RESULT_OK) {
 
                 String accessToken = data.getStringExtra(EXTRA_ACCESS_TOKEN);
@@ -144,8 +125,6 @@ public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
                 onSignUpClicked();
             }
         });
-
-        checkIsLoading();
 
         return view;
     }
@@ -200,27 +179,10 @@ public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
 
         if (!isValid) return;
 
-        fragmentListener.onLogIn(phoneNumber);
-
-        startTask();
+        hideKeyBoard();
+        startTask(phoneNumber, email, password);
     }
 
-    private void startTask()
-    {
-        signUpTask = new  SignUpTask(getContext());
-        signUpTask.setCallback(this);
-        signUpTask.execute(phoneNumber, email, password);
-    }
-
-
-    public boolean validEmail(String email) {
-        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
-    }
-
-    public boolean validCellPhone(String number)
-    {
-        return Patterns.PHONE.matcher(number).matches();
-    }
 
     private void initSelectCountryView(View view)
     {
@@ -295,18 +257,9 @@ public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
 
 
 
-    private void checkIsLoading()
-    {
-        if (signUpTask != null && signUpTask.isRunning) {
-            signUpTask.setCallback(this);
-            setLoadingState(true);
-        } else {
-            setLoadingState(false);
-        }
-    }
 
-    private void setLoadingState(boolean isLoading)
-    {
+    @Override
+    protected void onLoadingStateChanged(boolean isLoading) {
         if (isLoading) {
             progressBarView.setVisibility(View.VISIBLE);
             signUpBtnText.setVisibility(View.INVISIBLE);
@@ -318,16 +271,49 @@ public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
         }
     }
 
+
     @Override
-    public void onPreExecute() {
-        setLoadingState(true);
+    public String doInBackground(String... params) {
+        String phoneNumber = params[0];
+        String email = params[1];
+        String password = params[2];
+        String regToken;
+
+        try {
+            phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
+            email = URLEncoder.encode(email, "UTF-8");
+            password = URLEncoder.encode(password, "UTF-8");
+
+            regToken = MyConnection.getRegToken(getContext());
+
+            String urlParameters =  "phone="    + phoneNumber   + "&" +
+                    "email="    + email         + "&" +
+                    "password=" + password      + "&" +
+                    "confirm="  + password      + "&" +
+                    "regToken=" + regToken;
+
+            URL url = new URL(C.BASE_URL + "api/v1/users/register/");
+
+            return MyConnection.post(url, urlParameters, null);
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @Override
     public void onPostExecute(String result) {
-        setLoadingState(false);
+        super.onPostExecute(result);
+        Intent intent = new Intent(getContext(), VerifyEmailActivity.class);
+        intent.putExtra(EXTRA_PONE_NUMBER, phoneNumber);
+        intent.putExtra(EXTRA_EMAIL, email);
+        intent.putExtra(EXTRA_PASSWORD, password);
 
-        if (result == null) {
+        startActivityForResult(intent, C.REQUEST_CODE_CHECK_EMAIL);
+        /*if (result == null) {
             fragmentListener.onError("Connection error");
         } else {
             try {
@@ -335,7 +321,7 @@ public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
                 String res = jsonResponse.getString("result");
                 if (res.equals("success")) {
                     if (getContext() == null) return;
-                    Intent intent = new Intent(getContext(), CheckEmailCodeActivity.class);
+                    Intent intent = new Intent(getContext(), VerifyEmailActivity.class);
                     intent.putExtra(EXTRA_PONE_NUMBER, phoneNumber);
                     intent.putExtra(EXTRA_EMAIL, email);
                     intent.putExtra(EXTRA_PASSWORD, password);
@@ -354,74 +340,10 @@ public class FragmentSingUp extends Fragment implements AsyncTaskCallback {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        }
+        }*/
     }
 
 
-    private static class SignUpTask extends AsyncTask<String, Void, String>
-    {
-        WeakReference<AsyncTaskCallback> weekCallback;
-        WeakReference<Context> weekContext;
-        boolean isRunning = false;
 
-        public SignUpTask(Context context) {
-            weekContext = new WeakReference<>(context);
-        }
 
-        public void setCallback(AsyncTaskCallback asyncTaskCallback) {
-            weekCallback = new WeakReference<>(asyncTaskCallback);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            isRunning = true;
-            AsyncTaskCallback callback = weekCallback.get();
-            if (callback != null) {
-                callback.onPreExecute();
-            }
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            String phoneNumber = params[0];
-            String email = params[1];
-            String password = params[2];
-            String regToken;
-
-            try {
-                phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
-                email = URLEncoder.encode(email, "UTF-8");
-                password = URLEncoder.encode(password, "UTF-8");
-
-                regToken = MyConnection.getRegToken(weekContext.get());
-
-                String urlParameters =  "phone="    + phoneNumber   + "&" +
-                                        "email="    + email         + "&" +
-                                        "password=" + password      + "&" +
-                                        "confirm="  + password      + "&" +
-                                        "regToken=" + regToken;
-
-                URL url = new URL(C.BASE_URL + "api/v1/users/register/");
-
-                return MyConnection.post(url, urlParameters, null);
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            isRunning = false;
-            AsyncTaskCallback callback = weekCallback.get();
-            if (callback != null) {
-                callback.onPostExecute(result);
-            }
-
-        }
-    }
 }

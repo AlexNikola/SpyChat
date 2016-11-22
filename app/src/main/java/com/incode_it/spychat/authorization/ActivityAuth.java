@@ -83,16 +83,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
         return accessToken != null;
     }
 
-    @Override
-    public void onLogIn(String phone)
-    {
-        hideKeyBoard();
-    }
 
-    @Override
-    public void onHideKeyBoard() {
-        hideKeyBoard();
-    }
 
     public void findCountyCode() {
         ArrayList<Country> countryArrayList = MyDbHelper.readCountries(new MyDbHelper(this).getReadableDatabase());
@@ -141,7 +132,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
 
     @Override
     public void onError(String error) {
-        Snackbar snackbar = Snackbar.make(coordinatorLayout, "Connection error", Snackbar.LENGTH_INDEFINITE)
+        Snackbar snackbar = Snackbar.make(coordinatorLayout, "Error", Snackbar.LENGTH_INDEFINITE)
                 .setActionTextColor(Color.RED)
                 .setAction("OK", new View.OnClickListener() {
                     @Override
@@ -205,11 +196,5 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
         return true;
     }
 
-    public void hideKeyBoard() {
-        View view = getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
-    }
+
 }

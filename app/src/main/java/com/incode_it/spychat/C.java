@@ -65,6 +65,8 @@ public class C
     public static final int REQUEST_CODE_ACTIVITY_CHAT = 5;
     public static final int REQUEST_CODE_ACTIVITY_SETTINGS = 6;
     public static final int REQUEST_CODE_ACTIVITY_CHANGE_PASSWORD = 7;
+    public static final int REQUEST_CODE_ACTIVITY_ADD_EMAIL = 8;
+    public static final int REQUEST_CODE_CHECK_EMAIL = 9;
 
     public static final int RESULT_EXIT = 2;
     public static final int RESULT_LOG_OUT = 3;

@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/colorPrimaryAuth"
-    tools:context="com.incode_it.spychat.CheckEmailCodeFragment"
+    tools:context="com.incode_it.spychat.VerifyEmailFragment"
     android:padding="@dimen/activity_horizontal_margin"
     tools:showIn="@layout/activity_check_email_code">
 
@@ -42,7 +42,7 @@
                     android:textCursorDrawable="@drawable/color_cursor_auth"
                     android:paddingLeft="@dimen/auth_edit_text_padding"
                     android:paddingStart="@dimen/auth_edit_text_padding"
-                    android:inputType="textEmailAddress"
+                    android:inputType="number"
                     android:ems="10"/>
 
             </android.support.design.widget.TextInputLayout>
@@ -74,7 +74,7 @@
         android:layout_height="@dimen/auth_error_text_height" />
 
     <FrameLayout
-        android:id="@+id/log_in_button"
+        android:id="@+id/verify_button"
         android:background="@drawable/bg_auth_btn_selector"
         android:layout_width="match_parent"
         android:layout_height="@dimen/auth_btn_height"
@@ -86,8 +86,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="@string/ok"
-            android:id="@+id/log_in_button_text"/>
+            android:text="@string/verify"
+            android:id="@+id/verify_button_text"/>
 
         <ProgressBar
             android:visibility="invisible"

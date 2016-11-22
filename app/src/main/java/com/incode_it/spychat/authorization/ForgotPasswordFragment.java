@@ -18,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.incode_it.spychat.C;
+import com.incode_it.spychat.FragmentLoader;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.R;
 
@@ -28,7 +29,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class ForgotPasswordFragment extends Fragment {
+public class ForgotPasswordFragment extends FragmentLoader {
 
     private TextInputEditText emailET;
 
@@ -92,93 +93,69 @@ public class ForgotPasswordFragment extends Fragment {
 
         if (!isValid) return;
 
-        View view = getActivity().getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
+        hideKeyBoard();
 
-        new SendEmailTask().execute(email);
+        startTask(email);
     }
 
 
-    public boolean validEmail(String email) {
-        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
-    }
-
-
-
-
-
-
-    private class SendEmailTask extends AsyncTask<String, Void, String>
-    {
-
-        public SendEmailTask() {
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
+    @Override
+    protected void onLoadingStateChanged(boolean isLoading) {
+        if (isLoading) {
             progressBarViewEmail.setVisibility(View.VISIBLE);
             sendEmailBtnText.setVisibility(View.INVISIBLE);
             sendEmailBtn.setEnabled(false);
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            String email = params[0];
-
-            try {
-                email = URLEncoder.encode(email, "UTF-8");
-
-                String urlParameters =
-                        "email=" + email;
-
-                URL url = new URL(C.BASE_URL + "api/v1/users/reset-password/");
-
-                return MyConnection.post(url, urlParameters, null);
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
+        } else {
             sendEmailBtn.setEnabled(true);
             progressBarViewEmail.setVisibility(View.INVISIBLE);
             sendEmailBtnText.setVisibility(View.VISIBLE);
+        }
+    }
 
-            if (result == null) {
-                if (getContext() != null) {
-                    Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
-                }
-            } else {
-                try {
-                    JSONObject jsonResponse = new JSONObject(result);
-                    String res = jsonResponse.getString("result");
-                    if (res.equals("success")) {
-                        Activity activity = getActivity();
-                        if (activity != null) {
-                            activity.finish();
-                        }
-                    } else if (res.equals("error")) {
-                        String message = jsonResponse.getString("message");
-                        if (message.equals("User not found")) {
-                            if (getContext() != null) {
-                                Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
-                            }
+    @Override
+    public String doInBackground(String... params) {
+        String email = params[0];
+
+        try {
+            email = URLEncoder.encode(email, "UTF-8");
+            String urlParameters = "email=" + email;
+            URL url = new URL(C.BASE_URL + "api/v1/users/reset-password/");
+
+            return MyConnection.post(url, urlParameters, null);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public void onPostExecute(String result) {
+        super.onPostExecute(result);
+        if (result == null) {
+            if (getContext() != null) {
+                Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            try {
+                JSONObject jsonResponse = new JSONObject(result);
+                String res = jsonResponse.getString("result");
+                if (res.equals("success")) {
+                    Activity activity = getActivity();
+                    if (activity != null) {
+                        activity.finish();
+                    }
+                } else if (res.equals("error")) {
+                    String message = jsonResponse.getString("message");
+                    if (message.equals("User not found")) {
+                        if (getContext() != null) {
+                            Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
                         }
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
                 }
+            } catch (JSONException e) {
+                e.printStackTrace();
             }
-
         }
     }
 }

@@ -5,14 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    tools:context="com.incode_it.spychat.CheckEmailCodeActivity">
+    tools:context="com.incode_it.spychat.VerifyEmailActivity">
 
     <fragment xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/fragment"
-        android:name="com.incode_it.spychat.CheckEmailCodeFragment"
+        android:name="com.incode_it.spychat.VerifyEmailFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:layout="@layout/fragment_check_email_code" />
+        tools:layout="@layout/fragment_verify_email" />
 
 </android.support.design.widget.CoordinatorLayout>

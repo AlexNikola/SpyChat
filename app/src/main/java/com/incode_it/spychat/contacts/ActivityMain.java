@@ -26,33 +26,25 @@ import android.view.ViewGroup;
 import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.incode_it.spychat.AddEmailActivity;
 import com.incode_it.spychat.C;
-import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.MyGlobalTimerTask;
-import com.incode_it.spychat.MyTimerTask;
 import com.incode_it.spychat.OrientationUtils;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
 import com.incode_it.spychat.authorization.ActivityAuth;
 import com.incode_it.spychat.chat.ActivityChat;
-import com.incode_it.spychat.data_base.MyDbHelper;
 import com.incode_it.spychat.pin.FragmentPin;
 import com.incode_it.spychat.settings.ActivitySettings;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.Timer;
 
 public class ActivityMain extends AppCompatActivity implements
@@ -100,8 +92,10 @@ public class ActivityMain extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (ActivityAuth.checkIsLoggedIn(this)) {
+        Log.d("FragmentLogIn", "onCreate: " + ActivityAuth.checkIsLoggedIn(this));
+        if (!ActivityAuth.checkIsLoggedIn(this)) {
             finish();
+            return;
         } else if (getIntent().getBooleanExtra(C.EXTRA_IS_FROM_NOTIFICATION, false))
         {
             getIntent().putExtra(C.EXTRA_IS_FROM_NOTIFICATION, false);
@@ -139,7 +133,7 @@ public class ActivityMain extends AppCompatActivity implements
         initOpenIconsAnimations();
         initCloseIconsAnimations();
 
-        //new CheckEmailTask().execute();
+        new CheckEmailTask().execute();
     }
 
     @Override
@@ -660,8 +654,9 @@ public class ActivityMain extends AppCompatActivity implements
         @Override
         protected void onPostExecute(String result) {
             Log.d("chatm", "trySendMessage: " + result);
-
-            if (result == null) {
+            Intent intent = new Intent(ActivityMain.this, AddEmailActivity.class);
+            startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_ADD_EMAIL);
+            /*if (result == null) {
                 Toast.makeText(ActivityMain.this, "Error", Toast.LENGTH_SHORT).show();
             } else {
                 try {
@@ -682,7 +677,7 @@ public class ActivityMain extends AppCompatActivity implements
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }
+            }*/
 
         }
     }

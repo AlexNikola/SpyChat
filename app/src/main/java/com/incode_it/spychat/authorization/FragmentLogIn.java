@@ -2,37 +2,31 @@ package com.incode_it.spychat.authorization;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
-import android.support.v4.app.Fragment;
+import android.support.design.widget.TextInputLayout;
 import android.util.Log;
-import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.incode_it.spychat.C;
+import com.incode_it.spychat.FragmentLoader;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.R;
-import com.incode_it.spychat.interfaces.AsyncTaskCallback;
 import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class FragmentLogIn extends Fragment implements AsyncTaskCallback
+public class FragmentLogIn extends FragmentLoader
 {
-    private static final String TAG = "myhttp";
-    private Context context;
+
 
     private OnFragmentsAuthorizationListener fragmentListener;
     private TextInputEditText phoneET;
@@ -49,23 +43,16 @@ public class FragmentLogIn extends Fragment implements AsyncTaskCallback
     private String email = "";
     private String password = "";
 
-    private static LogInTask logInTask;
-
     public FragmentLogIn() {
         // Required empty public constructor
     }
 
+
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        this.context = context;
         fragmentListener = (OnFragmentsAuthorizationListener) context;
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
     }
 
     @Override
@@ -101,7 +88,6 @@ public class FragmentLogIn extends Fragment implements AsyncTaskCallback
             }
         });
 
-        checkIsLoading();
 
         return view;
     }
@@ -147,25 +133,8 @@ public class FragmentLogIn extends Fragment implements AsyncTaskCallback
             return;
         }
 
-        fragmentListener.onLogIn(myPhoneNumber);
-        startTask();
-    }
-
-    private void startTask()
-    {
-        logInTask = new LogInTask(getContext());
-        logInTask.setCallback(this);
-        logInTask.execute(myPhoneNumber, email, password);
-    }
-
-
-    public boolean validCellPhone(String number) {
-        return Patterns.PHONE.matcher(number).matches();
-    }
-
-
-    public boolean validEmail(String email) {
-        return Patterns.EMAIL_ADDRESS.matcher(email).matches();
+        hideKeyBoard();
+        startTask(myPhoneNumber, email, password);
     }
 
 
@@ -174,6 +143,13 @@ public class FragmentLogIn extends Fragment implements AsyncTaskCallback
         phoneET = (TextInputEditText) view.findViewById(R.id.edit_text_phone);
         if (ActivityAuth.myPhoneNumber != null) {
             phoneET.setText(myPhoneNumber);
+        }
+
+        TextInputLayout til = (TextInputLayout) view.findViewById(R.id.text_input_layout_phone);
+        if (ActivityAuth.myCountryCode != null){
+            til.setHint(ActivityAuth.myCountryCode + "... or email");
+        } else {
+            til.setHint("Phone or email");
         }
 
         view.findViewById(R.id.edit_text_clear_phone).setOnClickListener(new View.OnClickListener() {
@@ -195,18 +171,13 @@ public class FragmentLogIn extends Fragment implements AsyncTaskCallback
     }
 
 
-    private void checkIsLoading()
-    {
-        if (logInTask != null && logInTask.isRunning) {
-            logInTask.setCallback(this);
-            setLoadingState(true);
-        } else {
-            setLoadingState(false);
-        }
-    }
 
-    private void setLoadingState(boolean isLoading)
-    {
+
+
+
+    @Override
+    protected void onLoadingStateChanged(boolean isLoading) {
+        Log.d(TAG, "onLoadingStateChanged: " + isLoading);
         if (isLoading) {
             progressBarView.setVisibility(View.VISIBLE);
             logInBtnText.setVisibility(View.INVISIBLE);
@@ -219,14 +190,44 @@ public class FragmentLogIn extends Fragment implements AsyncTaskCallback
     }
 
     @Override
-    public void onPreExecute() {
-        setLoadingState(true);
+    public String doInBackground(String... params) {
+        Log.d(TAG, "doInBackground: ");
+        try {
+            Thread.sleep(5000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        String phoneNumber = params[0];
+        String email = params[1];
+        String password = params[2];
+        String regToken;
+
+        try {
+            regToken = MyConnection.getRegToken(getContext());
+
+            phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
+            email = URLEncoder.encode(email, "UTF-8");
+            password = URLEncoder.encode(password, "UTF-8");
+            String urlParameters =
+                    "phone="    + phoneNumber   + "&" +
+                            "email="    + email         + "&" +
+                            "password=" + password      + "&" +
+                            "regToken=" + regToken;
+
+            URL url = new URL(C.BASE_URL + "api/v1/auth/getAccessToke/");
+
+            return MyConnection.post(url, urlParameters, null);
+        } catch (Exception e)
+        {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     @Override
     public void onPostExecute(String result) {
-        setLoadingState(false);
-
+        super.onPostExecute(result);
         if (result == null) {
             fragmentListener.onError("Error");
         } else {
@@ -236,8 +237,9 @@ public class FragmentLogIn extends Fragment implements AsyncTaskCallback
                 if (res.equals("success")) {
                     String accessToken = jsonResponse.getString("accessToken");
                     String refreshToken = jsonResponse.getString("refreshToken");
+                    String phone = jsonResponse.getString("phone");
 
-                    fragmentListener.onLogInSuccess(accessToken, refreshToken, myPhoneNumber);
+                    fragmentListener.onLogInSuccess(accessToken, refreshToken, phone);
 
                 } else if (res.equals("error")) {
                     String message = jsonResponse.getString("message");
@@ -249,74 +251,6 @@ public class FragmentLogIn extends Fragment implements AsyncTaskCallback
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
-            }
-        }
-    }
-
-
-
-
-
-    private static class LogInTask extends AsyncTask<String, Void, String>
-    {
-        WeakReference<AsyncTaskCallback> weekCallback;
-        WeakReference<Context> weekContext;
-        boolean isRunning = false;
-
-        public LogInTask(Context context) {
-            weekContext = new WeakReference<>(context);
-        }
-
-        public void setCallback(AsyncTaskCallback asyncTaskCallback) {
-            weekCallback = new WeakReference<>(asyncTaskCallback);
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            isRunning = true;
-            AsyncTaskCallback callback = weekCallback.get();
-            if (callback != null) {
-                callback.onPreExecute();
-            }
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            String phoneNumber = params[0];
-            String email = params[1];
-            String password = params[2];
-            String regToken;
-
-            try {
-                regToken = MyConnection.getRegToken(weekContext.get());
-
-                phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
-                email = URLEncoder.encode(email, "UTF-8");
-                password = URLEncoder.encode(password, "UTF-8");
-                String urlParameters =
-                        "phone="    + phoneNumber   + "&" +
-                        "email="    + email         + "&" +
-                        "password=" + password      + "&" +
-                        "regToken=" + regToken;
-
-                URL url = new URL(C.BASE_URL + "api/v1/auth/getAccessToke/");
-
-                return MyConnection.post(url, urlParameters, null);
-            } catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            isRunning = false;
-            AsyncTaskCallback callback = weekCallback.get();
-            if (callback != null) {
-                callback.onPostExecute(result);
             }
         }
     }
