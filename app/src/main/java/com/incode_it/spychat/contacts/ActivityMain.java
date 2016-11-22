@@ -28,6 +28,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.incode_it.spychat.AddEmailActivity;
+import com.incode_it.spychat.BaseActivity;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.MyGlobalTimerTask;
@@ -47,8 +48,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Timer;
 
-public class ActivityMain extends AppCompatActivity implements
-        TimePickerDialog.OnTimeSetListener, FragmentPin.FragmentPinListener
+public class ActivityMain extends BaseActivity implements
+        TimePickerDialog.OnTimeSetListener
 
 {
     private static final String TAG = "debb";
@@ -70,7 +71,6 @@ public class ActivityMain extends AppCompatActivity implements
     private float translationX;
     private View navContainer;
 
-    private boolean requestPin = true;
     private SharedPreferences sharedPreferences;
 
     private AnimatorSet animatorSetContainerClose;
@@ -92,7 +92,7 @@ public class ActivityMain extends AppCompatActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("FragmentLogIn", "onCreate: " + ActivityAuth.checkIsLoggedIn(this));
+        //Log.d("BaseActivity", "onCreate: " + ActivityAuth.checkIsLoggedIn(this));
         if (!ActivityAuth.checkIsLoggedIn(this)) {
             finish();
             return;
@@ -109,7 +109,6 @@ public class ActivityMain extends AppCompatActivity implements
 
         setContentView(R.layout.activity_main);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        requestPin = getIntent().getBooleanExtra(C.EXTRA_REQUEST_PIN, true);
 
         if (savedInstanceState != null)
         {
@@ -132,8 +131,6 @@ public class ActivityMain extends AppCompatActivity implements
         initOpenContainerAnimations();
         initOpenIconsAnimations();
         initCloseIconsAnimations();
-
-        new CheckEmailTask().execute();
     }
 
     @Override
@@ -174,7 +171,6 @@ public class ActivityMain extends AppCompatActivity implements
 
     @Override
     protected void onPause() {
-        requestPin = true;
         stopTimerIfNecessary();
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mDeleteMessagesReceiver);
         isDeleteMessagesReceiverRegistered = false;
@@ -183,7 +179,6 @@ public class ActivityMain extends AppCompatActivity implements
 
     @Override
     protected void onResume() {
-        showPinDialog();
         startTimer();
         initDeleteMassagesReceiver();
         super.onResume();
@@ -215,26 +210,12 @@ public class ActivityMain extends AppCompatActivity implements
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == C.REQUEST_CODE_ACTIVITY_CHAT || requestCode == C.REQUEST_CODE_ACTIVITY_SETTINGS) {
-            requestPin = false;
-            if (resultCode == C.RESULT_EXIT)
-            {
-                finish();
-            }
-        }
-        else requestPin = true;
 
         contentContainer.setTranslationX(0f);
         contentContainer.setScaleX(1f);
         contentContainer.setScaleY(1f);
         isNavMenuOpen = false;
         toolbar.setNavigationIcon(R.drawable.nav_menu);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        requestPin = false;
-        super.onRestoreInstanceState(savedInstanceState);
     }
 
     private void initNavIcons()
@@ -379,39 +360,6 @@ public class ActivityMain extends AppCompatActivity implements
             }
         });
     }
-
-    @Override
-    public void onSecurityClose() {
-        finish();
-    }
-
-    @Override
-    public void onSecurityLogOut() {
-        Intent intent = new Intent(ActivityMain.this, ActivityAuth.class);
-        startActivity(intent);
-        finish();
-    }
-
-    private void showPinDialog()
-    {
-        boolean isPinOn = sharedPreferences.getBoolean(C.SETTING_PIN, false);
-        if (isPinOn && requestPin)
-        {
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            Fragment prev = getSupportFragmentManager().findFragmentByTag(FragmentPin.TAG);
-            if (prev != null) {
-                ft.remove(prev);
-                ft.addToBackStack(null);
-                ft.commit();
-            }
-
-            ft = getSupportFragmentManager().beginTransaction();
-            FragmentPin fragmentPin = FragmentPin.newInstance();
-            fragmentPin.show(ft, FragmentPin.TAG);
-        }
-
-    }
-
 
     private void openNavMenu()
     {
@@ -612,74 +560,6 @@ public class ActivityMain extends AppCompatActivity implements
 
             }
         });
-    }
-
-
-
-
-
-
-
-    private class CheckEmailTask extends AsyncTask<String, Void, String>
-    {
-        public CheckEmailTask() {
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected String doInBackground(String... params) {
-            String phoneNumber = ActivityAuth.getPhoneNumber(ActivityMain.this);
-            try
-            {
-                phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
-                String urlParameters =
-                                "phone=" + phoneNumber;
-
-                URL url = new URL(C.BASE_URL + "api/v1/usersJob/check-email/");
-
-                return MyConnection.post(url, urlParameters, null);
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-            Log.d("chatm", "trySendMessage: " + result);
-            Intent intent = new Intent(ActivityMain.this, AddEmailActivity.class);
-            startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_ADD_EMAIL);
-            /*if (result == null) {
-                Toast.makeText(ActivityMain.this, "Error", Toast.LENGTH_SHORT).show();
-            } else {
-                try {
-                    JSONObject jsonResponse = new JSONObject(result);
-                    String res = jsonResponse.getString("result");
-                    if (res.equals("success")) {
-                        String message = jsonResponse.getString("message");
-                        if (message.equals("true")){
-
-                        } else if (message.equals("false")) {
-                            Intent intent = new Intent(ActivityMain.this, AddEmailActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }
-                    } else if (res.equals("error")) {
-
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }*/
-
-        }
     }
 
 }

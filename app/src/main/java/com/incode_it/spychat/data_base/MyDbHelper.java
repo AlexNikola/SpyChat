@@ -302,7 +302,7 @@ public class MyDbHelper extends SQLiteOpenHelper
             db.insert(RegisteredContact.TABLE_NAME, null, values);
             values.clear();
         }
-        //db.close();
+        db.close();
     }
 
     public static synchronized void updateMessageState(SQLiteDatabase db, int state, int messageId, Context context)

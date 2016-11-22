@@ -28,8 +28,8 @@ public abstract class FragmentLoader extends Fragment implements TaskCallback {
         /*if (task != null) {
             task.cancel(true);
         }*/
-        task = new Task(getContext());
-        task.setCallback(this);
+        task = new Task();
+        task.setCallback(this, getContext());
         task.execute(params);
     }
 
@@ -48,7 +48,7 @@ public abstract class FragmentLoader extends Fragment implements TaskCallback {
     protected void attachTaskCallback() {
         Log.d(TAG, "attachTaskCallback: ");
         if (task != null && task.isRunning) {
-            task.setCallback(this);
+            task.setCallback(this, getContext());
             onLoadingStateChanged(true);
         } else {
             onLoadingStateChanged(false);
@@ -87,12 +87,12 @@ public abstract class FragmentLoader extends Fragment implements TaskCallback {
         WeakReference<Context> weekContext;
         boolean isRunning = false;
 
-        Task(Context context) {
-            weekContext = new WeakReference<>(context);
+        Task() {
         }
 
-        public void setCallback(TaskCallback asyncTaskCallback) {
+        void setCallback(TaskCallback asyncTaskCallback, Context context) {
             weekCallback = new WeakReference<>(asyncTaskCallback);
+            weekContext = new WeakReference<>(context);
         }
 
         @Override
@@ -100,7 +100,8 @@ public abstract class FragmentLoader extends Fragment implements TaskCallback {
             super.onPreExecute();
             isRunning = true;
             TaskCallback callback = weekCallback.get();
-            if (callback != null) {
+            Context context = weekContext.get();
+            if (callback != null && context != null) {
                 callback.onPreExecute();
             }
         }

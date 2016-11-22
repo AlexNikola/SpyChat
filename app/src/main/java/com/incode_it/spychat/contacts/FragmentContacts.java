@@ -21,62 +21,37 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
+import com.incode_it.spychat.AddEmailActivity;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.ContactsComparator;
 import com.incode_it.spychat.Message;
-import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.data_base.MyDbHelper;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class FragmentContacts extends Fragment {
+public class FragmentContacts extends Fragment implements UpdateContactsTask.Callback, CheckEmailTask.Callback {
 
     public static final String FRAGMENT_CONTACTS = "fr_con";
 
     private RecyclerView recyclerView;
     private MyContactRecyclerViewAdapter adapter;
     private UpdateContactsTask updateContactsTask;
+    private CheckEmailTask checkEmailTask;
     private boolean isMessageReceiverRegistered;
     private BroadcastReceiver mBroadcastReceiver;
     private boolean isExpanded;
     private String searchQuery = "";
 
     public static FragmentContacts newInstance() {
-        FragmentContacts fragment = new FragmentContacts();
-        return fragment;
+        return new FragmentContacts();
     }
 
     public FragmentContacts() {
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-    }
-
-
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
     }
 
     @Override
@@ -84,34 +59,153 @@ public class FragmentContacts extends Fragment {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         setRetainInstance(true);
+        startCheckEmailTask();
     }
 
     @Override
-    public void onPause() {
-        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver);
-        isMessageReceiverRegistered = false;
-        super.onPause();
-    }
-
-    @Override
-    public void onResume() {
+    public void onStart() {
+        super.onStart();
         initMessageReceiver();
         updateNumbersOfUnreadMessages();
         if (adapter != null) adapter.notifyDataSetChanged();
-        super.onResume();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState)
-    {
+    public void onStop() {
+        super.onStop();
+        LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(mBroadcastReceiver);
+        isMessageReceiverRegistered = false;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        Log.d("fdfdsgfds", "onAttach: ");
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         recyclerView = (RecyclerView) inflater.inflate(R.layout.fragment_contact_list, container, false);
         localUpdateContactList();
         serverUpdateContacts();
         initRecyclerView();
-
         return recyclerView;
     }
+
+
+
+
+
+
+
+    private void localUpdateContactList()
+    {
+        ArrayList<String> registeredContacts;
+        registeredContacts = MyDbHelper.readRegisteredContacts(new MyDbHelper(getContext()).getReadableDatabase());
+        for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
+        {
+            contact.isRegistered = false;
+            for (String registeredPhone: registeredContacts)
+            {
+                if (contact.phoneNumber.equals(registeredPhone))
+                {
+                    contact.isRegistered = true;
+                    break;
+                }
+            }
+        }
+
+        Collections.sort(MyContacts.getContacts(getContext()), new ContactsComparator());
+    }
+
+    private void serverUpdateContacts()
+    {
+        ArrayList<String> contactsNumbers = new ArrayList<>();
+        for (MyContacts.Contact contact: MyContacts.getContacts(getContext())) {
+            contactsNumbers.add(contact.phoneNumber);
+        }
+        if (updateContactsTask == null) {
+            updateContactsTask = new UpdateContactsTask();
+            updateContactsTask.setCallback(this, getContext());
+            updateContactsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, contactsNumbers);
+        } else if (updateContactsTask.isRunning) {
+            updateContactsTask.setCallback(this, getContext());
+        }
+
+    }
+
+    @Override
+    public void onContactsDownloaded(ArrayList<String> contacts) {
+        if (contacts != null) {
+            for (MyContacts.Contact mContact: MyContacts.getContacts(getContext())) {
+                mContact.isRegistered = false;
+                for (String regPhoneNumber: contacts)
+                {
+                    if (mContact.phoneNumber.equals(regPhoneNumber))
+                    {
+                        mContact.isRegistered = true;
+                        break;
+                    }
+                }
+            }
+            Collections.sort(MyContacts.getContacts(getContext()), new ContactsComparator());
+            if (adapter != null) adapter.notifyDataSetChanged();
+        }
+    }
+
+
+
+    private void startCheckEmailTask()
+    {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String email = sharedPreferences.getString(C.SHARED_MY_EMAIL, null);
+        if (email == null) {
+            Intent intent = new Intent(getContext(), AddEmailActivity.class);
+            startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_ADD_EMAIL);
+        }
+        /*if (checkEmailTask == null) {
+            checkEmailTask = new CheckEmailTask();
+            checkEmailTask.setCallback(this, getContext());
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+            String phone = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
+            checkEmailTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, phone);
+        } else if (checkEmailTask.isRunning) {
+            checkEmailTask.setCallback(this, getContext());
+        }*/
+    }
+
+    @Override
+    public void onEmailChecked(String result) {
+        Intent intent = new Intent(getContext(), AddEmailActivity.class);
+        startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_ADD_EMAIL);
+            /*if (result == null) {
+                Toast.makeText(ActivityMain.this, "Error", Toast.LENGTH_SHORT).show();
+            } else {
+                try {
+                    JSONObject jsonResponse = new JSONObject(result);
+                    String res = jsonResponse.getString("result");
+                    if (res.equals("success")) {
+                        String message = jsonResponse.getString("message");
+                        if (message.equals("true")){
+
+                        } else if (message.equals("false")) {
+                            Intent intent = new Intent(ActivityMain.this, AddEmailActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }
+                    } else if (res.equals("error")) {
+
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }*/
+    }
+
+
+
+
 
     private void initMessageReceiver()
     {
@@ -159,160 +253,12 @@ public class FragmentContacts extends Fragment {
         }
     }
 
-    private void localUpdateContactList()
-    {
-        ArrayList<String> registeredContacts;
-        registeredContacts = MyDbHelper.readRegisteredContacts(new MyDbHelper(getContext()).getReadableDatabase());
-        for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
-        {
-            for (String registeredPhone: registeredContacts)
-            {
-                if (contact.phoneNumber.equals(registeredPhone))
-                {
-                    contact.isRegistered = true;
-                    break;
-                }
-            }
-        }
-
-        Collections.sort(MyContacts.getContacts(getContext()), new ContactsComparator());
-    }
-
-    private void serverUpdateContacts()
-    {
-        ArrayList<String> contactsNumbers = new ArrayList<>();
-        for (MyContacts.Contact contact: MyContacts.getContacts(getContext()))
-        {
-            contactsNumbers.add(contact.phoneNumber);
-        }
-        if (updateContactsTask == null)
-        {
-            updateContactsTask = new UpdateContactsTask(contactsNumbers);
-            updateContactsTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-        }
-
-    }
-
-    private class UpdateContactsTask extends AsyncTask<Void, Void, ArrayList<String>>
-    {
-        ArrayList<String> contactsNumbers;
-
-        public UpdateContactsTask(ArrayList<String> contactsNumbers) {
-            this.contactsNumbers = contactsNumbers;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-        }
-
-        @Override
-        protected ArrayList<String> doInBackground(Void... params) {
-            ArrayList<String> registeredContacts = new ArrayList<>();
-            try
-            {
-                JSONArray jsonArray = tryUpdateContacts(contactsNumbers);
-                if (jsonArray != null)
-                {
-                    registeredContacts = new ArrayList<>();
-                    for (int i = 0; i < jsonArray.length(); i++)
-                    {
-                        JSONObject contact = (JSONObject) jsonArray.get(i);
-                        String phoneNumber = contact.getString("phone");
-                        boolean isRegistered = contact.getBoolean("isRegistered");
-
-                        if (isRegistered)
-                        {
-                            registeredContacts.add(phoneNumber);
-                        }
-                    }
-                    Context context = getContext();
-                    if (context != null)
-                    MyDbHelper.insertRegisteredContacts(new MyDbHelper(getContext()).getWritableDatabase(), registeredContacts);
-
-                }
-            }
-            catch (IOException | JSONException e)
-            {
-                e.printStackTrace();
-            }
-
-            return registeredContacts;
-        }
-
-        @Override
-        protected void onPostExecute(ArrayList<String> regContacts) {
-            for (String phoneNumber: regContacts)
-            {
-                Log.d("rfddffdfg", "reg: " + phoneNumber);
-            }
-            Context context = getContext();
-            if (context != null)
-            {
-                if (regContacts != null)
-                {
-                    for (MyContacts.Contact mContact: MyContacts.getContacts(context))
-                    {
-                        mContact.isRegistered = false;
-                        for (String regPhoneNumber: regContacts)
-                        {
-                            if (mContact.phoneNumber.equals(regPhoneNumber))
-                            {
-                                mContact.isRegistered = true;
-                                break;
-                            }
-                        }
-                    }
-                    Collections.sort(MyContacts.getContacts(context), new ContactsComparator());
-                    if (adapter != null) adapter.notifyDataSetChanged();
-                }
-                else
-                {
-                    Toast.makeText(context, "Connection error", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-        }
-    }
-
-    private JSONArray tryUpdateContacts(ArrayList<String> contactsNumbers) throws IOException, JSONException {
-        StringBuilder sbParams = new StringBuilder();
-        for (String number: contactsNumbers)
-        {
-            sbParams.append("contacts=").append(URLEncoder.encode(number, "UTF-8")).append("&");
-        }
-
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, "");
-        URL url = new URL(C.BASE_URL + "api/v1/usersJob/inSystem/");
-        String header = "Bearer "+accessToken;
-
-        String response = MyConnection.post(url, sbParams.toString(), header);
-
-        JSONArray jsonArray = null;
-        if (response.equals("Access token is expired"))
-        {
-            if (MyConnection.sendRefreshToken(getContext()))
-                jsonArray = tryUpdateContacts(contactsNumbers);
-        }
-        else
-        {
-            JSONObject jsonResponse = new JSONObject(response);
-            String res = jsonResponse.getString("result");
-            if (res.equals("success"))
-                jsonArray = jsonResponse.getJSONArray("contacts");
-        }
-
-        return jsonArray;
-    }
-
     private void initRecyclerView()
     {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new MyContactRecyclerViewAdapter(getContext());
         recyclerView.setAdapter(adapter);
     }
-
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -392,14 +338,6 @@ public class FragmentContacts extends Fragment {
         return true;
     }
 
-    @Override
-    public void onStop() {
-        super.onStop();
-    }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-    }
 
 }

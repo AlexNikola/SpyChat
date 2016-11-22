@@ -80,10 +80,14 @@
             android:name=".VerifyEmailActivity"
             android:label="@string/title_activity_check_email_code"
             android:theme="@style/AuthTheme" />
-
         <activity
             android:name=".AddEmailActivity"
             android:label="@string/title_activity_check_email"
+            android:theme="@style/ChangePassTheme" />
+
+        <activity
+            android:name=".settings.ActivityChangeEmail"
+            android:label="@string/title_activity_change_email"
             android:theme="@style/ChangePassTheme"/>
 
         <!-- appnext start -->

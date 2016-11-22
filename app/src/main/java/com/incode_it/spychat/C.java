@@ -19,7 +19,7 @@ public class C
     public static final String SHARED_ACCESS_TOKEN = "access_token";
     public static final String SHARED_REFRESH_TOKEN = "refresh_token";
     public static final String SHARED_MY_PHONE_NUMBER = "my_phone_number";
-    //public static final String SHARED_MY_EMAIL = "my_email";
+    public static final String SHARED_MY_EMAIL = "my_email";
     public static final String SHARED_PIN = "my_pin";
     public static final String SHARED_NEW_PHOTO_PATH = "photo_path";
     public static final String SHARED_NEW_VIDEO_PATH = "video_path";
@@ -67,6 +67,7 @@ public class C
     public static final int REQUEST_CODE_ACTIVITY_CHANGE_PASSWORD = 7;
     public static final int REQUEST_CODE_ACTIVITY_ADD_EMAIL = 8;
     public static final int REQUEST_CODE_CHECK_EMAIL = 9;
+    public static final int REQUEST_CODE_ACTIVITY_CHANGE_EMAIL = 10;
 
     public static final int RESULT_EXIT = 2;
     public static final int RESULT_LOG_OUT = 3;

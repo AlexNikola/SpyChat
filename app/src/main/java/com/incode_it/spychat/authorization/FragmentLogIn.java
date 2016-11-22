@@ -237,9 +237,10 @@ public class FragmentLogIn extends FragmentLoader
                 if (res.equals("success")) {
                     String accessToken = jsonResponse.getString("accessToken");
                     String refreshToken = jsonResponse.getString("refreshToken");
-                    String phone = jsonResponse.getString("phone");
+                    //String phone = jsonResponse.getString("phone");
+                    //String email = jsonResponse.getString("email");
 
-                    fragmentListener.onLogInSuccess(accessToken, refreshToken, phone);
+                    fragmentListener.onLogInSuccess(accessToken, refreshToken, myPhoneNumber, email);
 
                 } else if (res.equals("error")) {
                     String message = jsonResponse.getString("message");

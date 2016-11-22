@@ -81,7 +81,7 @@ public class FragmentSingUp extends FragmentLoader {
                 String refreshToken = data.getStringExtra(EXTRA_REFRESH_TOKEN);
                 String myPhoneNumber = data.getStringExtra(EXTRA_PONE_NUMBER);
                 String email = data.getStringExtra(EXTRA_EMAIL);
-                fragmentListener.onSignUpSuccess(accessToken, refreshToken, myPhoneNumber);
+                fragmentListener.onSignUpSuccess(accessToken, refreshToken, myPhoneNumber, email);
             }
         }
     }

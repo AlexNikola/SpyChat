@@ -8,7 +8,8 @@
     android:background="@color/colorPrimaryAuth"
     tools:context="com.incode_it.spychat.VerifyEmailFragment"
     android:padding="@dimen/activity_horizontal_margin"
-    tools:showIn="@layout/activity_check_email_code">
+    tools:showIn="@layout/activity_check_email_code"
+    android:gravity="center">
 
     <LinearLayout
         android:orientation="horizontal"

@@ -1208,4 +1208,9 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     }
 
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d("fgdfgxcvcv", "onDestroy: ");
+    }
 }

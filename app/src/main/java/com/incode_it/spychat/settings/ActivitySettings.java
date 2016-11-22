@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import com.incode_it.spychat.BaseActivity;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.OrientationUtils;
@@ -40,10 +41,9 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.net.URL;
 
-public class ActivitySettings extends AppCompatActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener, FragmentPin.FragmentPinListener {
+public class ActivitySettings extends BaseActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener {
 
     private AlertDialog.Builder ad;
-    private boolean requestPin;
     private Switch switchSound, switchVibration, switchPin;
     private SharedPreferences sharedPreferences;
     private EditText pinInput_0, pinInput_1, pinInput_2, pinInput_3;
@@ -54,77 +54,27 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
     private ProgressDialog pd;
     private CoordinatorLayout coordinatorLayout;
     private Button changePasswordBtn;
+    private Button changeEmailBtn;
 
     @Override
     protected void onPause() {
-        requestPin = true;
         super.onPause();
     }
 
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        requestPin = false;
-        super.onRestoreInstanceState(savedInstanceState);
-    }
 
-    @Override
-    protected void onResume() {
-        showPinDialog();
-        super.onResume();
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == C.REQUEST_CODE_ACTIVITY_CHANGE_PASSWORD) {
-            requestPin = false;
-            if (resultCode == C.RESULT_EXIT)
-            {
-                setResult(C.RESULT_EXIT);
-                finish();
-            }
-        }
-        else requestPin = true;
+
     }
 
-    @Override
-    public void onSecurityClose() {
-        setResult(C.RESULT_EXIT);
-        finish();
-    }
 
-    @Override
-    public void onSecurityLogOut() {
-        setResult(C.RESULT_EXIT);
-        Intent intent = new Intent(this, ActivityAuth.class);
-        startActivity(intent);
-        finish();
-    }
-
-    private void showPinDialog()
-    {
-        boolean isPinOn = sharedPreferences.getBoolean(C.SETTING_PIN, false);
-        if (isPinOn && requestPin)
-        {
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            Fragment prev = getSupportFragmentManager().findFragmentByTag(FragmentPin.TAG);
-            if (prev != null) {
-                ft.remove(prev);
-                ft.addToBackStack(null);
-                ft.commit();
-            }
-
-            ft = getSupportFragmentManager().beginTransaction();
-            FragmentPin fragmentPin = FragmentPin.newInstance();
-            fragmentPin.show(ft, FragmentPin.TAG);
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        requestPin = getIntent().getBooleanExtra(C.EXTRA_REQUEST_PIN, false);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         container = findViewById(R.id.container);
         coordinatorLayout = (CoordinatorLayout) findViewById(R.id.coordinator);
@@ -141,6 +91,15 @@ public class ActivitySettings extends AppCompatActivity implements CompoundButto
             public void onClick(View v) {
                 Intent intent = new Intent(ActivitySettings.this, ActivityChangePassword.class);
                 startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_CHANGE_PASSWORD);
+            }
+        });
+
+        changeEmailBtn = (Button) findViewById(R.id.change_email);
+        changeEmailBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(ActivitySettings.this, ActivityChangeEmail.class);
+                startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_CHANGE_EMAIL);
             }
         });
 

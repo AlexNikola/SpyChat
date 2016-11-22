@@ -15,6 +15,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import com.incode_it.spychat.BaseActivity;
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyTimePickerDialog;
@@ -26,12 +27,10 @@ import com.incode_it.spychat.pin.FragmentPin;
 import com.wdullaer.materialdatetimepicker.time.RadialPickerLayout;
 import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
-public class ActivityChat extends AppCompatActivity implements
-        FragmentChat.OnFragmentChatInteractionListener,
-        FragmentPin.FragmentPinListener
+public class ActivityChat extends BaseActivity implements
+        FragmentChat.OnFragmentChatInteractionListener
 {
     private SharedPreferences sharedPreferences;
-    private boolean requestPin;
     private String phone;
 
     FragmentChat fragment;
@@ -43,14 +42,13 @@ public class ActivityChat extends AppCompatActivity implements
         setContentView(R.layout.activity_chat);
         setResult(RESULT_OK);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        requestPin = getIntent().getBooleanExtra(C.EXTRA_REQUEST_PIN, false);
         phone = getIntent().getStringExtra(C.EXTRA_OPPONENT_PHONE_NUMBER);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
 
         fragment = (FragmentChat) fragmentManager.findFragmentByTag(FragmentChat.TAG_FRAGMENT);
-        Log.d("fdfsfs", "onCreate: " + fragment);
+        Log.d("fgdfgxcvcv", "onCreate: " + fragment);
         if (fragment == null)
         {
             fragment = FragmentChat.newInstance(phone);
@@ -64,7 +62,6 @@ public class ActivityChat extends AppCompatActivity implements
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("qwerty", "OnActivityResult");
-        requestPin = true;
     }
 
     @Override
@@ -113,21 +110,6 @@ public class ActivityChat extends AppCompatActivity implements
         });
         tpd.show(getFragmentManager(), "Timepickerdialog");
     }
-
-    @Override
-    public void onSecurityClose() {
-        setResult(C.RESULT_EXIT);
-        finish();
-    }
-
-    @Override
-    public void onSecurityLogOut() {
-        setResult(C.RESULT_EXIT);
-        Intent intent = new Intent(this, ActivityAuth.class);
-        startActivity(intent);
-        finish();
-    }
-
 
     public static class SuccessMessageDialogFragment extends DialogFragment {
 
@@ -242,48 +224,6 @@ public class ActivityChat extends AppCompatActivity implements
             return builder.create();
         }
     }
-
-
-
-    @Override
-    protected void onPause() {
-        requestPin = true;
-        super.onPause();
-    }
-
-    @Override
-    protected void onResume() {
-        showPinDialog();
-        super.onResume();
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        requestPin = false;
-        super.onRestoreInstanceState(savedInstanceState);
-    }
-
-    private void showPinDialog()
-    {
-        boolean isPinOn = sharedPreferences.getBoolean(C.SETTING_PIN, false);
-        if (isPinOn && requestPin)
-        {
-            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            Fragment prev = getSupportFragmentManager().findFragmentByTag(FragmentPin.TAG);
-            if (prev != null) {
-                ft.remove(prev);
-                ft.addToBackStack(null);
-                ft.commit();
-            }
-
-            ft = getSupportFragmentManager().beginTransaction();
-            FragmentPin fragmentPin = FragmentPin.newInstance();
-            fragmentPin.show(ft, FragmentPin.TAG);
-        }
-    }
-
-
-
 
 
 

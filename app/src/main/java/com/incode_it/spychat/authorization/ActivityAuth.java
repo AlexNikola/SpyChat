@@ -101,12 +101,13 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     }
 
     @Override
-    public void onLogInSuccess(String accessToken, String refreshToken, String phone) {
+    public void onLogInSuccess(String accessToken, String refreshToken, String phone, String email) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.edit()
                 .putString(C.SHARED_ACCESS_TOKEN, accessToken)
                 .putString(C.SHARED_REFRESH_TOKEN, refreshToken)
                 .putString(C.SHARED_MY_PHONE_NUMBER, phone)
+                .putString(C.SHARED_MY_EMAIL, email)
                 .apply();
 
         Intent intent = new Intent(this, ActivityMain.class);
@@ -116,12 +117,13 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     }
 
     @Override
-    public void onSignUpSuccess(String accessToken, String refreshToken, String myPhoneNumber) {
+    public void onSignUpSuccess(String accessToken, String refreshToken, String myPhoneNumber, String email) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.edit()
                 .putString(C.SHARED_ACCESS_TOKEN, accessToken)
                 .putString(C.SHARED_REFRESH_TOKEN, refreshToken)
                 .putString(C.SHARED_MY_PHONE_NUMBER, myPhoneNumber)
+                .putString(C.SHARED_MY_EMAIL, email)
                 .apply();
 
         Intent intent = new Intent(this, ActivityMain.class);
