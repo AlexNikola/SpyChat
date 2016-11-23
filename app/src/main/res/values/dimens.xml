@@ -30,4 +30,6 @@
 
     <dimen name="emoji_size">26dp</dimen>
 
+    <dimen name="nav_menu_wight">100dp</dimen>
+
 </resources>

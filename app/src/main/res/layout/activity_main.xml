@@ -6,13 +6,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     tools:context=".contacts.ActivityMain"
     android:background="#2e2e2e">
 
     <ScrollView
+        android:id="@+id/navigation_menu"
         android:scrollbars="none"
-        android:layout_width="100dp"
+        android:layout_width="@dimen/nav_menu_wight"
         android:layout_height="wrap_content">
 
         <LinearLayout

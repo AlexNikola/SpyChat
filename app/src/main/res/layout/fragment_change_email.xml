@@ -15,60 +15,6 @@
         android:orientation="vertical"
         android:padding="@dimen/activity_horizontal_margin">
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <View
-                android:layout_gravity="bottom"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/auth_bg_edit_text_height"
-                android:layout_marginBottom="@dimen/auth_bg_edit_text_margin_bottom"/>
-
-            <android.support.design.widget.TextInputLayout
-                android:hint="Phone number"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <android.support.design.widget.TextInputEditText
-                    android:id="@+id/et_phone"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/auth_edit_text_height"
-                    android:textCursorDrawable="@drawable/color_cursor_auth"
-                    android:padding="@dimen/auth_edit_text_padding"
-                    android:inputType="phone"
-                    android:ems="10"/>
-
-            </android.support.design.widget.TextInputLayout>
-
-            <FrameLayout
-                android:id="@+id/clear_phone"
-                android:layout_width="@dimen/auth_bg_edit_text_height"
-                android:layout_height="@dimen/auth_bg_edit_text_height"
-                android:layout_gravity="bottom|end"
-                android:layout_marginBottom="@dimen/auth_bg_edit_text_margin_bottom">
-
-                <ImageView
-                    android:layout_gravity="center"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@drawable/clear_24dp"/>
-
-            </FrameLayout>
-        </FrameLayout>
-
-        <TextView
-            android:id="@+id/error_phone"
-            android:textColor="@color/errorColor"
-            android:textSize="@dimen/auth_error_text_size"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/auth_error_text_height"/>
-
-
-
-
-
-
 
         <FrameLayout
             android:layout_marginTop="10dp"

@@ -34,14 +34,13 @@ import com.incode_it.spychat.data_base.MyDbHelper;
 import java.util.ArrayList;
 import java.util.Collections;
 
-public class FragmentContacts extends Fragment implements UpdateContactsTask.Callback, CheckEmailTask.Callback {
+public class FragmentContacts extends Fragment implements UpdateContactsTask.Callback {
 
     public static final String FRAGMENT_CONTACTS = "fr_con";
 
     private RecyclerView recyclerView;
     private MyContactRecyclerViewAdapter adapter;
     private UpdateContactsTask updateContactsTask;
-    private CheckEmailTask checkEmailTask;
     private boolean isMessageReceiverRegistered;
     private BroadcastReceiver mBroadcastReceiver;
     private boolean isExpanded;
@@ -59,7 +58,7 @@ public class FragmentContacts extends Fragment implements UpdateContactsTask.Cal
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         setRetainInstance(true);
-        startCheckEmailTask();
+        checkEmail();
     }
 
     @Override
@@ -156,51 +155,14 @@ public class FragmentContacts extends Fragment implements UpdateContactsTask.Cal
 
 
 
-    private void startCheckEmailTask()
+    private void checkEmail()
     {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-        String email = sharedPreferences.getString(C.SHARED_MY_EMAIL, null);
-        if (email == null) {
+        String email = sharedPreferences.getString(C.SHARED_MY_EMAIL, "");
+        if (email.equals("")) {
             Intent intent = new Intent(getContext(), AddEmailActivity.class);
             startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_ADD_EMAIL);
         }
-        /*if (checkEmailTask == null) {
-            checkEmailTask = new CheckEmailTask();
-            checkEmailTask.setCallback(this, getContext());
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-            String phone = sharedPreferences.getString(C.SHARED_MY_PHONE_NUMBER, "");
-            checkEmailTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, phone);
-        } else if (checkEmailTask.isRunning) {
-            checkEmailTask.setCallback(this, getContext());
-        }*/
-    }
-
-    @Override
-    public void onEmailChecked(String result) {
-        Intent intent = new Intent(getContext(), AddEmailActivity.class);
-        startActivityForResult(intent, C.REQUEST_CODE_ACTIVITY_ADD_EMAIL);
-            /*if (result == null) {
-                Toast.makeText(ActivityMain.this, "Error", Toast.LENGTH_SHORT).show();
-            } else {
-                try {
-                    JSONObject jsonResponse = new JSONObject(result);
-                    String res = jsonResponse.getString("result");
-                    if (res.equals("success")) {
-                        String message = jsonResponse.getString("message");
-                        if (message.equals("true")){
-
-                        } else if (message.equals("false")) {
-                            Intent intent = new Intent(ActivityMain.this, AddEmailActivity.class);
-                            startActivity(intent);
-                            finish();
-                        }
-                    } else if (res.equals("error")) {
-
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }*/
     }
 
 

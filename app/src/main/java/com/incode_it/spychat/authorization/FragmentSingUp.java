@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.incode_it.spychat.C;
-import com.incode_it.spychat.VerifyEmailActivity;
 import com.incode_it.spychat.FragmentLoader;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.R;
@@ -183,7 +182,6 @@ public class FragmentSingUp extends FragmentLoader {
         startTask(phoneNumber, email, password);
     }
 
-
     private void initSelectCountryView(View view)
     {
         selectCountryBtnView = view.findViewById(R.id.select_country_btn_view);
@@ -200,13 +198,10 @@ public class FragmentSingUp extends FragmentLoader {
         countryCodeTextView.setText(countryCode);
     }
 
-    private void initPhoneInputLayout(View view)
-    {
+    private void initPhoneInputLayout(View view) {
         phoneET = (TextInputEditText) view.findViewById(R.id.edit_text_phone);
-        if (ActivityAuth.myPhoneNumber != null)
-        {
-            if (phoneNumber.startsWith(countryCode))
-            {
+        if (ActivityAuth.myPhoneNumber != null) {
+            if (phoneNumber.startsWith(countryCode)) {
                 String ph = phoneNumber.substring(countryCode.length());
                 phoneET.setText(ph);
             }
@@ -307,7 +302,7 @@ public class FragmentSingUp extends FragmentLoader {
     @Override
     public void onPostExecute(String result) {
         super.onPostExecute(result);
-        Intent intent = new Intent(getContext(), VerifyEmailActivity.class);
+        Intent intent = new Intent(getContext(), VerifyEmailOnRegActivity.class);
         intent.putExtra(EXTRA_PONE_NUMBER, phoneNumber);
         intent.putExtra(EXTRA_EMAIL, email);
         intent.putExtra(EXTRA_PASSWORD, password);
@@ -321,7 +316,7 @@ public class FragmentSingUp extends FragmentLoader {
                 String res = jsonResponse.getString("result");
                 if (res.equals("success")) {
                     if (getContext() == null) return;
-                    Intent intent = new Intent(getContext(), VerifyEmailActivity.class);
+                    Intent intent = new Intent(getContext(), VerifyEmailOnRegActivity.class);
                     intent.putExtra(EXTRA_PONE_NUMBER, phoneNumber);
                     intent.putExtra(EXTRA_EMAIL, email);
                     intent.putExtra(EXTRA_PASSWORD, password);

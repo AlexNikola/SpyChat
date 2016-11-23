@@ -361,6 +361,14 @@ public class ActivityMain extends BaseActivity implements
         });
     }
 
+
+
+
+
+
+
+
+
     private void openNavMenu()
     {
         isNavMenuOpen = true;
@@ -377,6 +385,8 @@ public class ActivityMain extends BaseActivity implements
         animatorSetContainerClose.start();
         animatorSetIconsClose.start();
     }
+
+
 
     private void initOpenIconsAnimations()
     {

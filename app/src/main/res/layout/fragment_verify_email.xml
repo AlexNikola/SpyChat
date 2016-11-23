@@ -6,9 +6,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/colorPrimaryAuth"
-    tools:context="com.incode_it.spychat.VerifyEmailFragment"
     android:padding="@dimen/activity_horizontal_margin"
-    tools:showIn="@layout/activity_check_email_code"
+    tools:showIn="@layout/activity_verify_email"
     android:gravity="center">
 
     <LinearLayout
