@@ -13,6 +13,7 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -222,13 +223,14 @@ public class ActivityChangeEmail extends BaseActivity {
         public void onPostExecute(String result) {
             super.onPostExecute(result);
 
-            Intent intent = new Intent(getContext(), VerifyEmailActivity.class);
+            /*Intent intent = new Intent(getContext(), VerifyEmailActivity.class);
             intent.putExtra(EXTRA_EMAIL, email);
-            startActivityForResult(intent, C.REQUEST_CODE_CHECK_EMAIL);
+            startActivityForResult(intent, C.REQUEST_CODE_CHECK_EMAIL);*/
 
-            /*if (result == null) {
-                showMessage("response: null", Color.RED, Color.RED);
+            if (result == null) {
+                showMessage("error", Color.RED, Color.RED);
             } else {
+                Log.d("myreg", "changeemail: " + result);
                 try {
                     JSONObject jsonResponse = new JSONObject(result);
                     String res = jsonResponse.getString("result");
@@ -239,12 +241,15 @@ public class ActivityChangeEmail extends BaseActivity {
 
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");
-                        showMessage("response: error", Color.RED, Color.RED);
+                        if (message.equals("Wrong password."))
+                        {
+                            errorPassTextView.setText("Wrong password");
+                        }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }      */
+            }
         }
 
         public void showMessage(String error, int actionColor, int textColor) {

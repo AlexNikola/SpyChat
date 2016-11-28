@@ -13,6 +13,7 @@ import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -116,10 +117,12 @@ public class ActivityChangePassword extends BaseActivity implements View.OnClick
         String newPassword = newPassET.getText().toString();
         String newPasswordConf = newPassConfET.getText().toString();
         boolean isValid = true;
-        if (oldPassword.length() < 1) {
+        if (oldPassword.length() == 0) {
             errorOldPassTextView.setText(R.string.enter_password);
             isValid = false;
-        } else errorOldPassTextView.setText("");
+        } else {
+            errorOldPassTextView.setText("");
+        }
 
         if (!newPassword.equals(newPasswordConf)) {
             errorNewPassTextView.setText(R.string.passwords_not_match);
@@ -168,15 +171,11 @@ public class ActivityChangePassword extends BaseActivity implements View.OnClick
             String newPassword = params[1];
 
             String result = null;
-            try
-            {
+            try {
                 result = tryChangePassword(oldPassword, newPassword);
-            }
-            catch (IOException | JSONException e)
-            {
+            } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
-
             return result;
         }
 
@@ -187,12 +186,12 @@ public class ActivityChangePassword extends BaseActivity implements View.OnClick
             if (result == null) {
                 showError("Connection error", Color.RED, Color.YELLOW);
             } else {
+                Log.d("myreg", "changepass: " + result);
                 try {
                     JSONObject jsonResponse = new JSONObject(result);
                     String res = jsonResponse.getString("result");
                     if (res.equals("success")) {
                         showError("Password has been changed", Color.GREEN, Color.GREEN);
-
                     } else if (res.equals("error")) {
                         String message = jsonResponse.getString("message");
                         if (message.equals("Wrong password.")) {
@@ -203,11 +202,9 @@ public class ActivityChangePassword extends BaseActivity implements View.OnClick
                     e.printStackTrace();
                 }
             }
-
         }
 
-        private String tryChangePassword(String oldPassword, String newPassword) throws IOException, JSONException
-        {
+        private String tryChangePassword(String oldPassword, String newPassword) throws IOException, JSONException {
             String urlParameters = "newPass=" + URLEncoder.encode(newPassword, "UTF-8") + "&" +
                     "oldPass=" + URLEncoder.encode(oldPassword, "UTF-8") + "&" +
                     "confirm=" + URLEncoder.encode(newPassword, "UTF-8");
@@ -219,18 +216,10 @@ public class ActivityChangePassword extends BaseActivity implements View.OnClick
 
             String response = MyConnection.post(url, urlParameters, header);
 
-            String result = null;
-            if (response.equals("Access token is expired"))
-            {
+            if (response.equals("Access token is expired")) {
                 if (MyConnection.sendRefreshToken(ActivityChangePassword.this))
                     response = tryChangePassword(oldPassword, newPassword);
             }
-            else
-            {
-                JSONObject jsonResponse = new JSONObject(response);
-                result = jsonResponse.getString("result");
-            }
-
             return response;
         }
     }

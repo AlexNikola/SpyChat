@@ -43,14 +43,17 @@ public class AddEmailActivity extends BaseActivity {
         public static final String EXTRA_EMAIL = "EXTRA_EMAIL";
 
         private TextInputEditText emailET;
+        private TextInputEditText passET;
 
         private TextView errorEmailTextView;
+        private TextView errorPassTextView;
 
         private View addEmailBtnText;
         private View progressBarView;
         private View addEmailBtnView;
 
         private String email = "";
+        private String password = "";
 
         public AddEmailFragment() {
         }
@@ -78,9 +81,11 @@ public class AddEmailActivity extends BaseActivity {
                                  Bundle savedInstanceState) {
             View view = inflater.inflate(R.layout.fragment_add_email, container, false);
 
+            initPassInputLayout(view);
             initEmailInputLayout(view);
 
             errorEmailTextView = (TextView) view.findViewById(R.id.error_email);
+            errorPassTextView = (TextView) view.findViewById(R.id.error_password);
 
             addEmailBtnText = view.findViewById(R.id.add_email_button_text);
             progressBarView = view.findViewById(R.id.progressBar);
@@ -99,7 +104,16 @@ public class AddEmailActivity extends BaseActivity {
         private void onAddEmailClicked()
         {
             email = emailET.getText().toString();
+            password = passET.getText().toString();
             boolean isValid = true;
+
+            if (password.length() < 6) {
+                if (password.length() == 0) errorPassTextView.setText(R.string.enter_password);
+                else errorPassTextView.setText(R.string.short_password);
+                isValid = false;
+            } else {
+                errorPassTextView.setText("");
+            }
 
             if (email.length() == 0) {
                 errorEmailTextView.setText(R.string.enter_email);
@@ -116,9 +130,19 @@ public class AddEmailActivity extends BaseActivity {
             }
 
             hideKeyBoard();
-            startTask(email);
+            startTask(email, password);
         }
 
+        private void initPassInputLayout(View view) {
+            passET = (TextInputEditText) view.findViewById(R.id.et_password);
+
+            view.findViewById(R.id.clear_password).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    passET.setText("");
+                }
+            });
+        }
 
         private void initEmailInputLayout(View view) {
             emailET = (TextInputEditText) view.findViewById(R.id.et_email);
@@ -147,20 +171,24 @@ public class AddEmailActivity extends BaseActivity {
 
         @Override
         public String doInBackground(String... params) {
-            String email = params[0];
             String result = null;
             try {
-                result = tryAddEmail(email);
+                result = tryAddEmail(params);
             } catch (IOException | JSONException e) {
                 e.printStackTrace();
             }
             return result;
         }
 
-        private String tryAddEmail(String param) throws IOException, JSONException {
-            String email = param;
+        private String tryAddEmail(String... params) throws IOException, JSONException {
+            String email = params[0];
+            String password = params[1];
             email = URLEncoder.encode(email, "UTF-8");
-            String urlParameters = "email=" + email;
+            password = URLEncoder.encode(password, "UTF-8");
+
+            String urlParameters =
+                            "password="      + password      + "&" +
+                            "newEmail="      + email;
 
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
             String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, "");
@@ -172,7 +200,7 @@ public class AddEmailActivity extends BaseActivity {
             if (response.equals("Access token is expired"))
             {
                 if (MyConnection.sendRefreshToken(getContext()))
-                    response = tryAddEmail(param);
+                    response = tryAddEmail(params);
             }
 
             return response;
@@ -182,14 +210,12 @@ public class AddEmailActivity extends BaseActivity {
         public void onPostExecute(String result) {
             super.onPostExecute(result);
 
-            Intent intent = new Intent(getContext(), VerifyEmailActivity.class);
-            intent.putExtra(EXTRA_EMAIL, email);
-            startActivityForResult(intent, C.REQUEST_CODE_CHECK_EMAIL);
-            /*if (result == null) {
+            if (result == null) {
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
                 }
             } else {
+                Log.d("myreg", "addemail: " + result);
                 try {
                     JSONObject jsonResponse = new JSONObject(result);
                     String res = jsonResponse.getString("result");
@@ -199,12 +225,15 @@ public class AddEmailActivity extends BaseActivity {
                         startActivityForResult(intent, C.REQUEST_CODE_CHECK_EMAIL);
 
                     } else if (res.equals("error")) {
-                        Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
+                        String message = jsonResponse.getString("message");
+                        if (message.equals("Wrong password.")){
+                            errorPassTextView.setText("Wrong password");
+                        }
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }*/
+            }
         }
     }
 

@@ -2,6 +2,7 @@ package com.incode_it.spychat.authorization;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -45,6 +47,15 @@ public class ForgotPasswordFragment extends FragmentLoader {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == C.REQUEST_CODE_CHANGE_FORGOTTEN_PASSWORD && resultCode == Activity.RESULT_OK) {
+            getActivity().setResult(Activity.RESULT_OK, data);
+            getActivity().finish();
+        }
     }
 
     @Nullable
@@ -137,20 +148,18 @@ public class ForgotPasswordFragment extends FragmentLoader {
                 Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
             }
         } else {
+            Log.d("myreg", "forgotpass: " + result);
             try {
                 JSONObject jsonResponse = new JSONObject(result);
                 String res = jsonResponse.getString("result");
                 if (res.equals("success")) {
-                    Activity activity = getActivity();
-                    if (activity != null) {
-                        activity.finish();
-                    }
+                    Intent intent = new Intent(getContext(), ActivityChangeForgottenPass.class);
+                    intent.putExtra(FragmentLogIn.EXTRA_EMAIL, email);
+                    startActivityForResult(intent, C.REQUEST_CODE_CHANGE_FORGOTTEN_PASSWORD);
                 } else if (res.equals("error")) {
                     String message = jsonResponse.getString("message");
                     if (message.equals("User not found")) {
-                        if (getContext() != null) {
-                            Toast.makeText(getContext(), "User not found", Toast.LENGTH_SHORT).show();
-                        }
+                        errorEmailTextView.setText("User not found");
                     }
                 }
             } catch (JSONException e) {

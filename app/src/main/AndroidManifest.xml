@@ -88,7 +88,14 @@
             android:name=".settings.ActivityChangeEmail"
             android:label="@string/title_activity_change_email"
             android:theme="@style/ChangePassTheme" />
-
+        <activity
+            android:name=".VerifyEmailActivity"
+            android:label="@string/title_activity_verify_email"
+            android:theme="@style/AuthTheme" />
+        <activity
+            android:name=".authorization.ActivityChangeForgottenPass"
+            android:label="@string/title_activity_change_forgotten_pass"
+            android:theme="@style/AuthTheme"/>
         <!-- appnext start -->
         <receiver
             android:name="com.appnext.appnextsdk.ReferralReceiver"
@@ -172,10 +179,7 @@
             android:enabled="true"
             android:exported="false" />
 
-        <activity
-            android:name=".VerifyEmailActivity"
-            android:label="@string/title_activity_verify_email"
-            android:theme="@style/AppTheme"></activity>
+
     </application>
 
 </manifest>

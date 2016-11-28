@@ -44,7 +44,8 @@ public class C
     public static final String MEDIA_TYPE_VIDEO = "videos";
     public static final String MEDIA_TYPE_AUDIO = "audios";
 
-    public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
+    //public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
+    public static final String BASE_URL = "http://192.168.88.25:7777/";
 
     public static final String REMOVAL_GLOBAL_TIME = "removal_global_time";
     public static final String GLOBAL_TIMER = "added_global_time";
@@ -68,6 +69,8 @@ public class C
     public static final int REQUEST_CODE_ACTIVITY_ADD_EMAIL = 8;
     public static final int REQUEST_CODE_CHECK_EMAIL = 9;
     public static final int REQUEST_CODE_ACTIVITY_CHANGE_EMAIL = 10;
+    public static final int REQUEST_CODE_FORGOT_PASSWORD = 11;
+    public static final int REQUEST_CODE_CHANGE_FORGOTTEN_PASSWORD = 12;
 
     public static final int RESULT_EXIT = 2;
     public static final int RESULT_LOG_OUT = 3;

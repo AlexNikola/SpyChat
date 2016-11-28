@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TextInputEditText;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,9 +18,14 @@ import com.incode_it.spychat.R;
 import com.incode_it.spychat.country_selection.ActivitySelectCountry;
 import com.incode_it.spychat.interfaces.OnFragmentsAuthorizationListener;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLEncoder;
+
+import static com.incode_it.spychat.C.REQUEST_CODE_CHECK_EMAIL;
 
 public class FragmentSingUp extends FragmentLoader {
     private static final String TAG = "myhttp";
@@ -73,7 +79,7 @@ public class FragmentSingUp extends FragmentLoader {
                 countryISO = data.getStringExtra(C.EXTRA_COUNTRY_ISO);
                 countryCodeTextView.setText(countryCode);
             }
-        } else if (requestCode == C.REQUEST_CODE_CHECK_EMAIL) {
+        } else if (requestCode == REQUEST_CODE_CHECK_EMAIL) {
             if (resultCode == Activity.RESULT_OK) {
 
                 String accessToken = data.getStringExtra(EXTRA_ACCESS_TOKEN);
@@ -302,13 +308,14 @@ public class FragmentSingUp extends FragmentLoader {
     @Override
     public void onPostExecute(String result) {
         super.onPostExecute(result);
-        Intent intent = new Intent(getContext(), VerifyEmailOnRegActivity.class);
+        /*Intent intent = new Intent(getContext(), VerifyEmailOnRegActivity.class);
         intent.putExtra(EXTRA_PONE_NUMBER, phoneNumber);
         intent.putExtra(EXTRA_EMAIL, email);
         intent.putExtra(EXTRA_PASSWORD, password);
 
-        startActivityForResult(intent, C.REQUEST_CODE_CHECK_EMAIL);
-        /*if (result == null) {
+        startActivityForResult(intent, C.REQUEST_CODE_CHECK_EMAIL);*/
+        Log.d("myreg", "onPostExecute: " + result);
+        if (result == null) {
             fragmentListener.onError("Connection error");
         } else {
             try {
@@ -335,7 +342,7 @@ public class FragmentSingUp extends FragmentLoader {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-        }*/
+        }
     }
 
 

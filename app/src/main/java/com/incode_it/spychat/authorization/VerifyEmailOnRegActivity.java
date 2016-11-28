@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -161,7 +162,7 @@ public class VerifyEmailOnRegActivity extends AppCompatActivity {
         @Override
         public void onPostExecute(String result) {
             super.onPostExecute(result);
-            Intent intent = new Intent();
+            /*Intent intent = new Intent();
             intent.putExtra(FragmentSingUp.EXTRA_PONE_NUMBER, phone);
             intent.putExtra(FragmentSingUp.EXTRA_EMAIL, email);
             intent.putExtra(FragmentSingUp.EXTRA_ACCESS_TOKEN, "");
@@ -170,8 +171,9 @@ public class VerifyEmailOnRegActivity extends AppCompatActivity {
             if (activity != null) {
                 activity.setResult(Activity.RESULT_OK, intent);
                 activity.finish();
-            }
-            /*if (result == null) {
+            }*/
+            Log.d("myreg", "regcode: " + result);
+            if (result == null) {
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "Connection error", Toast.LENGTH_SHORT).show();
                 }
@@ -199,7 +201,7 @@ public class VerifyEmailOnRegActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }*/
+            }
 
         }
     }

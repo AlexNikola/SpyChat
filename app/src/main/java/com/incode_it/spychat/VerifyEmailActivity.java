@@ -11,6 +11,7 @@ import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -144,35 +145,29 @@ public class VerifyEmailActivity extends BaseActivity {
 
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
             String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, "");
-            URL url = new URL(C.BASE_URL + "api/v1/users/checkUpdateCode/");
+            URL url = new URL(C.BASE_URL + "api/v1/usersJob/checkUpdateCode/");
             String header = "Bearer "+accessToken;
 
             String response = MyConnection.post(url, urlParameters, header);
 
-            if (response.equals("Access token is expired"))
-            {
+            if (response.equals("Access token is expired")) {
                 if (MyConnection.sendRefreshToken(getContext()))
                     response = tryVerifyEmail(param);
             }
+            Log.d("myreg", "verifyemail: " + response);
             return response;
         }
 
         @Override
         public void onPostExecute(String result) {
             super.onPostExecute(result);
-            Intent intent = new Intent();
-            intent.putExtra(FragmentSingUp.EXTRA_EMAIL, email);
-            Activity activity = getActivity();
-            if (activity != null) {
-                activity.setResult(Activity.RESULT_OK, intent);
-                activity.finish();
-            }
 
-            /*if (result == null) {
+            if (result == null) {
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "Connection error", Toast.LENGTH_SHORT).show();
                 }
             } else {
+
                 try {
                     JSONObject jsonResponse = new JSONObject(result);
                     String res = jsonResponse.getString("result");
@@ -185,12 +180,16 @@ public class VerifyEmailActivity extends BaseActivity {
                             activity.finish();
                         }
                     } else if (res.equals("error")) {
-                        if (errorCodeTextView != null) errorCodeTextView.setText("Error");
+                        String message = jsonResponse.getString("message");
+                        if (message.equals("Code vertification fail")){
+                            if (errorCodeTextView != null) errorCodeTextView.setText("Code verification fail");
+                        }
+
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-            }*/
+            }
         }
     }
 

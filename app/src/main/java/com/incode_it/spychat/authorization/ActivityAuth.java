@@ -18,6 +18,7 @@ import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
@@ -102,6 +103,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
 
     @Override
     public void onLogInSuccess(String accessToken, String refreshToken, String phone, String email) {
+        Log.d("myreg", "onLogInSuccess: " + accessToken + " \n" + refreshToken + " \n" + phone + " \n" + email);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.edit()
                 .putString(C.SHARED_ACCESS_TOKEN, accessToken)
@@ -118,6 +120,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
 
     @Override
     public void onSignUpSuccess(String accessToken, String refreshToken, String myPhoneNumber, String email) {
+        Log.d("myreg", "onSignUpSuccess: " + accessToken + " \n" + refreshToken + " \n" + myPhoneNumber + " \n" + email);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.edit()
                 .putString(C.SHARED_ACCESS_TOKEN, accessToken)
