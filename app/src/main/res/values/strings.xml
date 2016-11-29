@@ -1,9 +1,11 @@
 <resources>
-    <string name="app_name">SpyChatter</string>
+    <string name="app_name">SpyLink</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
+    <string name="forgot_pass_explain">We will send verification code to the email address associated with your account.</string>
+    <string name="add_email_explain">Please add your email. It will be used for authorization process and password reset.</string>
 
     <string name="nav_settings">Settings</string>
     <string name="nav_contacts">Contacts</string>
@@ -48,7 +50,7 @@
     <string name="passwords_not_match">Passwords do not match</string>
     <string name="enter_password">Enter password</string>
     <string name="short_password">Password is too short (minimum is 6 characters)</string>
-    <string name="existing_user">There is an existing user connected to this phone number</string>
+    <string name="existing_user">There is an existing user connected to this phone number or email</string>
     <string name="incorrect_password">Incorrect password</string>
     <string name="user_not_found">User not found</string>
 
@@ -146,7 +148,7 @@
 
     <string name="description_2">You can set time to delete each message individually by long pressing the message bubble.</string>
 
-    <string name="description_3">The SpyChatter Contact List is synchronized with your smartphone - to add one simply add it to phone Contacts.</string>
+    <string name="description_3">The SpyLink Contact List is synchronized with your smartphone - to add one simply add it to phone Contacts.</string>
 
     <string name="pick_color_dialog_title">Pick color</string>
     <string name="title_activity_check_email_code">CheckEmailCodeActivity</string>

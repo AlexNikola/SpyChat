@@ -184,7 +184,7 @@ public class MyContactRecyclerViewAdapter extends RecyclerView.Adapter<MyContact
                     {
                         Intent intent = new Intent(Intent.ACTION_SENDTO);
                         intent.setData(Uri.parse("smsto:" + Uri.encode(mContact.phoneNumber)));
-                        intent.putExtra("sms_body", "Hey there! Check out SpyChatter "+C.play_market_url+" A messenger app that cares about security.");
+                        intent.putExtra("sms_body", "Hey there! Check out " + context.getString(R.string.app_name) + " " + C.play_market_url + " A messenger app that cares about security.");
                         context.startActivity(intent);
                     }
                 }

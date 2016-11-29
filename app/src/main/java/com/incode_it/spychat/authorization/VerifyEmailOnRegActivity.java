@@ -162,16 +162,6 @@ public class VerifyEmailOnRegActivity extends AppCompatActivity {
         @Override
         public void onPostExecute(String result) {
             super.onPostExecute(result);
-            /*Intent intent = new Intent();
-            intent.putExtra(FragmentSingUp.EXTRA_PONE_NUMBER, phone);
-            intent.putExtra(FragmentSingUp.EXTRA_EMAIL, email);
-            intent.putExtra(FragmentSingUp.EXTRA_ACCESS_TOKEN, "");
-            intent.putExtra(FragmentSingUp.EXTRA_REFRESH_TOKEN, "");
-            Activity activity = getActivity();
-            if (activity != null) {
-                activity.setResult(Activity.RESULT_OK, intent);
-                activity.finish();
-            }*/
             Log.d("myreg", "regcode: " + result);
             if (result == null) {
                 if (getContext() != null) {

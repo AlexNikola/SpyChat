@@ -3,7 +3,9 @@ package com.incode_it.spychat.authorization;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
@@ -92,6 +94,14 @@ public class FragmentLogIn extends FragmentLoader
             }
         });
 
+        View logInByCodeView = view.findViewById(R.id.code_login);
+        logInByCodeView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onLogInByCodeClicked();
+            }
+        });
+
         errorPhoneTextView = (TextView) view.findViewById(R.id.error_phone);
         errorPassTextView = (TextView) view.findViewById(R.id.error_pass);
 
@@ -115,6 +125,15 @@ public class FragmentLogIn extends FragmentLoader
         errorPhoneTextView.setText("");
         Intent intent = new Intent(getContext(), ActivityForgotPassword.class);
         startActivityForResult(intent, C.REQUEST_CODE_FORGOT_PASSWORD);
+    }
+
+    private void onLogInByCodeClicked()
+    {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        String email = sharedPreferences.getString(C.SHARED_MY_EMAIL, "");
+        Intent intent = new Intent(getContext(), ActivityChangeForgottenPass.class);
+        intent.putExtra(FragmentLogIn.EXTRA_EMAIL, email);
+        startActivityForResult(intent, C.REQUEST_CODE_CHANGE_FORGOTTEN_PASSWORD);
     }
 
     private void onLogInClicked()
@@ -210,6 +229,7 @@ public class FragmentLogIn extends FragmentLoader
     @Override
     public String doInBackground(String... params) {
         Log.d(TAG, "doInBackground: ");
+        String result = null;
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
@@ -233,8 +253,8 @@ public class FragmentLogIn extends FragmentLoader
                             "regToken=" + regToken;
 
             URL url = new URL(C.BASE_URL + "api/v1/auth/getAccessToke/");
-
-            return MyConnection.post(url, urlParameters, null);
+            result = MyConnection.post(url, urlParameters, null);
+            return result;
         } catch (Exception e)
         {
             e.printStackTrace();
@@ -246,6 +266,9 @@ public class FragmentLogIn extends FragmentLoader
     @Override
     public void onPostExecute(String result) {
         super.onPostExecute(result);
+        /*fragmentListener.onLogInSuccess("", "", "", "");
+        Log.d("myreg", "login: " + result);
+        if (true)return;*/
         if (result == null) {
             fragmentListener.onError("Error");
         } else {
@@ -257,9 +280,15 @@ public class FragmentLogIn extends FragmentLoader
                     String accessToken = jsonResponse.getString("accessToken");
                     String refreshToken = jsonResponse.getString("refreshToken");
                     String phone = jsonResponse.getString("phone");
-                    String email = jsonResponse.getString("email");
 
-                    fragmentListener.onLogInSuccess(accessToken, refreshToken, phone, "");
+                    String email = "";
+                    if (jsonResponse.has("email")) {
+                        email = jsonResponse.getString("email");
+                    }
+
+
+
+                    fragmentListener.onLogInSuccess(accessToken, refreshToken, phone, email);
 
                 } else if (res.equals("error")) {
                     String message = jsonResponse.getString("message");
@@ -267,9 +296,6 @@ public class FragmentLogIn extends FragmentLoader
                         errorPassTextView.setText(R.string.incorrect_password);
                     } else if (message.equals("User not found")) {
                         errorPhoneTextView.setText(R.string.user_not_found);
-                    } else if (message.equals("Password dropped")) {
-                        Intent intent = new Intent(getContext(), ActivityChangeForgottenPass.class);
-                        startActivityForResult(intent, C.REQUEST_CODE_CHANGE_FORGOTTEN_PASSWORD);
                     }
                 }
             } catch (JSONException e) {

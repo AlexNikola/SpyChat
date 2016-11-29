@@ -332,7 +332,7 @@ public class FragmentSingUp extends FragmentLoader {
 
                 } else if (res.equals("error")) {
                     String message = jsonResponse.getString("message");
-                    if (message.equals("There is an existing user connected to this phone number.")) {
+                    if (message.equals("There is an existing user connected to this phone number or email.")) {
                         errorPhoneTextView.setText(R.string.existing_user);
                     } else
                     {

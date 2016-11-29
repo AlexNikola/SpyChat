@@ -346,7 +346,6 @@ public class ActivityMain extends BaseActivity implements
     {
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         assert toolbar != null;
-        toolbar.setTitle("SpyChatter");
         setSupportActionBar(toolbar);
 
         if (isNavMenuOpen) toolbar.setNavigationIcon(R.drawable.arrow_back_24dp);

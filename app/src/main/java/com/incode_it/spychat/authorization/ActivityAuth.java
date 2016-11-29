@@ -64,7 +64,6 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         assert toolbar != null;
-        toolbar.setTitle("SpyChatter");
         setSupportActionBar(toolbar);
 
         ViewPager viewPager = (ViewPager) findViewById(R.id.fragment_view_pager);
@@ -81,7 +80,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
     {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, null);
-        return accessToken != null;
+        return accessToken != null && !accessToken.equals("");
     }
 
 
@@ -103,7 +102,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
 
     @Override
     public void onLogInSuccess(String accessToken, String refreshToken, String phone, String email) {
-        Log.d("myreg", "onLogInSuccess: " + accessToken + " \n" + refreshToken + " \n" + phone + " \n" + email);
+        Log.d("myreg", "onLogInSuccess: " + phone + " \n" + email);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.edit()
                 .putString(C.SHARED_ACCESS_TOKEN, accessToken)
@@ -120,7 +119,7 @@ public class ActivityAuth extends AppCompatActivity implements OnFragmentsAuthor
 
     @Override
     public void onSignUpSuccess(String accessToken, String refreshToken, String myPhoneNumber, String email) {
-        Log.d("myreg", "onSignUpSuccess: " + accessToken + " \n" + refreshToken + " \n" + myPhoneNumber + " \n" + email);
+        Log.d("myreg", "onSignUpSuccess: " + myPhoneNumber + " \n" + email);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.edit()
                 .putString(C.SHARED_ACCESS_TOKEN, accessToken)
