@@ -44,8 +44,8 @@ public class C
     public static final String MEDIA_TYPE_VIDEO = "videos";
     public static final String MEDIA_TYPE_AUDIO = "audios";
 
-    //public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
-    public static final String BASE_URL = "http://incode-it.com:47777/";
+    public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
+    //public static final String BASE_URL = "http://incode-it.com:47777/";
 
     public static final String REMOVAL_GLOBAL_TIME = "removal_global_time";
     public static final String GLOBAL_TIMER = "added_global_time";

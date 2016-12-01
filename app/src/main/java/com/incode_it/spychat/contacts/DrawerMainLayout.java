@@ -11,9 +11,9 @@ import android.view.View;
 
 import com.incode_it.spychat.R;
 
-public class DrawerMainLayout extends CoordinatorLayout {
+public class DrawerMainLayout {
 
-    private NavigationMenu navigationMenu;
+    /*private NavigationMenu navigationMenu;
     private CoordinatorLayout movingLayout;
     private ViewDragHelper mDragHelper;
 
@@ -168,5 +168,5 @@ public class DrawerMainLayout extends CoordinatorLayout {
 
     public boolean isOpen() {
         return mIsOpen;
-    }
+    }*/
 }

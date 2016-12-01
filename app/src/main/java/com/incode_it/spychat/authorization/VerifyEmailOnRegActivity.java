@@ -162,7 +162,7 @@ public class VerifyEmailOnRegActivity extends AppCompatActivity {
         @Override
         public void onPostExecute(String result) {
             super.onPostExecute(result);
-            Log.d("myreg", "regcode: " + result);
+            //Log.d("myreg", "regcode: " + result);
             if (result == null) {
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "Connection error", Toast.LENGTH_SHORT).show();

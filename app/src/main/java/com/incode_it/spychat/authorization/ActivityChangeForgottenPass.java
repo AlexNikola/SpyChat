@@ -253,6 +253,8 @@ public class ActivityChangeForgottenPass extends AppCompatActivity {
                         String message = jsonResponse.getString("message");
                         if (message.equals("Code vertification fail")) {
                             errorCodeTextView.setText("Code verification fail");
+                        } else if (message.equals("User is not activated")) {
+                            errorCodeTextView.setText("User is not activated");
                         }
                     }
                 } catch (JSONException e) {

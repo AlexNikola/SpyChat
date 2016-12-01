@@ -314,7 +314,7 @@ public class FragmentSingUp extends FragmentLoader {
         intent.putExtra(EXTRA_PASSWORD, password);
 
         startActivityForResult(intent, C.REQUEST_CODE_CHECK_EMAIL);*/
-        Log.d("myreg", "onPostExecute: " + result);
+        //Log.d("myreg", "onPostExecute: " + result);
         if (result == null) {
             fragmentListener.onError("Connection error");
         } else {

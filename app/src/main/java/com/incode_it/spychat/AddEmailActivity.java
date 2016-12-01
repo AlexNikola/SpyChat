@@ -215,7 +215,7 @@ public class AddEmailActivity extends BaseActivity {
                     Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                Log.d("myreg", "addemail: " + result);
+                //Log.d("myreg", "addemail: " + result);
                 try {
                     JSONObject jsonResponse = new JSONObject(result);
                     String res = jsonResponse.getString("result");

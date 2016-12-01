@@ -148,7 +148,7 @@ public class ForgotPasswordFragment extends FragmentLoader {
                 Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
             }
         } else {
-            Log.d("myreg", "forgotpass: " + result);
+            //Log.d("myreg", "forgotpass: " + result);
             try {
                 JSONObject jsonResponse = new JSONObject(result);
                 String res = jsonResponse.getString("result");

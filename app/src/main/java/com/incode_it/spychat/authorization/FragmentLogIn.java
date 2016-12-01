@@ -272,7 +272,7 @@ public class FragmentLogIn extends FragmentLoader
         if (result == null) {
             fragmentListener.onError("Error");
         } else {
-            Log.d("myreg", "login: " + result);
+            //Log.d("myreg", "login: " + result);
             try {
                 JSONObject jsonResponse = new JSONObject(result);
                 String res = jsonResponse.getString("result");

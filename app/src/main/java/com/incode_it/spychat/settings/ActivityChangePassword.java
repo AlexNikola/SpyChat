@@ -1,6 +1,7 @@
 package com.incode_it.spychat.settings;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -15,6 +16,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.incode_it.spychat.BaseActivity;
@@ -94,6 +96,7 @@ public class ActivityChangePassword extends BaseActivity implements View.OnClick
 
     @Override
     public void onClick(View v) {
+        hideKeyBoard();
         switch (v.getId())
         {
             case R.id.clear_old_pass:
@@ -237,5 +240,13 @@ public class ActivityChangePassword extends BaseActivity implements View.OnClick
         TextView textView = (TextView) snackbar.getView().findViewById(android.support.design.R.id.snackbar_text);
         textView.setTextColor(textColor);
         snackbar.show();
+    }
+
+    protected void hideKeyBoard() {
+        View view = getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
     }
 }
