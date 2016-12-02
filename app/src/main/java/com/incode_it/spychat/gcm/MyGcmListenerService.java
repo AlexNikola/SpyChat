@@ -41,23 +41,41 @@ public class MyGcmListenerService extends GcmListenerService {
     // [START receive_message]
     @Override
     public void onMessageReceived(String from, Bundle data) {
-        String receivedTextMessage;
-        int receivedColor;
-        float receivedTextSize;
-        boolean receivedIsAnimated;
-        String receivedFont;
-        String receiverPhoneNumber;
+        String receivedTextMessage = null;
+        int receivedColor = 0;
+        float receivedTextSize = 0f;
+        boolean receivedIsAnimated = false;
+        String receivedFont = "";
+        String receiverPhoneNumber = null;
+
+        if (data != null) {
+            for (String key : data.keySet()) {
+                Object value = data.get(key);
+                Log.d("mytest", String.format("%s %s (%s)", key,
+                        value.toString(), value.getClass().getName()));
+            }
+        }
 
         try {
             JSONObject jsonObject = new JSONObject(data.getString("message"));
-            receivedTextMessage = jsonObject.getString("textmessage");
-            receivedColor = jsonObject.getInt("color");
-            receivedTextSize = (float) jsonObject.getDouble("size");
-            receivedIsAnimated = jsonObject.getBoolean("animation");
-            receivedFont = jsonObject.getString("font");
-            receiverPhoneNumber = jsonObject.getString("receiverPhoneNumber");
-            Log.d("rfddffdfg", "onMessageReceived: " + receiverPhoneNumber);
+            if (jsonObject.getString("type").equals("typeText")) {
+                receivedTextMessage = jsonObject.getString("textmessage");
+                receivedColor = jsonObject.getInt("color");
+                receivedTextSize = (float) jsonObject.getDouble("size");
+                receivedIsAnimated = jsonObject.getBoolean("animation");
+                receivedFont = jsonObject.getString("font");
+                receiverPhoneNumber = jsonObject.getString("receiverPhoneNumber");
+                Log.d("rfddffdfg", "onMessageReceived: " + receiverPhoneNumber);
+            } else if (jsonObject.getString("type").equals("typeMedia")) {
+                receiverPhoneNumber = jsonObject.getString("receiverPhoneNumber");
+                receivedTextMessage = jsonObject.getString("url");
+                Log.d(TAG, "onMessageReceived: url: " + receivedTextMessage);
+            } else if (jsonObject.getString("type").equals("typeNotification")) {
+                resolveAdminNotification(jsonObject);
+            }
+
         } catch (JSONException e) {
+
             e.printStackTrace();
             return;
         }
@@ -71,18 +89,22 @@ public class MyGcmListenerService extends GcmListenerService {
         Message message;
         if (receivedTextMessage.startsWith(C.MEDIA_TYPE_IMAGE + "/+"))
         {
+            Log.d("mytest", "MEDIA_TYPE_IMAGE");
             message = new Message(receivedTextMessage, phone, receiverPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_IMAGE, receiverPhoneNumber);
         }
         else if (receivedTextMessage.startsWith(C.MEDIA_TYPE_VIDEO + "/+"))
         {
+            Log.d("mytest", "MEDIA_TYPE_VIDEO");
             message = new Message(receivedTextMessage, phone, receiverPhoneNumber, Message.STATE_ADDED, Message.NOT_MY_MESSAGE_VIDEO, receiverPhoneNumber);
         }
         else if (receivedTextMessage.startsWith(C.MEDIA_TYPE_AUDIO + "/+"))
         {
+            Log.d("mytest", "MEDIA_TYPE_AUDIO");
             message = new Message(receivedTextMessage, phone, receiverPhoneNumber, Message.STATE_DOWNLOADING, Message.NOT_MY_MESSAGE_AUDIO, receiverPhoneNumber);
         }
         else
         {
+            Log.d("mytest", "MEDIA_TYPE_TEXT");
             message = new Message(receivedTextMessage, phone, receiverPhoneNumber, Message.STATE_SUCCESS, Message.NOT_MY_MESSAGE_TEXT, receiverPhoneNumber);
             message.setColor(receivedColor);
             message.setTextSize(receivedTextSize);
@@ -169,5 +191,27 @@ public class MyGcmListenerService extends GcmListenerService {
         long longId = Long.parseLong(message.getSenderPhoneNumber().substring(1));
         int id = (int) longId;
         notificationManager.notify(id /* ID of notification */, notificationBuilder.build());
+    }
+
+    private void resolveAdminNotification(JSONObject jsonObject) throws JSONException {
+        String title = jsonObject.getString("title");
+        String text = jsonObject.getString("text");
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
+                .setSmallIcon(R.drawable.ic_warning_white_24dp)
+                .setContentTitle(title)
+                .setAutoCancel(true)
+                .setContentText(text);
+
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean isSoundOn = sharedPreferences.getBoolean(C.SETTING_SOUND, true);
+        boolean isVibrateOn = sharedPreferences.getBoolean(C.SETTING_VIBRATE, true);
+        if (isSoundOn) notificationBuilder.setSound(defaultSoundUri);
+        if (isVibrateOn) notificationBuilder.setVibrate(new long[] {1000, 1000} );
+
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(500, notificationBuilder.build());
     }
 }

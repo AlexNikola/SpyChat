@@ -29,6 +29,7 @@ public class MyContacts
                 {
                     String name = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
                     String phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NORMALIZED_NUMBER));
+                    Log.d("fdfsdfds", "getContacts: " + phoneNumber);
                     String photoURI = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI));
                     if (phoneNumber == null) continue;
                     Uri uri = null;

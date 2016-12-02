@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
 import com.amazonaws.mobileconnectors.s3.transferutility.TransferListener;
@@ -20,12 +21,14 @@ import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyConnection;
 import com.incode_it.spychat.QuickstartPreferences;
 import com.incode_it.spychat.data_base.MyDbHelper;
+import com.incode_it.spychat.utils.Cypher;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -128,11 +131,27 @@ public class UploadService extends IntentService {
             String path = message.getMessage();
             File file = new File(path);
             String remoteMediaPath = type + "/" + opponentPhone + "/" + file.getName();
+            String receiverPhoneNumber = "";
+            try {
+                remoteMediaPath = URLEncoder.encode(remoteMediaPath, "UTF-8");
+                receiverPhoneNumber = URLEncoder.encode(message.getReceiverPhoneNumber(), "UTF-8");
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+            JSONObject object = new JSONObject();
+            try {
+                object.put("type", "typeMedia");
+                object.put("url", remoteMediaPath);
+                object.put("receiverPhoneNumber", receiverPhoneNumber);
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
 
             String result = null;
             try
             {
-                result = trySendMessage(remoteMediaPath, opponentPhone);
+                result = trySendMessage(object.toString(), opponentPhone);
             }
             catch (IOException | JSONException e)
             {
@@ -171,7 +190,8 @@ public class UploadService extends IntentService {
     private String trySendMessage(String remoteMediaPath, String opponentPhone) throws IOException, JSONException
     {
         StringBuilder sbParams = new StringBuilder();
-        sbParams.append("message=").append(URLEncoder.encode(remoteMediaPath, "UTF-8")).append("&").append("destination=").append(URLEncoder.encode(opponentPhone, "UTF-8"));
+        //sbParams.append("message=").append(URLEncoder.encode(remoteMediaPath, "UTF-8")).append("&").append("destination=").append(URLEncoder.encode(opponentPhone, "UTF-8"));
+        sbParams.append("message=").append(remoteMediaPath).append("&").append("destination=").append(URLEncoder.encode(opponentPhone, "UTF-8"));
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         String accessToken = sharedPreferences.getString(C.SHARED_ACCESS_TOKEN, "");
         URL url = new URL(C.BASE_URL + "api/v1/message/sendMessage/");
@@ -179,6 +199,7 @@ public class UploadService extends IntentService {
 
         String response = MyConnection.post(url, sbParams.toString(), header);
 
+        Log.d("mytest", "trySendMessage: " + sbParams.toString());
         String result = null;
         if (response.equals("Access token is expired"))
         {

@@ -723,6 +723,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             @Override
             public void onClick(View v) {
                 fakeToolbar.hidePalettePopup();
+                fakeToolbar.hidePopup();
                 String textMessage = editText.getText().toString();
                 editText.setText("");
                 if (textMessage.length() > 0)
@@ -822,6 +823,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             String textMessage = message.getMessage();
             JSONObject object = new JSONObject();
             try {
+                object.put("type", "typeText");
                 object.put("textmessage", textMessage);
                 object.put("color", message.getColor());
                 object.put("size", (double) message.getTextSize());

@@ -1,14 +1,19 @@
 package com.incode_it.spychat.authorization;
 
 import android.app.Activity;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.media.RingtoneManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -113,12 +118,43 @@ public class FragmentLogIn extends FragmentLoader
             @Override
             public void onClick(View v) {
                 onLogInClicked();
+                /*JSONObject object = new JSONObject();
+                try {
+                    object.put("title", "Spy title");
+                    object.put("text", "Spy text");
+                    resolveAdminNotification(object);
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }*/
             }
         });
 
 
         return view;
     }
+
+    /*private void resolveAdminNotification(JSONObject jsonObject) throws JSONException {
+        String title = jsonObject.getString("title");
+        String text = jsonObject.getString("text");
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(getContext())
+                .setSmallIcon(R.drawable.ic_warning_white_24dp)
+                .setContentTitle(title)
+                .setAutoCancel(true)
+                .setContentText(text);
+
+        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        boolean isSoundOn = sharedPreferences.getBoolean(C.SETTING_SOUND, true);
+        boolean isVibrateOn = sharedPreferences.getBoolean(C.SETTING_VIBRATE, true);
+        if (isSoundOn) notificationBuilder.setSound(defaultSoundUri);
+        if (isVibrateOn) notificationBuilder.setVibrate(new long[] {1000, 1000} );
+
+        NotificationManager notificationManager =
+                (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(500, notificationBuilder.build());
+    }*/
 
     private void onForgotPassClicked()
     {
@@ -239,6 +275,8 @@ public class FragmentLogIn extends FragmentLoader
         String email = params[1];
         String password = params[2];
         String regToken;
+        String version = String.valueOf(C.getAppVersion(getContext()));
+        Log.d("myreg", "doInBackground: " + version);
 
         try {
             regToken = MyConnection.getRegToken(getContext());
@@ -250,7 +288,8 @@ public class FragmentLogIn extends FragmentLoader
                             "phone="    + phoneNumber   + "&" +
                             "email="    + email         + "&" +
                             "password=" + password      + "&" +
-                            "regToken=" + regToken;
+                            "regToken=" + regToken      + "&" +
+                            "version="  + version;
 
             URL url = new URL(C.BASE_URL + "api/v1/auth/getAccessToke/");
             result = MyConnection.post(url, urlParameters, null);
@@ -262,6 +301,8 @@ public class FragmentLogIn extends FragmentLoader
 
         return null;
     }
+
+
 
     @Override
     public void onPostExecute(String result) {

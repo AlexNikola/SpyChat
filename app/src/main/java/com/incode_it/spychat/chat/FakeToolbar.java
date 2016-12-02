@@ -110,7 +110,7 @@ public class FakeToolbar extends FrameLayout {
         toolbarLower.animate().translationY(popUpTranslationY).start();
     }
 
-    private void hidePopup()
+    public void hidePopup()
     {
         isPopupVisible = false;
         toolbarLower.animate()

@@ -279,6 +279,7 @@ public class FragmentSingUp extends FragmentLoader {
         String email = params[1];
         String password = params[2];
         String regToken;
+        String version = String.valueOf(C.getAppVersion(getContext()));
 
         try {
             phoneNumber = URLEncoder.encode(phoneNumber, "UTF-8");
@@ -287,11 +288,13 @@ public class FragmentSingUp extends FragmentLoader {
 
             regToken = MyConnection.getRegToken(getContext());
 
-            String urlParameters =  "phone="    + phoneNumber   + "&" +
+            String urlParameters =
+                    "phone="    + phoneNumber   + "&" +
                     "email="    + email         + "&" +
                     "password=" + password      + "&" +
                     "confirm="  + password      + "&" +
-                    "regToken=" + regToken;
+                    "regToken=" + regToken      + "&" +
+                    "version="  + version;
 
             URL url = new URL(C.BASE_URL + "api/v1/users/register/");
 
