@@ -1,5 +1,6 @@
 package com.incode_it.spychat.contacts;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -21,6 +22,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.incode_it.spychat.AddEmailActivity;
 import com.incode_it.spychat.C;
@@ -93,10 +95,13 @@ public class FragmentContacts extends Fragment implements UpdateContactsTask.Cal
     }
 
 
-
-
-
-
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == C.REQUEST_CODE_ACTIVITY_ADD_EMAIL && resultCode == Activity.RESULT_OK) {
+            Toast.makeText(getContext(), "Email successfully added", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void localUpdateContactList()
     {

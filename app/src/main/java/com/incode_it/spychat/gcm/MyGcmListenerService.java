@@ -48,13 +48,13 @@ public class MyGcmListenerService extends GcmListenerService {
         String receivedFont = "";
         String receiverPhoneNumber = null;
 
-        if (data != null) {
+        /*if (data != null) {
             for (String key : data.keySet()) {
                 Object value = data.get(key);
                 Log.d("mytest", String.format("%s %s (%s)", key,
                         value.toString(), value.getClass().getName()));
             }
-        }
+        }*/
 
         try {
             JSONObject jsonObject = new JSONObject(data.getString("message"));
@@ -65,11 +65,11 @@ public class MyGcmListenerService extends GcmListenerService {
                 receivedIsAnimated = jsonObject.getBoolean("animation");
                 receivedFont = jsonObject.getString("font");
                 receiverPhoneNumber = jsonObject.getString("receiverPhoneNumber");
-                Log.d("rfddffdfg", "onMessageReceived: " + receiverPhoneNumber);
+                //Log.d("rfddffdfg", "onMessageReceived: " + receiverPhoneNumber);
             } else if (jsonObject.getString("type").equals("typeMedia")) {
                 receiverPhoneNumber = jsonObject.getString("receiverPhoneNumber");
                 receivedTextMessage = jsonObject.getString("url");
-                Log.d(TAG, "onMessageReceived: url: " + receivedTextMessage);
+                //Log.d(TAG, "onMessageReceived: url: " + receivedTextMessage);
             } else if (jsonObject.getString("type").equals("typeNotification")) {
                 resolveAdminNotification(jsonObject);
             }

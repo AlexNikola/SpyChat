@@ -34,6 +34,7 @@ public class AddEmailActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_email);
+        setResult(RESULT_CANCELED);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     }
@@ -70,6 +71,7 @@ public class AddEmailActivity extends BaseActivity {
                 if (resultCode == Activity.RESULT_OK) {
                     Activity activity = getActivity();
                     if (activity != null) {
+                        getActivity().setResult(RESULT_OK);
                         activity.finish();
                     }
                 }
@@ -196,7 +198,7 @@ public class AddEmailActivity extends BaseActivity {
             URL url = new URL(C.BASE_URL + "api/v1/usersJob/update-email/");
             String header = "Bearer "+accessToken;
             String response = MyConnection.post(url, urlParameters, header);
-
+            //Log.d("myreg", "addemail: " + accessToken);
             if (response.equals("Access token is expired"))
             {
                 if (MyConnection.sendRefreshToken(getContext()))
@@ -209,13 +211,13 @@ public class AddEmailActivity extends BaseActivity {
         @Override
         public void onPostExecute(String result) {
             super.onPostExecute(result);
-
+            //Log.d("myreg", "addemail: " + result);
             if (result == null) {
                 if (getContext() != null) {
-                    Toast.makeText(getContext(), "Error", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Connection error", Toast.LENGTH_SHORT).show();
                 }
             } else {
-                //Log.d("myreg", "addemail: " + result);
+
                 try {
                     JSONObject jsonResponse = new JSONObject(result);
                     String res = jsonResponse.getString("result");
@@ -228,7 +230,13 @@ public class AddEmailActivity extends BaseActivity {
                         String message = jsonResponse.getString("message");
                         if (message.equals("Wrong password.")){
                             errorPassTextView.setText("Wrong password");
+                        } else if (message.equals("There is an existing user connected to this email number or email.")){
+                            errorEmailTextView.setText("There is an existing user connected to this email");
+                        } else {
+                            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
                         }
+                    } else {
+                        Toast.makeText(getContext(), res, Toast.LENGTH_LONG).show();
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();

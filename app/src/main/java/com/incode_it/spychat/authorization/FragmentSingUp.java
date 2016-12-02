@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.FragmentLoader;
@@ -337,9 +338,8 @@ public class FragmentSingUp extends FragmentLoader {
                     String message = jsonResponse.getString("message");
                     if (message.equals("There is an existing user connected to this phone number or email.")) {
                         errorPhoneTextView.setText(R.string.existing_user);
-                    } else
-                    {
-                        fragmentListener.onError("Error");
+                    } else {
+                        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
                     }
                 }
             } catch (JSONException e) {
@@ -347,8 +347,5 @@ public class FragmentSingUp extends FragmentLoader {
             }
         }
     }
-
-
-
 
 }

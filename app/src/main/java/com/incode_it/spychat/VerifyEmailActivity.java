@@ -183,6 +183,8 @@ public class VerifyEmailActivity extends BaseActivity {
                         String message = jsonResponse.getString("message");
                         if (message.equals("Code vertification fail")){
                             if (errorCodeTextView != null) errorCodeTextView.setText("Code verification fail");
+                        } else {
+                            Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
                         }
 
                     }

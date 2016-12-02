@@ -19,6 +19,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.FragmentLoader;
@@ -311,7 +312,7 @@ public class FragmentLogIn extends FragmentLoader
         Log.d("myreg", "login: " + result);
         if (true)return;*/
         if (result == null) {
-            fragmentListener.onError("Error");
+            fragmentListener.onError("Connection Error");
         } else {
             //Log.d("myreg", "login: " + result);
             try {
@@ -337,6 +338,8 @@ public class FragmentLogIn extends FragmentLoader
                         errorPassTextView.setText(R.string.incorrect_password);
                     } else if (message.equals("User not found")) {
                         errorPhoneTextView.setText(R.string.user_not_found);
+                    } else {
+                        Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
                     }
                 }
             } catch (JSONException e) {
