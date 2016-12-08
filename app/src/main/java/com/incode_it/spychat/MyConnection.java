@@ -3,6 +3,7 @@ package com.incode_it.spychat;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
@@ -47,6 +48,7 @@ public class MyConnection
         }
 
         String response = IOUtils.toString(inputStream);
+        //Log.d("mconta", "sendRefreshToken resp: " + response);
         try {
             JSONObject jsonResponse = new JSONObject(response);
             String res = jsonResponse.getString("result");

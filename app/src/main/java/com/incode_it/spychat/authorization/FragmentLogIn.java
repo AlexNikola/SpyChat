@@ -14,6 +14,8 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.NotificationCompat;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,8 +35,7 @@ import org.json.JSONObject;
 import java.net.URL;
 import java.net.URLEncoder;
 
-public class FragmentLogIn extends FragmentLoader
-{
+public class FragmentLogIn extends FragmentLoader implements TextWatcher {
     public static final String EXTRA_PONE_NUMBER = "EXTRA_PONE_NUMBER";
     public static final String EXTRA_EMAIL = "EXTRA_EMAIL";
     public static final String EXTRA_ACCESS_TOKEN = "EXTRA_ACCESS_TOKEN";
@@ -215,6 +216,7 @@ public class FragmentLogIn extends FragmentLoader
 
     private void initPhoneInputLayout(View view) {
         phoneET = (TextInputEditText) view.findViewById(R.id.edit_text_phone);
+        phoneET.addTextChangedListener(this);
         if (ActivityAuth.myPhoneNumber != null) {
             phoneET.setText(myPhoneNumber);
         }
@@ -277,7 +279,7 @@ public class FragmentLogIn extends FragmentLoader
         String password = params[2];
         String regToken;
         String version = String.valueOf(C.getAppVersion(getContext()));
-        Log.d("myreg", "doInBackground: " + version);
+        Log.d("myreg", "doInBackground: phoneNumber " + phoneNumber);
 
         try {
             regToken = MyConnection.getRegToken(getContext());
@@ -346,5 +348,31 @@ public class FragmentLogIn extends FragmentLoader
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {
+        Log.d("myreg", "afterTextChanged: " + s);
+
+        if (s.toString().startsWith("+")) {
+            if (s.length() > 1 && !isOnlyContainsNumbers(s.toString().substring(1, s.length()))) {
+                s.delete(0, 1);
+            }
+        } else if (!s.toString().startsWith("+") && isOnlyContainsNumbers(s.toString())) {
+            s.insert(0, "+");
+        }
+
+
+        /*Привет. В SpyLink в роуте inSystem вместо "Access token is expired" приходит "". Надо будет исправить*/
     }
 }

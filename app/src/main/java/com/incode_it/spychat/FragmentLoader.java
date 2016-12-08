@@ -137,6 +137,10 @@ public abstract class FragmentLoader extends Fragment implements TaskCallback {
         }
     }
 
+    protected boolean isOnlyContainsNumbers(String number) {
+        return number.matches("[0-9]+");
+    }
+
     protected boolean validCellPhone(String number) {
         return Patterns.PHONE.matcher(number).matches();
     }

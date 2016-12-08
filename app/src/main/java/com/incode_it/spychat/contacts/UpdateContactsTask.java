@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.MyConnection;
@@ -43,7 +44,7 @@ class UpdateContactsTask extends AsyncTask<ArrayList<String>, Void, ArrayList<St
     @Override
     protected ArrayList<String> doInBackground(ArrayList<String>... params) {
         ArrayList<String> contactsNumbers = params[0];
-        ArrayList<String> registeredContacts = new ArrayList<>();
+        ArrayList<String> registeredContacts = null;
         try
         {
             JSONArray jsonArray = tryUpdateContacts(contactsNumbers);
@@ -107,24 +108,31 @@ class UpdateContactsTask extends AsyncTask<ArrayList<String>, Void, ArrayList<St
         String header = "Bearer "+accessToken;
 
         String response = MyConnection.post(url, sbParams.toString(), header);
+        //Log.d("mconta", "tryUpdateContacts accessToken: " + accessToken);
+        Log.d("mconta", "tryUpdateContacts resp: " + response);
 
         JSONArray jsonArray = null;
         if (response.equals("Access token is expired"))
         {
-            if (MyConnection.sendRefreshToken(weekContext.get()))
+            if (MyConnection.sendRefreshToken(weekContext.get())){
                 jsonArray = tryUpdateContacts(contactsNumbers);
+            }
         }
-        else
-        {
+        else {
             JSONObject jsonResponse = new JSONObject(response);
             String res = jsonResponse.getString("result");
-            if (res.equals("success"))
+            if (res.equals("success")) {
                 jsonArray = jsonResponse.getJSONArray("contacts");
+            } /*else if (res.equals("error")){
+                if (jsonResponse.has("msg") && jsonResponse.getString("msg").equals("Invalid access token")) {
+                    if (MyConnection.sendRefreshToken(weekContext.get())){
+                        jsonArray = tryUpdateContacts(contactsNumbers);
+                    }
+                }
+            }*/
         }
-
         return jsonArray;
     }
-
 
     interface Callback
     {

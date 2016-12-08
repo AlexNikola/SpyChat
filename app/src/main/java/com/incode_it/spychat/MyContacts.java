@@ -19,6 +19,7 @@ public class MyContacts
     {
         if (mContacts == null)
         {
+            Log.d("mconta", "getContacts: " + mContacts);
             mContacts = new ArrayList<>();
 
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
