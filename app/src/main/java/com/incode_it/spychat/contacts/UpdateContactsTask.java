@@ -96,6 +96,7 @@ class UpdateContactsTask extends AsyncTask<ArrayList<String>, Void, ArrayList<St
 
 
     private JSONArray tryUpdateContacts(ArrayList<String> contactsNumbers) throws IOException, JSONException {
+        if (weekContext.get() == null) return null;
         StringBuilder sbParams = new StringBuilder();
         for (String number: contactsNumbers)
         {

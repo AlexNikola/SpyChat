@@ -23,6 +23,7 @@ public class MyConnection
     private static final String TAG = "myhttp";
 
     public static synchronized boolean sendRefreshToken(Context context) throws IOException, JSONException {
+        if (context == null) return false;
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         String refreshToken = sharedPreferences.getString(C.SHARED_REFRESH_TOKEN, "");
         String urlParameters = "refreshToken=" + refreshToken;
