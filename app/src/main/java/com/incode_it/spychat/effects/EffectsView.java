@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -45,8 +46,8 @@ public class EffectsView extends FrameLayout {
     public EffectsView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        balloonGenerator = ConfettiHandler.getConfettiGenerator(this, getBalloonColors(), R.mipmap.balloon, 500);
-        heartGenerator = ConfettiHandler.getConfettiGenerator(this, getHeartColors(), R.drawable.ic_heart, 200);
+        balloonGenerator = ConfettiHandler.getConfettiGenerator(getBalloonBitmaps());
+        heartGenerator = ConfettiHandler.getConfettiGenerator(getHeartBitmaps());
 
         int [] colors = getFireworkColors();
         for (int i = 0; i < colors.length; i++) {
@@ -101,11 +102,11 @@ public class EffectsView extends FrameLayout {
                 .appear(ConfettiHandler.APPEAR_BOTTOM)
                 .generator(balloonGenerator)
                 .build()
-                .setVelocityX(0, 150)
-                .setVelocityY(-600, -250)
+                .setVelocityX(0, 250)
+                .setVelocityY(-600, 250)
                 .setNumInitialCount(0)
                 .setEmissionDuration(3000)
-                .setEmissionRate(12)
+                .setEmissionRate(5)
                 .animate();
     }
 
@@ -161,7 +162,7 @@ public class EffectsView extends FrameLayout {
                 .setVelocityY(600, 250)
                 .setNumInitialCount(0)
                 .setEmissionDuration(3000)
-                .setEmissionRate(15)
+                .setEmissionRate(10)
                 .animate();
     }
     public void startParty() {
@@ -169,7 +170,7 @@ public class EffectsView extends FrameLayout {
         confettiManager = CommonConfetti.rainingConfetti(this, getConfettyColors())
                 .getConfettiManager()
                 .setVelocityX(0, 250)
-                .setVelocityY(600, 250)
+                .setVelocityY(600, 300)
                 .setNumInitialCount(0)
                 .setEmissionDuration(3000)
                 .setEmissionRate(50)
@@ -254,5 +255,23 @@ public class EffectsView extends FrameLayout {
         drawable.draw(canvas);
 
         return bitmap;
+    }
+
+    private ArrayList<Bitmap> getBalloonBitmaps() {
+        ArrayList<Bitmap> bitmaps = new ArrayList<>();
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.balloon_blue_normal));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.balloon_blue_small));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.balloon_green_normal));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.balloon_green_small));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.balloon_red_normal));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.balloon_red_small));
+        return bitmaps;
+    }
+
+    private ArrayList<Bitmap> getHeartBitmaps() {
+        ArrayList<Bitmap> bitmaps = new ArrayList<>();
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.heart_normal));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.heart_small));
+        return bitmaps;
     }
 }

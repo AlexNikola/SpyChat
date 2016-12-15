@@ -115,6 +115,16 @@ public class ConfettiHandler {
         };
     }
 
+    public static ConfettoGenerator getConfettiGenerator(final List<Bitmap> bitmaps) {
+        final int numBitmaps = bitmaps.size();
+        return new ConfettoGenerator() {
+            @Override
+            public Confetto generateConfetto(Random random) {
+                return new BitmapConfetto(bitmaps.get(random.nextInt(numBitmaps)));
+            }
+        };
+    }
+
     public static List<Bitmap> generateConfettiBitmaps(ViewGroup container, int[] colors, int size, @DrawableRes int res) {
         final List<Bitmap> bitmaps = new ArrayList<>();
         for (int color : colors) {
@@ -128,7 +138,7 @@ public class ConfettiHandler {
     public static Bitmap createBitmap(ViewGroup container, int color, int size, @DrawableRes int res)
     {
         Drawable drawable = container.getResources().getDrawable(res);
-        DrawableCompat.setTint(drawable, color);
+        //DrawableCompat.setTint(drawable, color);
         Canvas canvas = new Canvas();
         Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
         canvas.setBitmap(bitmap);
