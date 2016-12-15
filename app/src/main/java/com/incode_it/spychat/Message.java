@@ -1,7 +1,10 @@
 package com.incode_it.spychat;
 
 
+import android.database.Cursor;
 import android.graphics.Color;
+
+import com.incode_it.spychat.data_base.MReaderContract;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -42,6 +45,7 @@ public class Message
     private boolean isAnimated;
     private String font;
     public String ownerPhoneNumber;
+    private int effect;
 
     public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state, int messageType, String ownerPhoneNumber)
     {
@@ -56,18 +60,36 @@ public class Message
         this.ownerPhoneNumber = ownerPhoneNumber;
     }
 
-    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber,
-                   String date, int state, int messageId, long removalTime, int messageType, String ownerPhoneNumber)
+    public Message(Cursor cursor)
     {
-        this.message = message;
-        this.senderPhoneNumber = senderPhoneNumber;
-        this.receiverPhoneNumber = receiverPhoneNumber;
-        this.date = date;
-        this.state = state;
+        this.message = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.MESSAGE));
+        this.senderPhoneNumber = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.SENDER_PHONE_NUMBER));
+        this.receiverPhoneNumber = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.RECEIVER_PHONE_NUMBER));
+        this.date = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.DATE));
+        this.state = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.STATE));
+        this.messageId = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.MESSAGE_ID));
+        this.removalTime = cursor.getLong(cursor.getColumnIndex(MReaderContract.Chat.REMOVAL_TIME));
+        this.messageType = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.MESSAGE_TYPE));
+        this.ownerPhoneNumber = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.OWNER));
+        this.isViewed = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.IS_VIEWED));
+        this.audioDuration = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.AUDIO_DURATION));
+        this.color = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.COLOR));
+        this.textSize = cursor.getFloat(cursor.getColumnIndex(MReaderContract.Chat.SIZE));
+        this.isAnimated = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.ANIMATION)) == 1;
+        this.font = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.FONT));
+        this.effect = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.EFFECT));
+    }
+
+    public void setMessageId(int messageId) {
         this.messageId = messageId;
-        this.removalTime = removalTime;
-        this.messageType = messageType;
-        this.ownerPhoneNumber = ownerPhoneNumber;
+    }
+
+    public int getEffect() {
+        return effect;
+    }
+
+    public void setEffect(int effect) {
+        this.effect = effect;
     }
 
     public void setRemovalTime(long removalTime) {

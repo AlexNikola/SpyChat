@@ -159,4 +159,5 @@
     <string name="title_activity_change_email">ActivityChangeEmail</string>
     <string name="title_activity_verify_email">VerifyEmailActivity</string>
     <string name="title_activity_change_forgotten_pass">ActivityChangeForgottenPass</string>
+    <string name="title_activity_effects_selector">Visuals</string>
 </resources>

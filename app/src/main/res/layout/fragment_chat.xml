@@ -6,14 +6,51 @@
     android:id="@+id/root_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#e5f0ff"
     tools:context=".chat.ActivityChat">
+
+    <com.incode_it.spychat.effects.EffectsView
+        android:id="@+id/effectsView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <View
+            android:background="#455455"
+            android:layout_margin="100dp"
+            android:id="@+id/emiter1"
+            android:layout_width="0dp"
+            android:layout_height="0dp"/>
+
+        <View
+            android:background="#455455"
+            android:layout_gravity="end"
+            android:layout_margin="100dp"
+            android:id="@+id/emiter3"
+            android:layout_width="0dp"
+            android:layout_height="0dp"/>
+
+        <View
+            android:background="#455455"
+            android:layout_gravity="bottom"
+            android:layout_margin="100dp"
+            android:id="@+id/emiter4"
+            android:layout_width="0dp"
+            android:layout_height="0dp"/>
+
+        <View
+            android:layout_gravity="bottom|end"
+            android:layout_margin="100dp"
+            android:id="@+id/emiter2"
+            android:layout_width="0dp"
+            android:layout_height="0dp"/>
+
+    </com.incode_it.spychat.effects.EffectsView>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/list"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layoutManager="LinearLayoutManager"
-        android:background="#e5f0ff"
         android:clipToPadding="false"
         android:paddingBottom="100dp"
         android:layout_marginTop="?attr/actionBarSize"/>
@@ -49,6 +86,22 @@
             android:maxLines="3"
             android:layout_height="wrap_content"
             android:id="@+id/edit_text"/>
+
+        <com.incode_it.spychat.effects.EffectButton
+            android:id="@+id/effect"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/effect_image_view"
+                android:layout_margin="10dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_arrow_upward_black_24dp"
+                android:tint="@color/chat_effects_btn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </com.incode_it.spychat.effects.EffectButton>
 
         <FrameLayout
             android:id="@+id/send_view"

@@ -53,7 +53,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     private MyContacts.Contact contact;
     private Bitmap contactBitmap;
     private FragmentChat.OnFragmentChatInteractionListener listener;
-    private OnChatAdapterListener chatAdapterListener;
+    private Callback callback;
     private String myPhoneNumber;
     private Bitmap noPhotoBitmap;
     private Context context;
@@ -67,13 +67,13 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                                      MyContacts.Contact contact,
                                      Bitmap contactBitmap,
                                      FragmentChat.OnFragmentChatInteractionListener listener,
-                                     OnChatAdapterListener chatAdapterListener) {
+                                     Callback callback) {
         this.context = context;
         this.messages = messages;
         this.contact = contact;
         this.contactBitmap = contactBitmap;
         this.listener = listener;
-        this.chatAdapterListener = chatAdapterListener;
+        this.callback = callback;
 
         noPhotoBitmap = C.getNoPhotoBitmap(context);
 
@@ -702,6 +702,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         public TextView timeText;
         public TextView timerTextView;
         public MyTimerTask timerTask;
+        public View replayEffectBtn;
 
         public MessageViewHolder(View itemView) {
             super(itemView);
@@ -723,6 +724,16 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                         listener.onCreateErrorMessageDialog(MessageViewHolder.this, messages.get(getAdapterPosition()).messageType);
                     }
                     return false;
+                }
+            });
+
+            replayEffectBtn = itemView.findViewById(R.id.replay_effect);
+            replayEffectBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (callback != null && getAdapterPosition() != -1) {
+                        callback.onReplayEffect(messages.get(getAdapterPosition()).getEffect());
+                    }
                 }
             });
         }
@@ -776,6 +787,12 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                         break;
                 }
             }
+
+            if (message.getEffect() != 0) {
+                replayEffectBtn.setVisibility(View.VISIBLE);
+            } else {
+                replayEffectBtn.setVisibility(View.GONE);
+            }
         }
 
         @Override
@@ -800,7 +817,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
         @Override
         public void onReSendMessage() {
-            chatAdapterListener.onReSendMessage(messages.get(getAdapterPosition()));
+            callback.onReSendMessage(messages.get(getAdapterPosition()));
         }
 
         @Override
@@ -861,9 +878,10 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         return messages.get(position).messageType;
     }
 
-    public interface OnChatAdapterListener
+    public interface Callback
     {
         void onReSendMessage(Message message);
+        void onReplayEffect(int effect);
     }
 
 

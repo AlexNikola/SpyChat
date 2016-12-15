@@ -95,7 +95,7 @@
         <activity
             android:name=".authorization.ActivityChangeForgottenPass"
             android:label="@string/title_activity_change_forgotten_pass"
-            android:theme="@style/AuthTheme"/>
+            android:theme="@style/AuthTheme" />
         <!-- appnext start -->
         <receiver
             android:name="com.appnext.appnextsdk.ReferralReceiver"
@@ -179,7 +179,10 @@
             android:enabled="true"
             android:exported="false" />
 
-
+        <activity
+            android:name=".effects.EffectsSelectorActivity"
+            android:label="@string/title_activity_effects_selector"
+            android:theme="@style/ChatTheme"/>
     </application>
 
 </manifest>

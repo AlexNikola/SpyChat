@@ -47,7 +47,8 @@ public class MyDbHelper extends SQLiteOpenHelper
                     Chat.SIZE + TYPE_REAL + COMMA_SEP +
                     Chat.ANIMATION + TYPE_INT + COMMA_SEP +
                     Chat.FONT + TYPE_TEXT + COMMA_SEP +
-                    Chat.OWNER + TYPE_TEXT + " )";
+                    Chat.OWNER + TYPE_TEXT + COMMA_SEP +
+                    Chat.EFFECT + TYPE_INT + " )";
 
     private static final String SQL_DELETE_CHAT_TABLE =
             "DROP TABLE IF EXISTS " + Chat.TABLE_NAME;
@@ -75,7 +76,7 @@ public class MyDbHelper extends SQLiteOpenHelper
     private static final String SQL_DELETE_COUNTRIES_TABLE =
             "DROP TABLE IF EXISTS " + Countries.TABLE_NAME;
 
-    public static final int DATABASE_VERSION = 19;
+    public static final int DATABASE_VERSION = 20;
     public static final String DATABASE_NAME = "SpyChat.db";
 
     public MyDbHelper(Context context) {
@@ -94,9 +95,13 @@ public class MyDbHelper extends SQLiteOpenHelper
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        ArrayList<Message> messages = readAllMessagesForUpdate(db);
         drop(db);
         onCreate(db);
+        insertAllMessagesForUpdate(db, messages);
     }
+
+
 
     public static synchronized void drop(SQLiteDatabase db)
     {
@@ -104,6 +109,88 @@ public class MyDbHelper extends SQLiteOpenHelper
         db.execSQL(SQL_DELETE_CONTACT_TABLE);
         db.execSQL(SQL_DELETE_COUNTRIES_TABLE);
     }
+
+
+    public static synchronized void insertAllMessagesForUpdate(SQLiteDatabase db, ArrayList<Message> messages)
+    {
+        for (Message message: messages) {
+            ContentValues values = new ContentValues();
+            values.put(Chat.MESSAGE, message.getMessage());
+            values.put(Chat.SENDER_PHONE_NUMBER, message.getSenderPhoneNumber());
+            values.put(Chat.RECEIVER_PHONE_NUMBER, message.getReceiverPhoneNumber());
+            values.put(Chat.DATE, message.getDate());
+            values.put(Chat.STATE, message.getState());
+            values.put(Chat.MESSAGE_ID, message.getMessageId());
+            values.put(Chat.REMOVAL_TIME, message.getRemovalTime());
+            values.put(Chat.MESSAGE_TYPE, message.messageType);
+            values.put(Chat.IS_VIEWED, message.isViewed);
+            values.put(Chat.AUDIO_DURATION, message.audioDuration);
+            values.put(Chat.COLOR, message.getColor());
+            values.put(Chat.SIZE, message.getTextSize());
+            values.put(Chat.ANIMATION, message.isAnimated() ? 1 : 0);
+            values.put(Chat.FONT, message.getFont());
+            values.put(Chat.OWNER, message.ownerPhoneNumber);
+            values.put(Chat.EFFECT, 0);
+
+            db.insert(Chat.TABLE_NAME, null, values);
+        }
+    }
+
+    public static synchronized ArrayList<Message> readAllMessagesForUpdate(SQLiteDatabase db)
+    {
+        String sql = "SELECT * FROM " + Chat.TABLE_NAME;
+        Cursor cursor = db.rawQuery(sql, null);
+
+        ArrayList<Message> messagesArr = new ArrayList<>();
+        if (cursor.moveToFirst()) {
+            do {
+                String messageText = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.MESSAGE));
+                String senderPhoneNumber = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.SENDER_PHONE_NUMBER));
+                String receiverPhoneNumber = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.RECEIVER_PHONE_NUMBER));
+                String date = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.DATE));
+                int state = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.STATE));
+                int messageId = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.MESSAGE_ID));
+                long removalTime = cursor.getLong(cursor.getColumnIndex(MReaderContract.Chat.REMOVAL_TIME));
+                int messageType = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.MESSAGE_TYPE));
+                String ownerPhoneNumber = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.OWNER));
+                int isViewed = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.IS_VIEWED));
+                int audioDuration = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.AUDIO_DURATION));
+                int color = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.COLOR));
+                float textSize = cursor.getFloat(cursor.getColumnIndex(MReaderContract.Chat.SIZE));
+                boolean isAnimated = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.ANIMATION)) == 1;
+                String font = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.FONT));
+
+
+
+                Message message = new Message(messageText, senderPhoneNumber, receiverPhoneNumber, state, messageType, ownerPhoneNumber);
+                message.setDate(date);
+                message.setMessageId(messageId);
+                message.setRemovalTime(removalTime);
+                message.isViewed = isViewed;
+                message.audioDuration = audioDuration;
+                message.setColor(color);
+                message.setTextSize(textSize);
+                message.setAnimated(isAnimated);
+                message.setFont(font);
+                messagesArr.add(message);
+            }
+            while (cursor.moveToNext());
+        }
+        cursor.close();
+        return messagesArr;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
 
     public static synchronized void insertMessage(SQLiteDatabase db, Message message, Context context)
     {
@@ -123,10 +210,14 @@ public class MyDbHelper extends SQLiteOpenHelper
         values.put(Chat.ANIMATION, message.isAnimated() ? 1 : 0);
         values.put(Chat.FONT, message.getFont());
         values.put(Chat.OWNER, message.ownerPhoneNumber);
+        values.put(Chat.EFFECT, message.getEffect());
 
         db.insert(Chat.TABLE_NAME, null, values);
         db.close();
     }
+
+
+
 
     public static synchronized ArrayList<TimeHolder> readTime(SQLiteDatabase db, Context context)
     {
@@ -207,25 +298,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         {
             do
             {
-                String textMessage = cursor.getString(1);
-                String senderPhoneNumber = cursor.getString(2);
-                String receiverPhoneNumber = cursor.getString(3);
-                String date = cursor.getString(4);
-                int state = cursor.getInt(5);
-                int messageId = cursor.getInt(6);
-                long removalTime = cursor.getLong(7);
-                int messageType = cursor.getInt(8);
-                int isViewed = cursor.getInt(9);
-                int audioDuration = cursor.getInt(10);
-
-                Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType, ownerPhoneNumber);
-                message.setColor(cursor.getInt(11));
-                message.setTextSize(cursor.getFloat(12));
-                message.setAnimated(cursor.getFloat(13) == 1);
-                message.setFont(cursor.getString(14));
-                message.isViewed = isViewed;
-                message.audioDuration = audioDuration;
-
+                Message message = new Message(cursor);
                 messagesArr.add(message);
             }
             while (cursor.moveToNext());
@@ -235,6 +308,8 @@ public class MyDbHelper extends SQLiteOpenHelper
         db.close();
         return messagesArr;
     }
+
+
 
     public static synchronized Message readMessage(SQLiteDatabase db, int messageId, Context context)
     {
@@ -246,24 +321,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         Cursor cursor = db.rawQuery(sql, null);
 
         cursor.moveToFirst();
-
-        String textMessage = cursor.getString(1);
-        String senderPhoneNumber = cursor.getString(2);
-        String receiverPhoneNumber = cursor.getString(3);
-        String date = cursor.getString(4);
-        int state = cursor.getInt(5);
-        messageId = cursor.getInt(6);
-        long removalTime = cursor.getLong(7);
-        int messageType = cursor.getInt(8);
-        int isViewed = cursor.getInt(9);
-        int audioDuration = cursor.getInt(10);
-        Message message = new Message(textMessage, senderPhoneNumber, receiverPhoneNumber, date, state, messageId, removalTime, messageType, ownerPhoneNumber);
-        message.setColor(cursor.getInt(11));
-        message.setTextSize(cursor.getFloat(12));
-        message.setAnimated(cursor.getFloat(13) == 1);
-        message.setFont(cursor.getString(14));
-        message.isViewed = isViewed;
-        message.audioDuration = audioDuration;
+        Message message = new Message(cursor);
         cursor.close();
         db.close();
         return message;

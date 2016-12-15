@@ -49,7 +49,11 @@ public class MyConnection
         }
 
         String response = IOUtils.toString(inputStream);
+
         //Log.d("mconta", "sendRefreshToken resp: " + response);
+
+        //Log.d("myreg", "sendRefreshToken: " + response);
+
         try {
             JSONObject jsonResponse = new JSONObject(response);
             String res = jsonResponse.getString("result");

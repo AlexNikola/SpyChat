@@ -47,7 +47,7 @@ public class MyGcmListenerService extends GcmListenerService {
         boolean receivedIsAnimated = false;
         String receivedFont = "";
         String receiverPhoneNumber = null;
-
+        int effect = 0;
         /*if (data != null) {
             for (String key : data.keySet()) {
                 Object value = data.get(key);
@@ -72,6 +72,9 @@ public class MyGcmListenerService extends GcmListenerService {
                 //Log.d(TAG, "onMessageReceived: url: " + receivedTextMessage);
             } else if (jsonObject.getString("type").equals("typeNotification")) {
                 resolveAdminNotification(jsonObject);
+            }
+            if (jsonObject.has("effect")) {
+                effect = jsonObject.getInt("effect");
             }
 
         } catch (JSONException e) {
@@ -115,6 +118,8 @@ public class MyGcmListenerService extends GcmListenerService {
                 message.setFont(receivedFont);
             }
         }
+
+        message.setEffect(effect);
 
         MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), message, MyGcmListenerService.this);
 

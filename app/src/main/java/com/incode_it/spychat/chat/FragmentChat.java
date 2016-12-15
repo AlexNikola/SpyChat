@@ -52,6 +52,10 @@ import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverGlobal;
 import com.incode_it.spychat.amazon.UploadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
+import com.incode_it.spychat.effects.EffectButton;
+import com.incode_it.spychat.effects.EffectsSelectorActivity;
+import com.incode_it.spychat.effects.EffectsSelectorFragment;
+import com.incode_it.spychat.effects.EffectsView;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.interfaces.OnPickMediaListener;
 import com.incode_it.spychat.utils.Cypher;
@@ -83,7 +87,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.OnChatAdapterListener,
+public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.Callback,
         TimePickerDialog.OnTimeSetListener, OnPickMediaListener, RecordAudioDialog.Callback {
 
     static final int REQUEST_IMAGE_CAPTURE = 11;
@@ -97,6 +101,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public static final String TAG_FRAGMENT = "FragmentChat";
     public static final int REQUEST_TEXT_SIZE = 99;
     public static final int REQUEST_TEXT_FONT = 100;
+    public static final int REQUEST_EFFECTS = 101;
 
     private String opponentPhone;
     private RecyclerView recyclerView;
@@ -132,6 +137,9 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private boolean isAnimated;
     private AnimatorSet animation;
     private String selectedFont;
+
+    private EffectButton effectBtn;
+    private EffectsView effectsView;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -187,7 +195,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         messageArrayList = new ArrayList<>();
 
         rootView = (ViewGroup) view.findViewById(R.id.root_view);
-
+        effectsView = (EffectsView) rootView.findViewById(R.id.effectsView);
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         findContactByNumber();
 
@@ -213,6 +221,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             }
             initFakeToolbar(view);
             initSendMessageView(view);
+            initAddEffectView(view);
 
             emojiButton = (ImageView) view.findViewById(R.id.emojiBtn);
             emojiButton.setOnClickListener(new View.OnClickListener() {
@@ -295,6 +304,10 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         return view;
     }
 
+    public void lanchEffect(int effect) {
+        effectsView.start(effect);
+    }
+
     private void resetPickerColor() {
         selectedColor = ContextCompat.getColor(getActivity(), R.color.black);
         editText.setTextColor(selectedColor);
@@ -324,21 +337,11 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         Log.d("qwerty", "onActivityResult");
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
             String photoPath = sharedPreferences.getString(C.SHARED_NEW_PHOTO_PATH, "error");
-            //Log.d("qwerty", data.getType()+" - "+photoPath);
             uploadImage(photoPath);
         } else if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == Activity.RESULT_OK) {
             String videoPath = sharedPreferences.getString(C.SHARED_NEW_VIDEO_PATH, "error");
-            //Log.d("qwerty", data.getType()+" - "+videoPath);
             uploadVideo(videoPath);
         } else if (requestCode == REQUEST_PHOTO_PICK && resultCode == Activity.RESULT_OK) {
-
-            /*if (path.startsWith("content://media/external/video")) {
-
-            } else if (path.startsWith("content://media/external/images")
-                    || path.startsWith("content://com.google.android.apps.photos")
-                    || path.startsWith("content://com.android.providers.media.documents/document/image")) {
-
-            }*/
             String path = data.getData().toString();
             Log.d("qwerty", data.getType()+" - "+path);
             String realPath = getRealPath(path);
@@ -361,6 +364,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 selectedFont = data.getStringExtra(ChatTextFontDialog.EXTRA_TEXT_FONT);
                 FontHelper.setCustomFont(getActivity(), editText, selectedFont);
             }
+        } else if (requestCode == REQUEST_EFFECTS && resultCode == Activity.RESULT_OK) {
+            effectBtn.setEffect(data.getIntExtra(EffectsSelectorFragment.EXTRA_EFFECT_ID, 0));
         }
     }
 
@@ -734,6 +739,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                     message.setTextSize(selectedSize);
                     message.setAnimated(isAnimated);
                     message.setFont(selectedFont);
+                    message.setEffect(effectBtn.getEffect());
 
                     initStyleFlags();
                     editText.setTextSize(selectedSize);
@@ -748,6 +754,20 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                     }, SEND_MESSAGE_DELAY);
 
                 }
+
+
+                effectBtn.setEffect(EffectsView.EFFECT_NONE);
+            }
+        });
+    }
+
+    private void initAddEffectView(View view) {
+        effectBtn = (EffectButton) view.findViewById(R.id.effect);
+        effectBtn.findViewById(R.id.effect).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getContext(), EffectsSelectorActivity.class);
+                startActivityForResult(intent, REQUEST_EFFECTS);
             }
         });
     }
@@ -802,6 +822,11 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         adapter.notifyDataSetChanged();
     }
 
+    @Override
+    public void onReplayEffect(int effect) {
+        effectsView.start(effect);
+    }
+
     public class SendMessageTask extends AsyncTask<Message, Void, String>
     {
         private Message message;
@@ -829,6 +854,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 object.put("size", (double) message.getTextSize());
                 object.put("animation", message.isAnimated());
                 object.put("receiverPhoneNumber", message.getReceiverPhoneNumber());
+                object.put("effect", message.getEffect());
                 if (message.getFont() != null) {
                   font = message.getFont();
                 }
@@ -1012,6 +1038,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                     messageArrayList.add(message);
                     adapter.notifyItemInserted(messageArrayList.size() - 1);
                     recyclerView.scrollToPosition(messageArrayList.size() - 1);
+                    effectsView.start(message.getEffect());
                 }
             }
         };

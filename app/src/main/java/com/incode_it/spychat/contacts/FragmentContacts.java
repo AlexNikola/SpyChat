@@ -125,6 +125,7 @@ public class FragmentContacts extends Fragment implements UpdateContactsTask.Cal
 
     private void serverUpdateContacts()
     {
+        Log.d("myreg", "serverUpdateContacts: ");
         ArrayList<String> contactsNumbers = new ArrayList<>();
         for (MyContacts.Contact contact: MyContacts.getContacts(getContext())) {
             contactsNumbers.add(contact.phoneNumber);

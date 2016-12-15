@@ -41,4 +41,26 @@
     <color name="silver">#ACACAC</color>
     <color name="brown">#7B3F00</color>
     <color name="pink">#FF69B4</color>
+
+    <color name="confetty_1">#F44336</color>
+    <color name="confetty_2">#2196F3</color>
+    <color name="confetty_3">#388E3C</color>
+    <color name="confetty_4">#FBC02D</color>
+
+    <color name="heart_1">#F44336</color>
+    <color name="heart_2">#000000</color>
+
+    <color name="balloon_1">#F44336</color>
+    <color name="balloon_2">#2196F3</color>
+    <color name="balloon_3">#388E3C</color>
+    <color name="balloon_4">#FBC02D</color>
+    <color name="balloon_5">#ff6600</color>
+    <color name="balloon_6">#E91E63</color>
+    <color name="balloon_7">#673AB7</color>
+
+    <color name="firework_1">#1976D2</color>
+    <color name="firework_2">#000000</color>
+    <color name="firework_3">#F44336</color>
+
+    <color name="chat_effects_btn">#2196F3</color>
 </resources>

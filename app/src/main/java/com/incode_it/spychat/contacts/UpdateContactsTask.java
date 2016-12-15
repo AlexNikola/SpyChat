@@ -110,7 +110,9 @@ class UpdateContactsTask extends AsyncTask<ArrayList<String>, Void, ArrayList<St
 
         String response = MyConnection.post(url, sbParams.toString(), header);
         //Log.d("mconta", "tryUpdateContacts accessToken: " + accessToken);
-        Log.d("mconta", "tryUpdateContacts resp: " + response);
+        //Log.d("mconta", "tryUpdateContacts resp: " + response);
+
+        //Log.d("myreg", "tryUpdateContacts: " + response);
 
         JSONArray jsonArray = null;
         if (response.equals("Access token is expired"))
