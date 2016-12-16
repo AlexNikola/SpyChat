@@ -15,7 +15,6 @@ import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.widget.FrameLayout;
 
-import com.github.jinatonic.confetti.CommonConfetti;
 import com.github.jinatonic.confetti.ConfettiManager;
 import com.github.jinatonic.confetti.ConfettoGenerator;
 import com.incode_it.spychat.R;
@@ -30,30 +29,46 @@ public class EffectsView extends FrameLayout {
     public static final int EFFECT_LOVE = 3;
     public static final int EFFECT_PARTY = 4;
 
+
+
     private ArrayList<View> emiters = new ArrayList<>();
 
     private View fireworkEmiter1, fireworkEmiter2, fireworkEmiter3, fireworkEmiter4;
 
-    private ConfettoGenerator balloonGenerator, heartGenerator;
+    private ConfettoGenerator balloonGenerator, heartGenerator, confettiGenerator;
+    private static ArrayList<Bitmap> balloonBitmaps, heartBitmaps, confettiBitmaps, fireworkBitmaps;
 
     private ConfettiManager confettiManager;
     private ArrayList<ParticleSystem> particleSystems = new ArrayList<>();
 
-    private ArrayList<Bitmap> fireworkBitmaps = new ArrayList<>();
 
     private boolean isFireworkAnimating = false;
 
     public EffectsView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        balloonGenerator = ConfettiHandler.getConfettiGenerator(getBalloonBitmaps());
-        heartGenerator = ConfettiHandler.getConfettiGenerator(getHeartBitmaps());
-
-        int [] colors = getFireworkColors();
-        for (int i = 0; i < colors.length; i++) {
-            Bitmap bitmap = createBitmap(colors[i], 40, R.mipmap.star_pink);
-            fireworkBitmaps.add(bitmap);
+        if (balloonBitmaps == null) {
+            balloonBitmaps = getBalloonBitmaps();
         }
+
+
+        if (heartBitmaps == null) {
+            heartBitmaps = getHeartBitmaps();
+        }
+
+        if (confettiBitmaps == null) {
+            confettiBitmaps = getConfetiBitmaps();
+        }
+
+        if (fireworkBitmaps == null) {
+            fireworkBitmaps = getFireWorkBitmaps();
+        }
+
+        balloonGenerator = ConfettiHandler.getConfettiGenerator(balloonBitmaps);
+        heartGenerator = ConfettiHandler.getConfettiGenerator(heartBitmaps);
+        confettiGenerator = ConfettiHandler.getConfettiGenerator(confettiBitmaps);
+
+
     }
 
 
@@ -99,14 +114,15 @@ public class EffectsView extends FrameLayout {
     public void startBalloons() {
         cancel();
         confettiManager = ConfettiHandler.getInstance(this)
-                .appear(ConfettiHandler.APPEAR_BOTTOM)
+                .appear(ConfettiHandler.APPEAR_BOTTOM_CENTER)
                 .generator(balloonGenerator)
+                .size(getBiggestSize(balloonBitmaps))
                 .build()
                 .setVelocityX(0, 250)
-                .setVelocityY(-600, 250)
+                .setVelocityY(-1000, -400)
                 .setNumInitialCount(0)
-                .setEmissionDuration(3000)
-                .setEmissionRate(5)
+                .setEmissionDuration(2000)
+                .setEmissionRate(4)
                 .animate();
     }
 
@@ -142,7 +158,7 @@ public class EffectsView extends FrameLayout {
                         ps.setSpeedRange(0.15f, 0.3f);
                         ps.setRotationSpeedRange(90, 180);
                         ps.setFadeOut(300, new AccelerateInterpolator());
-                        ps.oneShot(emiters.get(finalI), 100);
+                        ps.oneShot(emiters.get(finalI), 50);
 
                         particleSystems.add(ps);
                     }
@@ -157,23 +173,38 @@ public class EffectsView extends FrameLayout {
         confettiManager = ConfettiHandler.getInstance(this)
                 .appear(ConfettiHandler.APPEAR_TOP)
                 .generator(heartGenerator)
+                .size(getBiggestSize(heartBitmaps))
                 .build()
                 .setVelocityX(0, 250)
-                .setVelocityY(600, 250)
+                .setVelocityY(1000, 400)
                 .setNumInitialCount(0)
-                .setEmissionDuration(3000)
-                .setEmissionRate(10)
+                .setEmissionDuration(2500)
+                .setEmissionRate(6)
                 .animate();
     }
     public void startParty() {
         cancel();
-        confettiManager = CommonConfetti.rainingConfetti(this, getConfettyColors())
+        /*confettiManager = CommonConfetti.rainingConfetti(this, getConfettyColors())
                 .getConfettiManager()
                 .setVelocityX(0, 250)
                 .setVelocityY(600, 300)
                 .setNumInitialCount(0)
                 .setEmissionDuration(3000)
                 .setEmissionRate(50)
+                .animate();*/
+        confettiManager = ConfettiHandler.getInstance(this)
+                .appear(ConfettiHandler.APPEAR_TOP)
+                .generator(confettiGenerator)
+                .size(getBiggestSize(confettiBitmaps))
+                .build()
+                .setVelocityX(0, 250)
+                .setVelocityY(1000, 250)
+                .setNumInitialCount(0)
+                .setEmissionDuration(2000)
+                .setEmissionRate(100)
+                .setInitialRotation(180, 90)
+                .setRotationalAcceleration(90, 10)
+                .setTargetRotationalVelocity(180)
                 .animate();
     }
 
@@ -214,11 +245,8 @@ public class EffectsView extends FrameLayout {
 
     private int[] getHeartColors() {
         final Resources res = getResources();
-
         int red = res.getColor(R.color.heart_1);
-        int[] colors = new int[] { red };
-
-        return colors;
+        return new int[] { red };
     }
 
     private int[] getConfettyColors() {
@@ -228,20 +256,17 @@ public class EffectsView extends FrameLayout {
         int blue = res.getColor(R.color.confetty_2);
         int green = res.getColor(R.color.confetty_3);
         int yellow = res.getColor(R.color.confetty_4);
-        int[] colors = new int[] { red, blue, green, yellow };
-
-        return colors;
+        return new int[] { red, blue, green, yellow };
     }
 
     private int[] getFireworkColors() {
         final Resources res = getResources();
 
         int color1 = res.getColor(R.color.firework_1);
-        //int color2 = res.getColor(R.color.firework_2);
+        int color2 = res.getColor(R.color.firework_2);
         int color3 = res.getColor(R.color.firework_3);
-        int[] colors = new int[] { color1, color3 };
-
-        return colors;
+        int color4 = res.getColor(R.color.firework_4);
+        return new int[] { color1, color2, color3, color4 };
     }
 
     private Bitmap createBitmap(int color, int size, @DrawableRes int res)
@@ -265,6 +290,7 @@ public class EffectsView extends FrameLayout {
         bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.balloon_green_small));
         bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.balloon_red_normal));
         bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.balloon_red_small));
+
         return bitmaps;
     }
 
@@ -273,5 +299,37 @@ public class EffectsView extends FrameLayout {
         bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.heart_normal));
         bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.heart_small));
         return bitmaps;
+    }
+
+    private ArrayList<Bitmap> getConfetiBitmaps() {
+        //ArrayList<Bitmap> bitmaps = (ArrayList<Bitmap>) Utils.generateConfettiBitmaps(getConfettyColors(), 50);
+
+        ArrayList<Bitmap> bitmaps = new ArrayList<>();
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.confetti1));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.confetti2));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.confetti3));
+        //bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.confetti4));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.confetti5));
+        return bitmaps;
+    }
+
+    private ArrayList<Bitmap> getFireWorkBitmaps() {
+        ArrayList<Bitmap> bitmaps = new ArrayList<>();
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.star1));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.star2));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.star3));
+        bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.star4));
+        return bitmaps;
+    }
+
+    private int getBiggestSize(ArrayList<Bitmap> bitmaps) {
+        int size = 0;
+        for (Bitmap bitmap: bitmaps) {
+            int bitmapSize = Math.max(bitmap.getWidth(), bitmap.getHeight());
+            if (bitmapSize > size) {
+                size = bitmapSize;
+            }
+        }
+        return size;
     }
 }

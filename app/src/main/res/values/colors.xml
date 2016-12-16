@@ -59,8 +59,9 @@
     <color name="balloon_7">#673AB7</color>
 
     <color name="firework_1">#1976D2</color>
-    <color name="firework_2">#000000</color>
+    <color name="firework_2">#673AB7</color>
     <color name="firework_3">#F44336</color>
+    <color name="firework_4">#FBC02D</color>
 
     <color name="chat_effects_btn">#2196F3</color>
 </resources>

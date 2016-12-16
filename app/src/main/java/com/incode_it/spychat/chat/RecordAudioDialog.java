@@ -51,18 +51,15 @@ public class RecordAudioDialog extends DialogFragment implements View.OnClickLis
     private int timerSec = 30;
 
 
-    public static RecordAudioDialog newInstance(Callback callback) {
-        RecordAudioDialog fragment = new RecordAudioDialog();
-        fragment.callback = callback;
-        return fragment;
+    public static RecordAudioDialog newInstance() {
+        return new RecordAudioDialog();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setStyle(STYLE_NO_TITLE, R.style.RecordAudioDialog);
-
-
+        callback = (Callback) getParentFragment();
     }
 
     @Nullable

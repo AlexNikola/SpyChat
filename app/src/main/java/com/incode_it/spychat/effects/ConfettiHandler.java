@@ -20,15 +20,20 @@ import java.util.Random;
 
 public class ConfettiHandler {
 
+    private static final float BIGGER = 1.4f;
+    private static final float SMALLER = 0.8f;
+
     public static final int APPEAR_TOP = 0;
     public static final int APPEAR_BOTTOM = 1;
     public static final int APPEAR_CENTER = 2;
+    public static final int APPEAR_TOP_CENTER = 3;
+    public static final int APPEAR_BOTTOM_CENTER = 4;
 
     private int appearance = APPEAR_TOP;
 
-    private static int balloonVelocitySlow;
-    private static int balloonVelocityNormal;
-    private static int confettiSize;
+    private int balloonVelocitySlow = 250;
+    private int balloonVelocityNormal = 600;
+    private int confettiSize;
 
     private ConfettiManager confettiManager;
     private ViewGroup container;
@@ -40,7 +45,7 @@ public class ConfettiHandler {
 
     private ConfettiHandler(ViewGroup container) {
         this.container = container;
-        ensureStaticResources(container);
+        //ensureStaticResources(container);
     }
 
     public static ConfettiHandler getInstance(ViewGroup container) {
@@ -77,17 +82,25 @@ public class ConfettiHandler {
         ConfettiSource confettiSource;
         switch (appearance) {
             case APPEAR_BOTTOM: {
-                confettiSource = new ConfettiSource(0, container.getHeight() + confettiSize,
-                        container.getWidth(), container.getHeight() + confettiSize);
+                confettiSource = new ConfettiSource( 0, container.getHeight(),
+                        (container.getWidth() - confettiSize), (container.getHeight()));
                 break;
             }
             case APPEAR_CENTER: {
                 confettiSource = new ConfettiSource(container.getWidth() / 2, container.getHeight() / 2);
                 break;
             }
+            case APPEAR_TOP_CENTER: {
+                confettiSource = new ConfettiSource(container.getWidth() / 2 - confettiSize/2, (int) (-confettiSize * BIGGER));
+                break;
+            }
+            case APPEAR_BOTTOM_CENTER: {
+                confettiSource = new ConfettiSource(container.getWidth() / 2 - confettiSize/2, (container.getHeight()));
+                break;
+            }
             default: {
-                confettiSource = new ConfettiSource(0, -confettiSize,
-                        container.getWidth(), -confettiSize);
+                confettiSource = new ConfettiSource(0, (int) (-confettiSize * BIGGER),
+                        (container.getWidth() - confettiSize), (int) (-confettiSize * BIGGER));
             }
         }
 
@@ -128,9 +141,9 @@ public class ConfettiHandler {
     public static List<Bitmap> generateConfettiBitmaps(ViewGroup container, int[] colors, int size, @DrawableRes int res) {
         final List<Bitmap> bitmaps = new ArrayList<>();
         for (int color : colors) {
-            bitmaps.add(createBitmap(container, color, (int) (size * 0.8f), res));
+            bitmaps.add(createBitmap(container, color, (int) (size * SMALLER), res));
             bitmaps.add(createBitmap(container, color, size, res));
-            bitmaps.add(createBitmap(container, color, (int) (size * 1.4f), res));
+            bitmaps.add(createBitmap(container, color, (int) (size * BIGGER), res));
         }
         return bitmaps;
     }
@@ -151,9 +164,9 @@ public class ConfettiHandler {
 
 
 
-    private void ensureStaticResources(ViewGroup container) {
+    /*private void ensureStaticResources(ViewGroup container) {
         balloonVelocitySlow = 250;
         balloonVelocityNormal = 600;
-        confettiSize = 350;
-    }
+        confettiSize = 0;
+    }*/
 }

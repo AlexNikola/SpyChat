@@ -28,6 +28,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -58,6 +59,7 @@ import com.incode_it.spychat.effects.EffectsSelectorFragment;
 import com.incode_it.spychat.effects.EffectsView;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.interfaces.OnPickMediaListener;
+import com.incode_it.spychat.text_effects.TextEffectsActivity;
 import com.incode_it.spychat.utils.Cypher;
 import com.incode_it.spychat.utils.FontHelper;
 import com.vanniktech.emoji.EmojiEditText;
@@ -88,7 +90,7 @@ import java.util.ArrayList;
 import java.util.Date;
 
 public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.Callback,
-        TimePickerDialog.OnTimeSetListener, OnPickMediaListener, RecordAudioDialog.Callback {
+        TimePickerDialog.OnTimeSetListener, OnPickMediaListener, RecordAudioDialog.Callback, FakeToolbar.Callback {
 
     static final int REQUEST_IMAGE_CAPTURE = 11;
     static final int REQUEST_VIDEO_CAPTURE = 12;
@@ -102,6 +104,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public static final int REQUEST_TEXT_SIZE = 99;
     public static final int REQUEST_TEXT_FONT = 100;
     public static final int REQUEST_EFFECTS = 101;
+    public static final int REQUEST_TEXT_EFFECTS = 102;
 
     private String opponentPhone;
     private RecyclerView recyclerView;
@@ -132,11 +135,11 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     private AudioService mService;
 
-    private int selectedColor;
+    /*private int selectedColor;
     private float selectedSize;
     private boolean isAnimated;
     private AnimatorSet animation;
-    private String selectedFont;
+    private String selectedFont;*/
 
     private EffectButton effectBtn;
     private EffectsView effectsView;
@@ -183,8 +186,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
 
         if (savedInstanceState == null) {
-            selectedColor = ContextCompat.getColor(getActivity(), R.color.black);
-            selectedSize = 16;
+            /*selectedColor = ContextCompat.getColor(getActivity(), R.color.black);
+            selectedSize = 16;*/
         }
     }
 
@@ -210,7 +213,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
             initRecyclerView(view);
             editText = (EmojiEditText) view.findViewById(R.id.edit_text);
-            editText.setTextColor(selectedColor);
+            /*editText.setTextColor(selectedColor);
             editText.setTextSize(selectedSize);
             FontHelper.setCustomFont(getActivity(), editText, selectedFont);
             if (animation != null) {
@@ -218,7 +221,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 if (isAnimated) {
                     animation.start();
                 }
-            }
+            }*/
             initFakeToolbar(view);
             initSendMessageView(view);
             initAddEffectView(view);
@@ -231,72 +234,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 }
             });
             setUpEmojiPopup();
-
-            TextView changeColor = (TextView) view.findViewById(R.id.change_color);
-            TextView changeSize = (TextView) view.findViewById(R.id.change_size);
-            TextView changeBlink = (TextView) view.findViewById(R.id.change_blink);
-            TextView changeFont  = (TextView) view.findViewById(R.id.change_font);
-
-            changeColor.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int[] mColors = getResources().getIntArray(R.array.default_rainbow);
-
-                    ColorPickerDialog dialog = ColorPickerDialog.newInstance(R.string.pick_color_dialog_title,
-                            mColors,
-                            selectedColor,
-                            5,
-                            ColorPickerDialog.SIZE_SMALL);
-
-                    dialog.setOnColorSelectedListener(new ColorPickerSwatch.OnColorSelectedListener() {
-
-                        @Override
-                        public void onColorSelected(int color) {
-                            selectedColor = color;
-                            editText.setTextColor(selectedColor);
-                        }
-                    });
-
-                    dialog.show(getActivity().getFragmentManager(), "color_dialog_test");
-                }
-            });
-
-            changeSize.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ChatTextSizeDialog dialog = new ChatTextSizeDialog();
-                    dialog.setTargetFragment(FragmentChat.this, REQUEST_TEXT_SIZE);
-                    dialog.show(getActivity().getSupportFragmentManager(), "change_text_size_dialog");
-                }
-            });
-
-            changeBlink.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (animation == null) {
-                        animation = (AnimatorSet) AnimatorInflater.loadAnimator(getActivity(), R.animator.blink);
-                    }
-                    animation.setTarget(editText);
-
-                    if (!isAnimated) {
-                        animation.start();
-                        isAnimated = true;
-                    } else {
-                        animation.cancel();
-                        editText.setAlpha(1);
-                        isAnimated = false;
-                    }
-                }
-            });
-
-            changeFont.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ChatTextFontDialog dialog = new ChatTextFontDialog();
-                    dialog.setTargetFragment(FragmentChat.this, REQUEST_TEXT_FONT);
-                    dialog.show(getActivity().getSupportFragmentManager(), "change_text_font_dialog");
-                }
-            });
         }
 
 
@@ -309,8 +246,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     }
 
     private void resetPickerColor() {
-        selectedColor = ContextCompat.getColor(getActivity(), R.color.black);
-        editText.setTextColor(selectedColor);
+        //selectedColor = ContextCompat.getColor(getActivity(), R.color.black);
+        //editText.setTextColor(selectedColor);
     }
 
 
@@ -353,20 +290,15 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             Log.d("qwerty", data.getType()+" - "+path);
             String realPath = getRealPath(path);
             uploadVideo(realPath);
-        } else if (requestCode == REQUEST_TEXT_SIZE) {
-            if (resultCode == Activity.RESULT_OK) {
-                selectedSize = data.getFloatExtra(ChatTextSizeDialog.EXTRA_TEXT_SIZE, 16);
-                Log.d(TAG, "result from dialog: " + selectedSize);
-                editText.setTextSize(selectedSize);
-            }
-        } else if (requestCode == REQUEST_TEXT_FONT) {
-            if (resultCode == Activity.RESULT_OK) {
-                selectedFont = data.getStringExtra(ChatTextFontDialog.EXTRA_TEXT_FONT);
-                FontHelper.setCustomFont(getActivity(), editText, selectedFont);
-            }
         } else if (requestCode == REQUEST_EFFECTS && resultCode == Activity.RESULT_OK) {
             effectBtn.setEffect(data.getIntExtra(EffectsSelectorFragment.EXTRA_EFFECT_ID, 0));
+        } else if (requestCode == REQUEST_TEXT_EFFECTS && resultCode == Activity.RESULT_OK) {
+            setTextStyle(data);
         }
+    }
+
+    private void setTextStyle(Intent data) {
+
     }
 
     @Override
@@ -541,6 +473,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private void initFakeToolbar(View view)
     {
         fakeToolbar = (FakeToolbar) view.findViewById(R.id.toolbar_fake_layout);
+        fakeToolbar.setCallback(this);
         fakeToolbar.setTitle(contact.name);
         fakeToolbar.setOnAudioClickListener(new View.OnClickListener() {
             @Override
@@ -574,8 +507,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         fakeToolbar.setOnGalleryClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DialogFragment newFragment = PickMediaDialogFragment.newInstance(FragmentChat.this);
-                newFragment.show(getActivity().getSupportFragmentManager(), PickMediaDialogFragment.TAG);
+                DialogFragment newFragment = PickMediaDialogFragment.newInstance();
+                newFragment.show(getChildFragmentManager(), PickMediaDialogFragment.TAG);
             }
         });
         fakeToolbar.setOnTimerClickListener(new View.OnClickListener() {
@@ -588,7 +521,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     private void showRecordAudioDialog()
     {
-        RecordAudioDialog recordAudioDialog = RecordAudioDialog.newInstance(this);
+        RecordAudioDialog recordAudioDialog = RecordAudioDialog.newInstance();
         recordAudioDialog.show(getChildFragmentManager(), RecordAudioDialog.FRAGMENT_TAG);
     }
 
@@ -597,48 +530,38 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         uploadAudio(audioPath);
     }
 
-    /*@Override
-    public void onResult(int requestCode, int resultCode, Intent data) {
-        Log.d("qwerty", "onResult");
-        if (requestCode == REQUEST_PHOTO_PICK && resultCode == Activity.RESULT_OK) {
-            String path = data.getData().toString();
-            Log.d("qwerty", data.getType()+" - "+path);
-            *//*if (path.startsWith("content://media/external/video")) {
 
-            } else if (path.startsWith("content://media/external/images")
-                    || path.startsWith("content://com.google.android.apps.photos")
-                    || path.startsWith("content://com.android.providers.media.documents/document/image")) {
-
-            }*//*
-            String realPath = getRealPath(path);
-            uploadImage(realPath);
-        }
-        else if (requestCode == REQUEST_VIDEO_PICK && resultCode == Activity.RESULT_OK)
-        {
-            String path = data.getData().toString();
-            Log.d("qwerty", data.getType()+" - "+path);
-            String realPath = getRealPath(path);
-            uploadVideo(realPath);
-        }
-    }*/
 
     @Override
     public void onPickMedia(Intent intent, int requestCode) {
         startActivityForResult(intent, requestCode);
     }
 
+    @Override
+    public void onOpenTextEffectsSelector() {
+        Intent intent = new Intent(getContext(), TextEffectsActivity.class);
+        startActivityForResult(intent, REQUEST_TEXT_EFFECTS);
+    }
+
+
+
+
     public static class PickMediaDialogFragment extends DialogFragment {
 
         public static final String TAG = "PickMediaDialogFragment";
         private OnPickMediaListener listener;
 
-        public static PickMediaDialogFragment newInstance(OnPickMediaListener listener)
+        public static PickMediaDialogFragment newInstance()
         {
             PickMediaDialogFragment newFragment = new PickMediaDialogFragment();
-            newFragment.listener = listener;
             return newFragment;
         }
 
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            listener = (OnPickMediaListener) getParentFragment();
+        }
 
         @Override
         public void onDismiss(DialogInterface dialog) {
@@ -727,7 +650,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         view.findViewById(R.id.send_view).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                fakeToolbar.hidePalettePopup();
+                //fakeToolbar.hidePalettePopup();
                 fakeToolbar.hidePopup();
                 String textMessage = editText.getText().toString();
                 editText.setText("");
@@ -735,14 +658,14 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 {
                     final Message message = new Message(Cypher.encrypt(textMessage), myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_TEXT, myPhoneNumber);
                     message.isViewed = 1;
-                    message.setColor(selectedColor);
+                    /*message.setColor(selectedColor);
                     message.setTextSize(selectedSize);
                     message.setAnimated(isAnimated);
                     message.setFont(selectedFont);
                     message.setEffect(effectBtn.getEffect());
 
                     initStyleFlags();
-                    editText.setTextSize(selectedSize);
+                    editText.setTextSize(selectedSize);*/
                     messageArrayList.add(message);
                     adapter.notifyItemInserted(messageArrayList.size() - 1);
                     recyclerView.scrollToPosition(messageArrayList.size() - 1);
@@ -772,7 +695,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         });
     }
 
-    private void initStyleFlags() {
+    /*private void initStyleFlags() {
         selectedSize = 16;
         isAnimated = false;
         if (animation != null && animation.isRunning()) {
@@ -782,7 +705,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         resetPickerColor();
         selectedFont = null;
         editText.setTypeface(Typeface.DEFAULT);
-    }
+    }*/
 
     @Override
     public void onReSendMessage(Message message) {

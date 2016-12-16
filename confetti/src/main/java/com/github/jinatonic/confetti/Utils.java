@@ -50,6 +50,7 @@ public class Utils {
             bitmaps.add(createCircleBitmap(color, size));
             bitmaps.add(createSquareBitmap(color, size));
             bitmaps.add(createTriangleBitmap(color, size));
+            bitmaps.add(createRectangleBitmap(color, size));
         }
         return bitmaps;
     }
@@ -74,6 +75,22 @@ public class Utils {
         path.lineTo(size, 0);
         path.lineTo(size, size);
         path.lineTo(0, size);
+        path.close();
+
+        canvas.drawPath(path, PAINT);
+        return bitmap;
+    }
+
+    public static Bitmap createRectangleBitmap(int color, int size) {
+        final Bitmap bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(bitmap);
+        PAINT.setColor(color);
+
+        final Path path = new Path();
+        path.moveTo(0, 0);
+        path.lineTo(size*2, 0);
+        path.lineTo(size*2, size/2);
+        path.lineTo(0, size/2);
         path.close();
 
         canvas.drawPath(path, PAINT);

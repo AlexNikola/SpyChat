@@ -26,13 +26,15 @@ public class FakeToolbar extends FrameLayout {
     private View attachmentsBtn;
     private View toolbarUpper;
     private View toolbarLower;
-    private View toolbarPalette;
+    //private View toolbarPalette;
     private boolean isPopupVisible;
     private boolean isPalettePopupVisible;
     private ImageView takePhoto, takeVideo, openGallery, takeAudio;
     private TextView title;
     private View backBtn;
     private TextView buttonPalette;
+
+    private Callback callback;
 
     public FakeToolbar(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -55,7 +57,9 @@ public class FakeToolbar extends FrameLayout {
         init();
     }*/
 
-
+    public void setCallback(Callback callback) {
+        this.callback = callback;
+    }
 
     private void init()
     {
@@ -63,7 +67,7 @@ public class FakeToolbar extends FrameLayout {
         backBtn = findViewById(R.id.back_to_contacts);
         toolbarUpper = findViewById(R.id.toolbar_upper);
         popUpTranslationY = toolbarUpper.getLayoutParams().height;
-        toolbarPalette = findViewById(R.id.toolbar_lower_palette);
+        //toolbarPalette = findViewById(R.id.toolbar_lower_palette);
         toolbarLower = findViewById(R.id.toolbar_lower);
         buttonPalette = (TextView) findViewById(R.id.palette);
         attachmentsBtn = findViewById(R.id.attachments);
@@ -74,7 +78,7 @@ public class FakeToolbar extends FrameLayout {
                     hidePopup();
                 } else {
                     if (isPalettePopupVisible) {
-                        hidePalettePopup();
+                        //hidePalettePopup();
                     }
                     showPopup();
                 }
@@ -90,14 +94,17 @@ public class FakeToolbar extends FrameLayout {
         buttonPalette.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isPalettePopupVisible) {
-                    hidePalettePopup();
+                if (callback != null) {
+                    callback.onOpenTextEffectsSelector();
+                }
+                /*if(isPalettePopupVisible) {
+                    //hidePalettePopup();
                 } else {
                     if (isPopupVisible) {
                         hidePopup();
                     }
-                    showPalettePopup();
-                }
+                    //showPalettePopup();
+                }*/
             }
         });
 
@@ -124,7 +131,7 @@ public class FakeToolbar extends FrameLayout {
                 .start();
     }
 
-    private void showPalettePopup() {
+    /*private void showPalettePopup() {
         isPalettePopupVisible = true;
         toolbarPalette.setVisibility(VISIBLE);
         toolbarPalette.animate().translationY(popUpTranslationY).start();
@@ -140,7 +147,7 @@ public class FakeToolbar extends FrameLayout {
                         toolbarPalette.setVisibility(GONE);
                     }
                 });
-    }
+    }*/
 
     public void startTimer()
     {
@@ -197,5 +204,9 @@ public class FakeToolbar extends FrameLayout {
     public void setOnTimerClickListener(OnClickListener listener)
     {
         globalTimerTextView.setOnClickListener(listener);
+    }
+
+    public interface Callback {
+        void onOpenTextEffectsSelector();
     }
 }
