@@ -32,4 +32,6 @@
 
     <dimen name="nav_menu_wight">100dp</dimen>
 
+    <dimen name="chat_text_size">16sp</dimen>
+
 </resources>

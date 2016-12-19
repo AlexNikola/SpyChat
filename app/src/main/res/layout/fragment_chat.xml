@@ -76,6 +76,7 @@
 
         <com.vanniktech.emoji.EmojiEditText
             android:imeOptions="flagNoExtractUi"
+            android:textSize="@dimen/chat_text_size"
             android:background="@drawable/bg_text_input_message"
             android:layout_margin="16dp"
             android:textCursorDrawable="@drawable/color_cursor"

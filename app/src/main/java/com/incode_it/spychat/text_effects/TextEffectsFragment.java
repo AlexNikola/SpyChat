@@ -9,6 +9,9 @@ import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -29,11 +32,13 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
     public static final int REQUEST_TEXT_FONT = 1;
     public static final int REQUEST_TEXT_SIZE = 2;
 
+    private static final String SAVE_STATE_TEXT_STYLE = "SAVE_STATE_TEXT_STYLE";
+    public static final String EXTRA_TEXT_STYLE = "EXTRA_TEXT_STYLE";
+
 
     private TextStyle textStyle;
     private TextView sampleTextView;
     private AnimatorSet animation;
-    private boolean isAnimated;
 
     public TextEffectsFragment() {
     }
@@ -41,9 +46,19 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        textStyle = new TextStyle();
+        if(savedInstanceState != null) {
+            textStyle = (TextStyle) savedInstanceState.getSerializable(SAVE_STATE_TEXT_STYLE);
+        } else {
+            textStyle = new TextStyle(getContext());
+        }
         setHasOptionsMenu(true);
         setRetainInstance(true);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(SAVE_STATE_TEXT_STYLE, textStyle);
     }
 
     @Override
@@ -52,7 +67,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         View view = inflater.inflate(R.layout.fragment_text_effects, container, false);
 
         sampleTextView = (TextView) view.findViewById(R.id.sample);
-        textStyle.setStyle(sampleTextView;
+        setStyle();
 
         view.findViewById(R.id.change_color).setOnClickListener(this);
         view.findViewById(R.id.change_font).setOnClickListener(this);
@@ -60,6 +75,13 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         view.findViewById(R.id.change_blink).setOnClickListener(this);
 
         return view;
+    }
+
+    private void setStyle() {
+        sampleTextView.setTextColor(textStyle.getColor());
+        sampleTextView.setTextSize(textStyle.getSize());
+        FontHelper.setCustomFont(getActivity(), sampleTextView, textStyle.getFont());
+        animate(textStyle.isAnimated());
     }
 
     @Override
@@ -75,7 +97,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
                 openSizePicker();
                 break;
             case R.id.change_blink:
-                animate();
+                animate(!textStyle.isAnimated());
                 break;
         }
     }
@@ -113,19 +135,19 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         dialog.show(getActivity().getSupportFragmentManager(), "change_text_size_dialog");
     }
 
-    private void animate() {
+    private void animate(boolean isAnimated) {
         if (animation == null) {
             animation = (AnimatorSet) AnimatorInflater.loadAnimator(getActivity(), R.animator.blink);
+
         }
+
         animation.setTarget(sampleTextView);
 
-        if (!isAnimated) {
+        if (isAnimated) {
             animation.start();
-            isAnimated = true;
         } else {
             animation.cancel();
             sampleTextView.setAlpha(1);
-            isAnimated = false;
         }
 
         textStyle.setAnimated(isAnimated);
@@ -148,5 +170,32 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
                 FontHelper.setCustomFont(getActivity(), sampleTextView, font);
             }
         }
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_text_art_selector, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId())
+        {
+            case android.R.id.home:
+                getActivity().finish();
+                return true;
+            case R.id.action_done:
+                done();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    private void done() {
+        Intent intent = new Intent();
+        intent.putExtra(EXTRA_TEXT_STYLE, textStyle);
+        getActivity().setResult(Activity.RESULT_OK, intent);
+        getActivity().finish();
     }
 }

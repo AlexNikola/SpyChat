@@ -8,7 +8,7 @@ android {
         applicationId "com.incode_it.spychat"
         minSdkVersion 17
         targetSdkVersion 21
-        versionCode 15
+        versionCode 16
         versionName "1.4"
     }
     buildTypes {

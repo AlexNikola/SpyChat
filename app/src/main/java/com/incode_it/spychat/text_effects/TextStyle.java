@@ -1,15 +1,22 @@
 package com.incode_it.spychat.text_effects;
 
-import android.widget.TextView;
+import android.content.Context;
+
+import com.incode_it.spychat.R;
+import com.incode_it.spychat.utils.Metric;
 
 import java.io.Serializable;
 
 public class TextStyle implements Serializable {
 
-    private int color = 0x000000;
+    private int color = 0xff000000;
     private float size = 16;
     private String font;
     private boolean isAnimated;
+
+    public TextStyle(Context context) {
+        size = Metric.pixelsToSp(context, context.getResources().getDimension(R.dimen.chat_text_size));
+    }
 
     public int getColor() {
         return color;
@@ -43,9 +50,10 @@ public class TextStyle implements Serializable {
         isAnimated = animated;
     }
 
-    public void setStyle(TextView textView) {
-        textView.setTextColor(color);
-        textView.setTextSize(size);
-
+    public void refresh(Context context) {
+        color = 0xff000000;
+        size = Metric.pixelsToSp(context, context.getResources().getDimensionPixelSize(R.dimen.chat_text_size));
+        font = null;
+        isAnimated = false;
     }
 }

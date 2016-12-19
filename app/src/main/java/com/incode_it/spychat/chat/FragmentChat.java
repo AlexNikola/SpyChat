@@ -18,7 +18,6 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Typeface;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -31,7 +30,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -41,7 +39,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -60,6 +57,8 @@ import com.incode_it.spychat.effects.EffectsView;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.interfaces.OnPickMediaListener;
 import com.incode_it.spychat.text_effects.TextEffectsActivity;
+import com.incode_it.spychat.text_effects.TextEffectsFragment;
+import com.incode_it.spychat.text_effects.TextStyle;
 import com.incode_it.spychat.utils.Cypher;
 import com.incode_it.spychat.utils.FontHelper;
 import com.vanniktech.emoji.EmojiEditText;
@@ -76,8 +75,6 @@ import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xdty.preference.colorpicker.ColorPickerDialog;
-import org.xdty.preference.colorpicker.ColorPickerSwatch;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -105,6 +102,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public static final int REQUEST_TEXT_FONT = 100;
     public static final int REQUEST_EFFECTS = 101;
     public static final int REQUEST_TEXT_EFFECTS = 102;
+
+    private static final String SAVE_STATE_TEXT_STYLE = "SAVE_STATE_TEXT_STYLE";
 
     private String opponentPhone;
     private RecyclerView recyclerView;
@@ -134,6 +133,9 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private EmojiPopup emojiPopup;
 
     private AudioService mService;
+
+    private AnimatorSet animation;
+    private TextStyle textStyle;
 
     /*private int selectedColor;
     private float selectedSize;
@@ -186,9 +188,16 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         }
 
         if (savedInstanceState == null) {
-            /*selectedColor = ContextCompat.getColor(getActivity(), R.color.black);
-            selectedSize = 16;*/
+            textStyle = new TextStyle(getContext());
+        } else {
+            textStyle = (TextStyle) savedInstanceState.getSerializable(SAVE_STATE_TEXT_STYLE);
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(SAVE_STATE_TEXT_STYLE, textStyle);
     }
 
     @Override
@@ -234,6 +243,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 }
             });
             setUpEmojiPopup();
+
+            setTextStyle(textStyle);
         }
 
 
@@ -293,12 +304,31 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         } else if (requestCode == REQUEST_EFFECTS && resultCode == Activity.RESULT_OK) {
             effectBtn.setEffect(data.getIntExtra(EffectsSelectorFragment.EXTRA_EFFECT_ID, 0));
         } else if (requestCode == REQUEST_TEXT_EFFECTS && resultCode == Activity.RESULT_OK) {
-            setTextStyle(data);
+            textStyle = (TextStyle) data.getSerializableExtra(TextEffectsFragment.EXTRA_TEXT_STYLE);
+            setTextStyle(textStyle);
         }
     }
 
-    private void setTextStyle(Intent data) {
+    private void setTextStyle(TextStyle textStyle) {
+        editText.setTextColor(textStyle.getColor());
+        editText.setTextSize(textStyle.getSize());
+        FontHelper.setCustomFont(getActivity(), editText, textStyle.getFont());
+        animateEditText(textStyle.isAnimated());
+    }
 
+    private void animateEditText(boolean isAnimated) {
+        if (animation == null) {
+            animation = (AnimatorSet) AnimatorInflater.loadAnimator(getActivity(), R.animator.blink);
+        }
+
+        animation.setTarget(editText);
+
+        if (isAnimated) {
+            animation.start();
+        } else {
+            animation.cancel();
+            editText.setAlpha(1);
+        }
     }
 
     @Override
@@ -658,14 +688,14 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 {
                     final Message message = new Message(Cypher.encrypt(textMessage), myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_TEXT, myPhoneNumber);
                     message.isViewed = 1;
-                    /*message.setColor(selectedColor);
-                    message.setTextSize(selectedSize);
-                    message.setAnimated(isAnimated);
-                    message.setFont(selectedFont);
+                    message.setColor(textStyle.getColor());
+                    message.setTextSize(textStyle.getSize());
+                    message.setAnimated(textStyle.isAnimated());
+                    message.setFont(textStyle.getFont());
                     message.setEffect(effectBtn.getEffect());
 
-                    initStyleFlags();
-                    editText.setTextSize(selectedSize);*/
+                    textStyle.refresh(getContext());
+                    setTextStyle(textStyle);
                     messageArrayList.add(message);
                     adapter.notifyItemInserted(messageArrayList.size() - 1);
                     recyclerView.scrollToPosition(messageArrayList.size() - 1);
