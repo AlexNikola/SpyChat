@@ -4,26 +4,29 @@
     android:id="@+id/content_text_effects"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.incode_it.spychat.text_effects.TextEffectsFragment"
-    tools:showIn="@layout/activity_text_effects">
+    tools:context="com.incode_it.spychat.effects.TextEffectsFragment">
 
-    <TextView
-        android:text="Sample text"
-        android:id="@+id/sample"
-        android:background="@drawable/bg_my_message_success"
+    <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:layout_marginTop="32dp"
-        android:padding="8dp"
-        android:layout_gravity="center_horizontal"/>
+        android:background="@drawable/bg_my_message_success">
+        <TextView
+            android:text="Sample text"
+            android:id="@+id/sample"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"/>
+    </FrameLayout>
+
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="8dp"
-        android:gravity="end">
+        android:layout_gravity="bottom|start"
+        android:layout_margin="8dp">
 
         <TextView
             android:textSize="20sp"
@@ -64,9 +67,9 @@
         <TextView
             android:textSize="20sp"
             android:layout_marginBottom="4dp"
-            android:id="@+id/change_blink"
+            android:id="@+id/defaultStyle"
             android:padding="12dp"
-            android:text="Blinking"
+            android:text="Default"
             android:textColor="#ffffff"
             android:background="@drawable/button_dark_selector"
             android:layout_width="wrap_content"
@@ -74,5 +77,61 @@
             android:gravity="center_vertical"/>
 
     </LinearLayout>
+
+    <RadioGroup
+        android:layout_gravity="bottom|end"
+        android:gravity="end"
+        android:id="@+id/radio"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp">
+
+        <RadioButton
+            android:layoutDirection="rtl"
+            android:id="@+id/blink"
+            android:text="Blink"
+            android:textSize="16sp"
+            android:padding="10dp"
+            android:background="@drawable/bg_my_message_success"
+            android:layout_margin="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <RadioButton
+            android:layoutDirection="rtl"
+            android:id="@+id/bounce"
+            android:text="Bounce"
+            android:textSize="16sp"
+            android:padding="10dp"
+            android:background="@drawable/bg_my_message_success"
+            android:layout_margin="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <RadioButton
+            android:layoutDirection="rtl"
+            android:id="@+id/shake"
+            android:text="Shake"
+            android:textSize="16sp"
+            android:padding="10dp"
+            android:background="@drawable/bg_my_message_success"
+            android:layout_margin="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <RadioButton
+            android:layoutDirection="rtl"
+            android:id="@+id/none"
+            android:checked="true"
+            android:text="None"
+            android:textSize="16sp"
+            android:padding="10dp"
+            android:background="@drawable/bg_my_message_success"
+            android:layout_margin="4dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+    </RadioGroup>
 
 </FrameLayout>

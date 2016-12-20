@@ -22,6 +22,7 @@ import com.incode_it.spychat.R;
 import com.incode_it.spychat.amazon.DownloadService;
 import com.incode_it.spychat.contacts.ActivityMain;
 import com.incode_it.spychat.data_base.MyDbHelper;
+import com.incode_it.spychat.effects.TextStyle;
 import com.incode_it.spychat.utils.Cypher;
 
 import org.json.JSONException;
@@ -47,6 +48,7 @@ public class MyGcmListenerService extends GcmListenerService {
         boolean receivedIsAnimated = false;
         String receivedFont = "";
         String receiverPhoneNumber = null;
+        int animationType = TextStyle.ANIMATION_NONE;
         int effect = 0;
         /*if (data != null) {
             for (String key : data.keySet()) {
@@ -65,6 +67,14 @@ public class MyGcmListenerService extends GcmListenerService {
                 receivedIsAnimated = jsonObject.getBoolean("animation");
                 receivedFont = jsonObject.getString("font");
                 receiverPhoneNumber = jsonObject.getString("receiverPhoneNumber");
+
+                if (jsonObject.has("animationType")) {
+                    animationType = jsonObject.getInt("animationType");
+                } else {
+                    if (receivedIsAnimated) {
+                        animationType = TextStyle.ANIMATION_BLINK;
+                    }
+                }
                 //Log.d("rfddffdfg", "onMessageReceived: " + receiverPhoneNumber);
             } else if (jsonObject.getString("type").equals("typeMedia")) {
                 receiverPhoneNumber = jsonObject.getString("receiverPhoneNumber");
@@ -111,7 +121,7 @@ public class MyGcmListenerService extends GcmListenerService {
             message = new Message(receivedTextMessage, phone, receiverPhoneNumber, Message.STATE_SUCCESS, Message.NOT_MY_MESSAGE_TEXT, receiverPhoneNumber);
             message.setColor(receivedColor);
             message.setTextSize(receivedTextSize);
-            message.setAnimated(receivedIsAnimated);
+            message.setAnimationType(animationType);
             if (receivedFont.equals("default")) {
                 message.setFont(null);
             } else {

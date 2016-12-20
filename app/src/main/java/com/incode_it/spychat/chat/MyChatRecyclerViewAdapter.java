@@ -35,6 +35,7 @@ import com.incode_it.spychat.R;
 import com.incode_it.spychat.alarm.AlarmReceiverIndividual;
 import com.incode_it.spychat.amazon.DownloadService;
 import com.incode_it.spychat.data_base.MyDbHelper;
+import com.incode_it.spychat.effects.TextStyle;
 import com.incode_it.spychat.interfaces.OnMessageDialogListener;
 import com.incode_it.spychat.utils.Cypher;
 import com.incode_it.spychat.utils.FontHelper;
@@ -294,6 +295,12 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             }
 
             localLoadBitmap(yourRealPath, videoMessage, "frame", C.getEmptyVideoMessageBitmap(context));
+
+            if (message.getEffect() != 0) {
+                replayEffectBtn.setVisibility(View.VISIBLE);
+            } else {
+                replayEffectBtn.setVisibility(View.GONE);
+            }
         }
 
         @Override
@@ -413,6 +420,12 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             String filePath = message.getMessage();
 
             localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
+
+            if (message.getEffect() != 0) {
+                replayEffectBtn.setVisibility(View.VISIBLE);
+            } else {
+                replayEffectBtn.setVisibility(View.GONE);
+            }
         }
 
         @Override
@@ -427,22 +440,20 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     public class MessageTextViewHolder extends MessageViewHolder
     {
         public EmojiTextView textMessage;
-        private AnimatorSet animation;
+        private TextStyle textStyle;
 
         public MessageTextViewHolder(View itemView) {
             super(itemView);
             textMessage = (EmojiTextView) itemView.findViewById(R.id.text_message);
             textMessage.setEmojiSize((int) context.getResources().getDimension(R.dimen.emoji_size));
-            animation = (AnimatorSet) AnimatorInflater
-                    .loadAnimator(context, R.animator.blink);
-            animation.setTarget(textMessage);
+            textStyle = new TextStyle(context);
         }
 
         @Override
         public void bindViewHolder(Message message) {
             super.bindViewHolder(message);
+            textStyle.refresh(context, textMessage);
 
-            animation.cancel();
             textMessage.setText(Cypher.decrypt(message.getMessage()));
 
             if (!message.getSenderPhoneNumber().equals(myPhoneNumber)) {
@@ -461,16 +472,20 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                         break;
                 }
             }
+
+            if (message.getEffect() != 0) {
+                replayEffectBtn.setVisibility(View.VISIBLE);
+            } else {
+                replayEffectBtn.setVisibility(View.GONE);
+            }
         }
 
         private void setTextStyle(Message message) {
             textMessage.setTextColor(message.getColor());
             textMessage.setTextSize(message.getTextSize());
-            textMessage.setAlpha(1);
-            if (message.isAnimated()) {
-                animation.start();
-            }
             FontHelper.setCustomFont(context, textMessage, message.getFont());
+            textStyle.animate(textMessage, message.getAnimationType());
+
         }
     }
 
@@ -560,6 +575,11 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             }
 
 
+            if (message.getEffect() != 0) {
+                replayEffectBtn.setVisibility(View.VISIBLE);
+            } else {
+                replayEffectBtn.setVisibility(View.GONE);
+            }
         }
 
         public void setState()
@@ -703,10 +723,11 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         public TextView timerTextView;
         public MyTimerTask timerTask;
         public View replayEffectBtn;
+        protected View itemView;
 
         public MessageViewHolder(View itemView) {
             super(itemView);
-
+            this.itemView = itemView;
             timerTextView = (TextView) itemView.findViewById(R.id.timer_message_tv);
             profileImageView = (ImageView) itemView.findViewById(R.id.profile_image);
             progressBar = itemView.findViewById(R.id.progressBar);
@@ -786,12 +807,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                         progressBar.setVisibility(View.INVISIBLE);
                         break;
                 }
-            }
-
-            if (message.getEffect() != 0) {
-                replayEffectBtn.setVisibility(View.VISIBLE);
-            } else {
-                replayEffectBtn.setVisibility(View.GONE);
             }
         }
 

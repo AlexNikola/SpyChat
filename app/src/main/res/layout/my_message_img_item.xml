@@ -71,18 +71,32 @@
 
         </FrameLayout>
 
-        <com.incode_it.spychat.TextViewDigital
-            custom:typefaceAsset="fonts/digital.ttf"
-            android:layout_gravity="right"
-            android:id="@+id/timer_message_tv"
-            android:textColor="@color/errorColor"
-            android:text="00:25:12"
-            android:textSize="15sp"
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_gravity="end"
             android:layout_marginTop="2dp"
-            android:layout_marginEnd="5dp"
-            android:layout_marginRight="5dp"/>
+            android:layout_marginEnd="5dp">
+
+            <com.incode_it.spychat.TextViewDigital
+                custom:typefaceAsset="fonts/digital.ttf"
+                android:id="@+id/timer_message_tv"
+                android:textColor="@color/errorColor"
+                android:text="00:25:12"
+                android:textSize="15sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"/>
+
+            <ImageView
+                android:id="@+id/replay_effect"
+                android:src="@drawable/ic_replay_black_24dp"
+                android:tint="@color/azure"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

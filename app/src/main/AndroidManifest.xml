@@ -183,10 +183,6 @@
             android:name=".effects.EffectsSelectorActivity"
             android:label="@string/title_activity_effects_selector"
             android:theme="@style/ChatTheme" />
-        <activity
-            android:name=".text_effects.TextEffectsActivity"
-            android:label="@string/title_activity_text_effects"
-            android:theme="@style/ChatTheme"/>
     </application>
 
 </manifest>

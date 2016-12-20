@@ -1,27 +1,20 @@
-package com.incode_it.spychat.text_effects;
+package com.incode_it.spychat.effects;
 
-import android.animation.AnimatorInflater;
-import android.animation.AnimatorSet;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import com.incode_it.spychat.C;
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.chat.ChatTextFontDialog;
 import com.incode_it.spychat.chat.ChatTextSizeDialog;
-import com.incode_it.spychat.chat.FragmentChat;
-import com.incode_it.spychat.effects.EffectsSelectorFragment;
 import com.incode_it.spychat.utils.FontHelper;
 
 import org.xdty.preference.colorpicker.ColorPickerDialog;
@@ -38,7 +31,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
 
     private TextStyle textStyle;
     private TextView sampleTextView;
-    private AnimatorSet animation;
+    private RadioGroup radioGroup;
 
     public TextEffectsFragment() {
     }
@@ -51,7 +44,6 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         } else {
             textStyle = new TextStyle(getContext());
         }
-        setHasOptionsMenu(true);
         setRetainInstance(true);
     }
 
@@ -69,10 +61,32 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         sampleTextView = (TextView) view.findViewById(R.id.sample);
         setStyle();
 
+
         view.findViewById(R.id.change_color).setOnClickListener(this);
         view.findViewById(R.id.change_font).setOnClickListener(this);
         view.findViewById(R.id.change_size).setOnClickListener(this);
-        view.findViewById(R.id.change_blink).setOnClickListener(this);
+        view.findViewById(R.id.defaultStyle).setOnClickListener(this);
+
+        radioGroup = (RadioGroup) view.findViewById(R.id.radio);
+        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup group, int checkedId) {
+                switch (checkedId) {
+                    case R.id.blink:
+                        textStyle.animate(sampleTextView, TextStyle.ANIMATION_BLINK);
+                        break;
+                    case R.id.bounce:
+                        textStyle.animate(sampleTextView, TextStyle.ANIMATION_BOUNCE);
+                        break;
+                    case R.id.shake:
+                        textStyle.animate(sampleTextView, TextStyle.ANIMATION_SHAKE);
+                        break;
+                    case R.id.none:
+                        textStyle.animate(sampleTextView, TextStyle.ANIMATION_NONE);
+                        break;
+                }
+            }
+        });
 
         return view;
     }
@@ -81,7 +95,13 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         sampleTextView.setTextColor(textStyle.getColor());
         sampleTextView.setTextSize(textStyle.getSize());
         FontHelper.setCustomFont(getActivity(), sampleTextView, textStyle.getFont());
-        animate(textStyle.isAnimated());
+
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                textStyle.animate(sampleTextView);
+            }
+        }, 1);
     }
 
     @Override
@@ -96,8 +116,11 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
             case R.id.change_size:
                 openSizePicker();
                 break;
-            case R.id.change_blink:
-                animate(!textStyle.isAnimated());
+            case R.id.defaultStyle:
+                int animation = textStyle.getAnimationType();
+                textStyle.refresh(getContext(), sampleTextView);
+                textStyle.setAnimationType(animation);
+                setStyle();
                 break;
         }
     }
@@ -116,7 +139,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
             @Override
             public void onColorSelected(int color) {
                 textStyle.setColor(color);
-                sampleTextView.setTextColor(color);
+                setStyle();
             }
         });
 
@@ -135,24 +158,6 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         dialog.show(getActivity().getSupportFragmentManager(), "change_text_size_dialog");
     }
 
-    private void animate(boolean isAnimated) {
-        if (animation == null) {
-            animation = (AnimatorSet) AnimatorInflater.loadAnimator(getActivity(), R.animator.blink);
-
-        }
-
-        animation.setTarget(sampleTextView);
-
-        if (isAnimated) {
-            animation.start();
-        } else {
-            animation.cancel();
-            sampleTextView.setAlpha(1);
-        }
-
-        textStyle.setAnimated(isAnimated);
-    }
-
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -161,41 +166,19 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
             if (resultCode == Activity.RESULT_OK) {
                 float size = data.getFloatExtra(ChatTextSizeDialog.EXTRA_TEXT_SIZE, 16);
                 textStyle.setSize(size);
-                sampleTextView.setTextSize(size);
+                setStyle();
             }
         } else if (requestCode == REQUEST_TEXT_FONT) {
             if (resultCode == Activity.RESULT_OK) {
                 String font = data.getStringExtra(ChatTextFontDialog.EXTRA_TEXT_FONT);
                 textStyle.setFont(font);
-                FontHelper.setCustomFont(getActivity(), sampleTextView, font);
+                setStyle();
             }
         }
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_text_art_selector, menu);
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId())
-        {
-            case android.R.id.home:
-                getActivity().finish();
-                return true;
-            case R.id.action_done:
-                done();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
-    private void done() {
-        Intent intent = new Intent();
+    public void done(Intent intent) {
         intent.putExtra(EXTRA_TEXT_STYLE, textStyle);
-        getActivity().setResult(Activity.RESULT_OK, intent);
-        getActivity().finish();
     }
 }

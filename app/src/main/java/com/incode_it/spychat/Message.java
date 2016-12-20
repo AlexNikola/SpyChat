@@ -42,10 +42,10 @@ public class Message
     public int audioDuration;
     private int color = Color.BLACK;
     private float textSize;
-    private boolean isAnimated;
     private String font;
     public String ownerPhoneNumber;
     private int effect;
+    private int animationType;
 
     public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state, int messageType, String ownerPhoneNumber)
     {
@@ -75,9 +75,9 @@ public class Message
         this.audioDuration = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.AUDIO_DURATION));
         this.color = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.COLOR));
         this.textSize = cursor.getFloat(cursor.getColumnIndex(MReaderContract.Chat.SIZE));
-        this.isAnimated = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.ANIMATION)) == 1;
         this.font = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.FONT));
         this.effect = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.EFFECT));
+        this.animationType = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.ANIMATION_TYPE));
     }
 
     public void setMessageId(int messageId) {
@@ -156,19 +156,19 @@ public class Message
         this.textSize = textSize;
     }
 
-    public boolean isAnimated() {
-        return isAnimated;
-    }
-
-    public void setAnimated(boolean animated) {
-        isAnimated = animated;
-    }
-
     public String getFont() {
         return font;
     }
 
     public void setFont(String font) {
         this.font = font;
+    }
+
+    public int getAnimationType() {
+        return animationType;
+    }
+
+    public void setAnimationType(int animationType) {
+        this.animationType = animationType;
     }
 }

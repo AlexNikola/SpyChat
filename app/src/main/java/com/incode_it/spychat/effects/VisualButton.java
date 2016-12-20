@@ -5,20 +5,17 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
-import com.amazonaws.auth.policy.Statement;
 import com.incode_it.spychat.R;
 
-public class EffectButton extends FrameLayout {
+public class VisualButton extends FrameLayout {
 
     private ImageView imageView;
-    private int effect = EffectsView.EFFECT_NONE;
+    private int effect = VisualsView.EFFECT_NONE;
 
-    public EffectButton(Context context, AttributeSet attrs) {
+    public VisualButton(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
@@ -31,29 +28,28 @@ public class EffectButton extends FrameLayout {
     public void setEffect(int effect) {
         this.effect = effect;
         switch (effect) {
-            case EffectsView.EFFECT_BALLOON: {
+            case VisualsView.EFFECT_BALLOON: {
                 imageView.setImageResource(R.drawable.ic_balloons);
                 imageView.setColorFilter(ContextCompat.getColor(getContext(), R.color.balloon_3));
                 break;
             }
-            case EffectsView.EFFECT_FIREWORK: {
+            case VisualsView.EFFECT_FIREWORK: {
                 imageView.setImageResource(R.drawable.ic_exploding);
                 imageView.setColorFilter(ContextCompat.getColor(getContext(), R.color.firework_3));
                 break;
             }
-            case EffectsView.EFFECT_LOVE: {
+            case VisualsView.EFFECT_LOVE: {
                 imageView.setImageResource(R.drawable.ic_heart);
                 imageView.setColorFilter(ContextCompat.getColor(getContext(), R.color.red));
                 break;
             }
-            case EffectsView.EFFECT_PARTY: {
+            case VisualsView.EFFECT_PARTY: {
                 imageView.setImageResource(R.drawable.ic_confetti);
                 imageView.setColorFilter(ContextCompat.getColor(getContext(), R.color.confetty_4));
                 break;
             }
             default: {
-                imageView.setImageResource(R.drawable.ic_arrow_upward_black_24dp);
-                imageView.setColorFilter(ContextCompat.getColor(getContext(), R.color.chat_effects_btn));
+                imageView.setImageResource(0);
             }
         }
 

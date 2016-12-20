@@ -22,7 +22,7 @@ import com.plattysoft.leonids.ParticleSystem;
 
 import java.util.ArrayList;
 
-public class EffectsView extends FrameLayout {
+public class VisualsView extends FrameLayout {
     public static final int EFFECT_NONE = 0;
     public static final int EFFECT_BALLOON = 1;
     public static final int EFFECT_FIREWORK = 2;
@@ -44,7 +44,7 @@ public class EffectsView extends FrameLayout {
 
     private boolean isFireworkAnimating = false;
 
-    public EffectsView(Context context, AttributeSet attrs) {
+    public VisualsView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         if (balloonBitmaps == null) {
@@ -129,23 +129,6 @@ public class EffectsView extends FrameLayout {
     public void startFirework() {
         cancel();
         isFireworkAnimating = true;
-        /*ConfettiManager confettiManager = ConfettiHandler.getInstance(this)
-                .size(20)
-                .colors(getFireworkColors())
-                .appear(ConfettiHandler.APPEAR_CENTER)
-                .image(R.mipmap.star_pink)
-                .build()
-                .setTTL(1000)
-                .setVelocityX(0, 500)
-                .setVelocityY(0, 500)
-                .enableFadeOut(Utils.getDefaultAlphaInterpolator())
-                .setInitialRotation(180, 180)
-                .setRotationalAcceleration(360, 180)
-                .setTargetRotationalVelocity(360)
-                .setNumInitialCount(200)
-                .setEmissionDuration(0)
-                .animate();*/
-
         for (int i = 0; i < 5; i++) {
             final int finalI = i;
             new Handler().postDelayed(new Runnable() {
@@ -184,14 +167,6 @@ public class EffectsView extends FrameLayout {
     }
     public void startParty() {
         cancel();
-        /*confettiManager = CommonConfetti.rainingConfetti(this, getConfettyColors())
-                .getConfettiManager()
-                .setVelocityX(0, 250)
-                .setVelocityY(600, 300)
-                .setNumInitialCount(0)
-                .setEmissionDuration(3000)
-                .setEmissionRate(50)
-                .animate();*/
         confettiManager = ConfettiHandler.getInstance(this)
                 .appear(ConfettiHandler.APPEAR_TOP)
                 .generator(confettiGenerator)

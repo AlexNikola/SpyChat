@@ -4,10 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.incode_it.spychat.effects.EffectsSelectorFragment"
+    tools:context="com.incode_it.spychat.effects.VisualsFragment"
     tools:showIn="@layout/activity_effects_selector">
 
-    <com.incode_it.spychat.effects.EffectsView
+    <com.incode_it.spychat.effects.VisualsView
         android:id="@+id/container"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -42,7 +42,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"/>
 
-    </com.incode_it.spychat.effects.EffectsView>
+    </com.incode_it.spychat.effects.VisualsView>
 
 
     <RadioGroup
@@ -101,6 +101,7 @@
         <RadioButton
             android:layoutDirection="rtl"
             android:id="@+id/none"
+            android:checked="true"
             android:text="None"
             android:textSize="16sp"
             android:padding="10dp"

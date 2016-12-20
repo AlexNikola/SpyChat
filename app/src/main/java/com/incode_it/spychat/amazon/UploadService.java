@@ -140,6 +140,7 @@ public class UploadService extends IntentService {
             }
             JSONObject object = new JSONObject();
             try {
+                object.put("effect", message.getEffect());
                 object.put("type", "typeMedia");
                 object.put("url", remoteMediaPath);
                 object.put("receiverPhoneNumber", receiverPhoneNumber);

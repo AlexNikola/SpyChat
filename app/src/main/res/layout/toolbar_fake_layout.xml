@@ -52,7 +52,7 @@
 
     </LinearLayout>
 
-    <!--<LinearLayout
+    <LinearLayout
         android:visibility="gone"
         android:id="@+id/toolbar_lower_palette"
         android:orientation="horizontal"
@@ -63,50 +63,30 @@
         android:gravity="end">
 
         <TextView
-            android:id="@+id/change_font"
-            android:paddingStart="13dp"
-            android:paddingEnd="13dp"
-            android:background="@drawable/button_dark_selector"
-            android:text="Font"
-            android:textColor="#ffffff"
+            android:id="@+id/textEffects"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="16dp"
+            android:text="Text art"
+            android:padding="8dp"
+            android:textSize="14sp"
+            android:background="@drawable/button_dark_selector"
+            android:textColor="#ffffff"/>
 
         <TextView
-            android:id="@+id/change_color"
-            android:paddingStart="13dp"
-            android:paddingEnd="13dp"
-            android:background="@drawable/button_dark_selector"
-            android:text="Text color"
-            android:textColor="#ffffff"
+            android:id="@+id/visuals"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
-
-        <TextView
-            android:id="@+id/change_size"
-            android:paddingStart="13dp"
-            android:paddingEnd="13dp"
-            android:text="Text size"
-            android:textColor="#ffffff"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="16dp"
+            android:text="Visuals"
+            android:padding="8dp"
+            android:textSize="14sp"
             android:background="@drawable/button_dark_selector"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
+            android:textColor="#ffffff"/>
 
-        <TextView
-            android:id="@+id/change_blink"
-            android:paddingStart="13dp"
-            android:paddingEnd="13dp"
-            android:text="Blinking"
-            android:textColor="#ffffff"
-            android:background="@drawable/button_dark_selector"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
-
-    </LinearLayout>-->
+    </LinearLayout>
 
     <RelativeLayout
         android:id="@+id/toolbar_upper"
@@ -189,7 +169,22 @@
 
             </FrameLayout>
 
-            <TextView
+            <FrameLayout
+                android:background="@drawable/bg_attachments"
+                android:id="@+id/effects"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+
+                <ImageView
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_palette_black_24dp"
+                    android:tint="@color/mdtp_white"
+                    android:layout_width="?attr/actionBarSize"
+                    android:layout_height="wrap_content" />
+
+            </FrameLayout>
+
+            <!--<TextView
                 android:id="@+id/palette"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -199,7 +194,7 @@
                 android:padding="8dp"
                 android:textSize="14sp"
                 android:background="@drawable/button_dark_selector"
-                android:textColor="#ffffff"/>
+                android:textColor="#ffffff"/>-->
 
         </LinearLayout>
 
