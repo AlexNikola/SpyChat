@@ -24,6 +24,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
 
     public static final int REQUEST_TEXT_FONT = 1;
     public static final int REQUEST_TEXT_SIZE = 2;
+    public static final int REQUEST_ANIMATION = 3;
 
     private static final String SAVE_STATE_TEXT_STYLE = "SAVE_STATE_TEXT_STYLE";
     public static final String EXTRA_TEXT_STYLE = "EXTRA_TEXT_STYLE";
@@ -31,7 +32,6 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
 
     private TextStyle textStyle;
     private TextView sampleTextView;
-    private RadioGroup radioGroup;
 
     public TextEffectsFragment() {
     }
@@ -42,7 +42,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         if(savedInstanceState != null) {
             textStyle = (TextStyle) savedInstanceState.getSerializable(SAVE_STATE_TEXT_STYLE);
         } else {
-            textStyle = new TextStyle(getContext());
+            textStyle = (TextStyle) getActivity().getIntent().getSerializableExtra(EXTRA_TEXT_STYLE);
         }
         setRetainInstance(true);
     }
@@ -62,31 +62,11 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         setStyle();
 
 
+        view.findViewById(R.id.defaultStyle).setOnClickListener(this);
         view.findViewById(R.id.change_color).setOnClickListener(this);
         view.findViewById(R.id.change_font).setOnClickListener(this);
         view.findViewById(R.id.change_size).setOnClickListener(this);
-        view.findViewById(R.id.defaultStyle).setOnClickListener(this);
-
-        radioGroup = (RadioGroup) view.findViewById(R.id.radio);
-        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                switch (checkedId) {
-                    case R.id.blink:
-                        textStyle.animate(sampleTextView, TextStyle.ANIMATION_BLINK);
-                        break;
-                    case R.id.bounce:
-                        textStyle.animate(sampleTextView, TextStyle.ANIMATION_BOUNCE);
-                        break;
-                    case R.id.shake:
-                        textStyle.animate(sampleTextView, TextStyle.ANIMATION_SHAKE);
-                        break;
-                    case R.id.none:
-                        textStyle.animate(sampleTextView, TextStyle.ANIMATION_NONE);
-                        break;
-                }
-            }
-        });
+        view.findViewById(R.id.change_animation).setOnClickListener(this);
 
         return view;
     }
@@ -107,6 +87,12 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.defaultStyle:
+                int animation = textStyle.getAnimationType();
+                textStyle.refresh(getContext(), sampleTextView);
+                textStyle.setAnimationType(animation);
+                setStyle();
+                break;
             case R.id.change_color:
                 openColorPicker();
                 break;
@@ -116,13 +102,16 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
             case R.id.change_size:
                 openSizePicker();
                 break;
-            case R.id.defaultStyle:
-                int animation = textStyle.getAnimationType();
-                textStyle.refresh(getContext(), sampleTextView);
-                textStyle.setAnimationType(animation);
-                setStyle();
+            case R.id.change_animation:
+                openAnimationPicker();
                 break;
         }
+    }
+
+    private void openAnimationPicker() {
+        ChatTextAnimationDialog dialog = new ChatTextAnimationDialog();
+        dialog.setTargetFragment(TextEffectsFragment.this, REQUEST_ANIMATION);
+        dialog.show(getActivity().getSupportFragmentManager(), "ChatTextAnimationDialog");
     }
 
     private void openColorPicker() {
@@ -149,13 +138,13 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
     private void openFontPicker() {
         ChatTextFontDialog dialog = new ChatTextFontDialog();
         dialog.setTargetFragment(TextEffectsFragment.this, REQUEST_TEXT_FONT);
-        dialog.show(getActivity().getSupportFragmentManager(), "change_text_font_dialog");
+        dialog.show(getActivity().getSupportFragmentManager(), "ChatTextFontDialog");
     }
 
     private void openSizePicker() {
         ChatTextSizeDialog dialog = new ChatTextSizeDialog();
         dialog.setTargetFragment(TextEffectsFragment.this, REQUEST_TEXT_SIZE);
-        dialog.show(getActivity().getSupportFragmentManager(), "change_text_size_dialog");
+        dialog.show(getActivity().getSupportFragmentManager(), "ChatTextSizeDialog");
     }
 
 
@@ -173,6 +162,11 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
                 String font = data.getStringExtra(ChatTextFontDialog.EXTRA_TEXT_FONT);
                 textStyle.setFont(font);
                 setStyle();
+            }
+        } else if (requestCode == REQUEST_ANIMATION) {
+            if (resultCode == Activity.RESULT_OK) {
+                int animationType = data.getIntExtra(ChatTextAnimationDialog.EXTRA_ANIMATION_TYPE, TextStyle.ANIMATION_NONE);
+                textStyle.animate(sampleTextView, animationType);
             }
         }
     }

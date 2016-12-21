@@ -8,11 +8,15 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.DrawableRes;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
+import android.widget.CompoundButton;
 import android.widget.FrameLayout;
 
 import com.github.jinatonic.confetti.ConfettiManager;
@@ -29,7 +33,7 @@ public class VisualsView extends FrameLayout {
     public static final int EFFECT_LOVE = 3;
     public static final int EFFECT_PARTY = 4;
 
-
+    public int currentEffect = EFFECT_NONE;
 
     private ArrayList<View> emiters = new ArrayList<>();
 
@@ -88,8 +92,15 @@ public class VisualsView extends FrameLayout {
         emiters.add(fireworkEmiter4);
     }
 
+    public void setCurrentEffectId(int currentEffect) {
+        this.currentEffect = currentEffect;
+    }
+
     public void start(int effect) {
-        if (effect == EFFECT_NONE) return;
+        if (effect == EFFECT_NONE) {
+            cancel();
+            return;
+        }
         switch (effect) {
             case EFFECT_BALLOON: {
                 startBalloons();
@@ -111,8 +122,9 @@ public class VisualsView extends FrameLayout {
     }
 
 
-    public void startBalloons() {
+    private void startBalloons() {
         cancel();
+        currentEffect = EFFECT_BALLOON;
         confettiManager = ConfettiHandler.getInstance(this)
                 .appear(ConfettiHandler.APPEAR_BOTTOM_CENTER)
                 .generator(balloonGenerator)
@@ -128,6 +140,7 @@ public class VisualsView extends FrameLayout {
 
     public void startFirework() {
         cancel();
+        currentEffect = EFFECT_FIREWORK;
         isFireworkAnimating = true;
         for (int i = 0; i < 5; i++) {
             final int finalI = i;
@@ -153,6 +166,7 @@ public class VisualsView extends FrameLayout {
 
     public void startLove() {
         cancel();
+        currentEffect = EFFECT_LOVE;
         confettiManager = ConfettiHandler.getInstance(this)
                 .appear(ConfettiHandler.APPEAR_TOP)
                 .generator(heartGenerator)
@@ -167,6 +181,7 @@ public class VisualsView extends FrameLayout {
     }
     public void startParty() {
         cancel();
+        currentEffect = EFFECT_PARTY;
         confettiManager = ConfettiHandler.getInstance(this)
                 .appear(ConfettiHandler.APPEAR_TOP)
                 .generator(confettiGenerator)
@@ -185,6 +200,7 @@ public class VisualsView extends FrameLayout {
 
 
     public void cancel() {
+        currentEffect = EFFECT_NONE;
         isFireworkAnimating = false;
         for (ParticleSystem ps: particleSystems) {
             ps.cancel();
@@ -306,5 +322,78 @@ public class VisualsView extends FrameLayout {
             }
         }
         return size;
+    }
+
+
+
+
+
+
+
+
+
+    static class SavedState extends BaseSavedState {
+        int effect;
+
+        /**
+         * Constructor called from {@link CompoundButton#onSaveInstanceState()}
+         */
+        SavedState(Parcelable superState) {
+            super(superState);
+        }
+
+        /**
+         * Constructor called from {@link #CREATOR}
+         */
+        private SavedState(Parcel in) {
+            super(in);
+            effect = in.readInt();
+        }
+
+        @Override
+        public void writeToParcel(Parcel out, int flags) {
+            super.writeToParcel(out, flags);
+            out.writeValue(effect);
+        }
+
+        @Override
+        public String toString() {
+            return "CompoundButton.SavedState{"
+                    + Integer.toHexString(System.identityHashCode(this))
+                    + " effect=" + effect + "}";
+        }
+
+        public static final Parcelable.Creator<SavedState> CREATOR
+                = new Parcelable.Creator<SavedState>() {
+            public SavedState createFromParcel(Parcel in) {
+                return new SavedState(in);
+            }
+
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+    }
+
+    @Override
+    public Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+
+        SavedState ss = new SavedState(superState);
+
+
+        ss.effect = currentEffect;
+        Log.d("sfsdfd", "onSaveInstanceState: " + currentEffect);
+        return ss;
+    }
+
+    @Override
+    public void onRestoreInstanceState(Parcelable state) {
+        SavedState ss = (SavedState) state;
+
+        super.onRestoreInstanceState(ss.getSuperState());
+        currentEffect = ss.effect;
+        Log.d("sfsdfd", "onRestoreInstanceState: " + currentEffect);
+        requestLayout();
     }
 }

@@ -1,84 +1,118 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
     android:id="@+id/content_text_effects"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.incode_it.spychat.effects.TextEffectsFragment">
 
     <FrameLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="32dp"
-        android:background="@drawable/bg_my_message_success">
-        <TextView
-            android:text="Sample text"
-            android:id="@+id/sample"
+        android:layout_weight="0.5"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
+
+        <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="8dp"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="32dp"
+            android:background="@drawable/bg_my_message_success">
+            <TextView
+                android:text="Sample text"
+                android:id="@+id/sample"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="8dp"/>
+        </FrameLayout>
+
     </FrameLayout>
 
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|start"
-        android:layout_margin="8dp">
+    <ScrollView
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp">
 
-        <TextView
-            android:textSize="20sp"
-            android:layout_marginBottom="4dp"
-            android:id="@+id/change_font"
-            android:padding="12dp"
-            android:background="@drawable/button_dark_selector"
-            android:text="Font"
-            android:textColor="#ffffff"
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_margin="8dp">
 
-        <TextView
-            android:textSize="20sp"
-            android:layout_marginBottom="4dp"
-            android:id="@+id/change_color"
-            android:padding="12dp"
-            android:background="@drawable/button_dark_selector"
-            android:text="Text color"
-            android:textColor="#ffffff"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
+            <TextView
+                android:textSize="20sp"
+                android:layout_marginBottom="4dp"
+                android:id="@+id/defaultStyle"
+                android:padding="12dp"
+                android:text="Default"
+                android:textColor="#ffffff"
+                android:background="@drawable/button_dark_selector"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"/>
 
-        <TextView
-            android:textSize="20sp"
-            android:layout_marginBottom="4dp"
-            android:id="@+id/change_size"
-            android:padding="12dp"
-            android:text="Text size"
-            android:textColor="#ffffff"
-            android:background="@drawable/button_dark_selector"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
+            <TextView
+                android:textSize="20sp"
+                android:layout_marginBottom="4dp"
+                android:id="@+id/change_font"
+                android:padding="12dp"
+                android:background="@drawable/button_dark_selector"
+                android:text="Font"
+                android:textColor="#ffffff"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"/>
 
-        <TextView
-            android:textSize="20sp"
-            android:layout_marginBottom="4dp"
-            android:id="@+id/defaultStyle"
-            android:padding="12dp"
-            android:text="Default"
-            android:textColor="#ffffff"
-            android:background="@drawable/button_dark_selector"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"/>
+            <TextView
+                android:textSize="20sp"
+                android:layout_marginBottom="4dp"
+                android:id="@+id/change_color"
+                android:padding="12dp"
+                android:background="@drawable/button_dark_selector"
+                android:text="Text color"
+                android:textColor="#ffffff"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"/>
 
-    </LinearLayout>
+            <TextView
+                android:textSize="20sp"
+                android:layout_marginBottom="4dp"
+                android:id="@+id/change_size"
+                android:padding="12dp"
+                android:text="Text size"
+                android:textColor="#ffffff"
+                android:background="@drawable/button_dark_selector"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"/>
 
-    <RadioGroup
+            <TextView
+
+                android:textSize="20sp"
+                android:layout_marginBottom="4dp"
+                android:id="@+id/change_animation"
+                android:padding="12dp"
+                android:text="Animations"
+                android:textColor="#ffffff"
+                android:background="@drawable/button_dark_selector"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"/>
+
+
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
+
+
+    <!--<RadioGroup
         android:layout_gravity="bottom|end"
         android:gravity="end"
         android:id="@+id/radio"
@@ -132,6 +166,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
-    </RadioGroup>
+    </RadioGroup>-->
 
-</FrameLayout>
+</LinearLayout>

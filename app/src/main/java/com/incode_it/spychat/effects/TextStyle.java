@@ -1,6 +1,7 @@
 package com.incode_it.spychat.effects;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 
 import com.incode_it.spychat.R;
@@ -84,6 +85,7 @@ public class TextStyle implements Serializable {
     }
 
     public void animate(View view, int animationType) {
+        Log.d("chatm", "animate: " + animationType);
         this.animationType = animationType;
 
         if (animator != null) {

@@ -242,6 +242,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             });
             setUpEmojiPopup();
 
+            Log.e(TAG, "onCreateView: ");
             setTextStyle(textStyle);
         }
 
@@ -300,17 +301,20 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             String realPath = getRealPath(path);
             uploadVideo(realPath);
         } else if (requestCode == REQUEST_EFFECTS && resultCode == Activity.RESULT_OK) {
-            textStyle = (TextStyle) data.getSerializableExtra(TextEffectsFragment.EXTRA_TEXT_STYLE);
+            TextStyle textStyle = (TextStyle) data.getSerializableExtra(TextEffectsFragment.EXTRA_TEXT_STYLE);
             visualButton.setEffect(data.getIntExtra(VisualsFragment.EXTRA_EFFECT_ID, 0));
             setTextStyle(textStyle);
         }
     }
 
     private void setTextStyle(TextStyle textStyle) {
+        this.textStyle.refresh(getContext(), editText);
+        this.textStyle = textStyle;
+        Log.e(TAG, "setTextStyle: " + textStyle.getAnimationType());
         editText.setTextColor(textStyle.getColor());
         editText.setTextSize(textStyle.getSize());
         FontHelper.setCustomFont(getActivity(), editText, textStyle.getFont());
-        textStyle.animate(editText);
+        textStyle.animate(editText, textStyle.getAnimationType());
     }
 
     @Override
@@ -357,7 +361,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         message.isViewed = 1;
         message.setEffect(visualButton.getEffect());
         visualButton.setEffect(VisualsView.EFFECT_NONE);
-        textStyle.refresh(getContext(), editText);
         setTextStyle(textStyle);
         messageArrayList.add(message);
         adapter.notifyItemInserted(messageArrayList.size() - 1);
@@ -378,7 +381,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         message.isViewed = 1;
         message.setEffect(visualButton.getEffect());
         visualButton.setEffect(VisualsView.EFFECT_NONE);
-        textStyle.refresh(getContext(), editText);
         setTextStyle(textStyle);
         messageArrayList.add(message);
         adapter.notifyItemInserted(messageArrayList.size() - 1);
@@ -409,7 +411,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         message.isViewed = 1;
         message.setEffect(visualButton.getEffect());
         visualButton.setEffect(VisualsView.EFFECT_NONE);
-        textStyle.refresh(getContext(), editText);
         setTextStyle(textStyle);
         message.audioDuration = duration;
         messageArrayList.add(message);
@@ -561,7 +562,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         startActivityForResult(intent, requestCode);
     }
 
-    @Override
+    /*@Override
     public void onOpenTextEffectsSelector() {
         Intent intent = new Intent(getContext(), EffectsSelectorActivity.class);
         intent.putExtra(EffectsSelectorActivity.EXTRA_EFFECT_TYPE, EffectsSelectorActivity.TEXT_EFFECTS);
@@ -573,8 +574,15 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         Intent intent = new Intent(getContext(), EffectsSelectorActivity.class);
         intent.putExtra(EffectsSelectorActivity.EXTRA_EFFECT_TYPE, EffectsSelectorActivity.VISUALS);
         startActivityForResult(intent, REQUEST_EFFECTS);
-    }
+    }*/
 
+    @Override
+    public void onOpenEffectsSelector() {
+        Intent intent = new Intent(getContext(), EffectsSelectorActivity.class);
+        intent.putExtra(VisualsFragment.EXTRA_EFFECT_ID, visualButton.getEffect());
+        intent.putExtra(TextEffectsFragment.EXTRA_TEXT_STYLE, textStyle);
+        startActivityForResult(intent, REQUEST_EFFECTS);
+    }
 
     public static class PickMediaDialogFragment extends DialogFragment {
 
@@ -695,7 +703,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                     message.setEffect(visualButton.getEffect());
                     visualButton.setEffect(VisualsView.EFFECT_NONE);
 
-                    textStyle.refresh(getContext(), editText);
                     setTextStyle(textStyle);
                     messageArrayList.add(message);
                     adapter.notifyItemInserted(messageArrayList.size() - 1);
@@ -721,6 +728,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                 if (visualButton.getEffect() != VisualsView.EFFECT_NONE) {
                     Intent intent = new Intent(getContext(), EffectsSelectorActivity.class);
                     intent.putExtra(EffectsSelectorActivity.EXTRA_EFFECT_TYPE, EffectsSelectorActivity.VISUALS);
+                    intent.putExtra(VisualsFragment.EXTRA_EFFECT_ID, visualButton.getEffect());
+                    intent.putExtra(TextEffectsFragment.EXTRA_TEXT_STYLE, textStyle);
                     startActivityForResult(intent, REQUEST_EFFECTS);
                 }
             }

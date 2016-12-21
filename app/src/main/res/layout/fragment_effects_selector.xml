@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.incode_it.spychat.effects.VisualsFragment"
-    tools:showIn="@layout/activity_effects_selector">
+    tools:context="com.incode_it.spychat.effects.VisualsFragment">
 
     <com.incode_it.spychat.effects.VisualsView
         android:id="@+id/container"
@@ -44,73 +43,84 @@
 
     </com.incode_it.spychat.effects.VisualsView>
 
-
-    <RadioGroup
-        android:layout_gravity="bottom|end"
-        android:gravity="end"
-        android:id="@+id/radio"
-        android:orientation="vertical"
+    <ScrollView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp">
+        android:layout_gravity="bottom|center_horizontal">
 
-        <RadioButton
-            android:layoutDirection="rtl"
-            android:id="@+id/balloons"
-            android:text="Balloons"
-            android:textSize="16sp"
-            android:padding="10dp"
-            android:background="@drawable/bg_my_message_success"
-            android:layout_margin="4dp"
+        <LinearLayout
+            android:gravity="end"
+            android:id="@+id/radio"
+            android:orientation="vertical"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp">
 
-        <RadioButton
-            android:layoutDirection="rtl"
-            android:id="@+id/firework"
-            android:text="Firework"
-            android:textSize="16sp"
-            android:padding="10dp"
-            android:background="@drawable/bg_my_message_success"
-            android:layout_margin="4dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            <TextView
+                android:gravity="center"
+                android:textColor="#ffffff"
+                android:id="@+id/balloons"
+                android:text="Balloons"
+                android:textSize="16sp"
+                android:padding="10dp"
+                android:background="@drawable/button_dark_selector"
+                android:layout_margin="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-        <RadioButton
-            android:layoutDirection="rtl"
-            android:id="@+id/love"
-            android:text="Love"
-            android:textSize="16sp"
-            android:padding="10dp"
-            android:background="@drawable/bg_my_message_success"
-            android:layout_margin="4dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            <TextView
+                android:gravity="center"
+                android:textColor="#ffffff"
+                android:id="@+id/firework"
+                android:text="Fireworks"
+                android:textSize="16sp"
+                android:padding="10dp"
+                android:background="@drawable/button_dark_selector"
+                android:layout_margin="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-        <RadioButton
-            android:layoutDirection="rtl"
-            android:id="@+id/party"
-            android:text="Party"
-            android:textSize="16sp"
-            android:padding="10dp"
-            android:background="@drawable/bg_my_message_success"
-            android:layout_margin="4dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            <TextView
+                android:gravity="center"
+                android:textColor="#ffffff"
+                android:id="@+id/love"
+                android:text="Love"
+                android:textSize="16sp"
+                android:padding="10dp"
+                android:background="@drawable/button_dark_selector"
+                android:layout_margin="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-        <RadioButton
-            android:layoutDirection="rtl"
-            android:id="@+id/none"
-            android:checked="true"
-            android:text="None"
-            android:textSize="16sp"
-            android:padding="10dp"
-            android:background="@drawable/bg_my_message_success"
-            android:layout_margin="4dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            <TextView
+                android:gravity="center"
+                android:textColor="#ffffff"
+                android:id="@+id/party"
+                android:text="Party"
+                android:textSize="16sp"
+                android:padding="10dp"
+                android:background="@drawable/button_dark_selector"
+                android:layout_margin="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
 
-    </RadioGroup>
+            <TextView
+                android:gravity="center"
+                android:textColor="#ffffff"
+                android:id="@+id/none"
+                android:text="None"
+                android:textSize="16sp"
+                android:padding="10dp"
+                android:background="@drawable/button_dark_selector"
+                android:layout_margin="4dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+
 
     <!--<HorizontalScrollView
         android:layout_width="match_parent"

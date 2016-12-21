@@ -98,17 +98,18 @@ public class FakeToolbar extends FrameLayout {
         buttonPalette.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isPalettePopupVisible) {
+                callback.onOpenEffectsSelector();
+                /*if(isPalettePopupVisible) {
                     hidePalettePopup();
                 } else {
                     if (isPopupVisible) {
                         hidePopup();
                     }
                     showPalettePopup();
-                }
+                }*/
             }
         });
-        textEffectsBtnView.setOnClickListener(new OnClickListener() {
+        /*textEffectsBtnView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 callback.onOpenTextEffectsSelector();
@@ -119,7 +120,7 @@ public class FakeToolbar extends FrameLayout {
             public void onClick(View v) {
                 callback.onOpenVisualsSelector();
             }
-        });
+        });*/
 
     }
 
@@ -220,7 +221,8 @@ public class FakeToolbar extends FrameLayout {
     }
 
     public interface Callback {
-        void onOpenTextEffectsSelector();
-        void onOpenVisualsSelector();
+        /*void onOpenTextEffectsSelector();
+        void onOpenVisualsSelector();*/
+        void onOpenEffectsSelector();
     }
 }
