@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
@@ -9,7 +9,8 @@
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
 
         <FrameLayout
             android:background="@drawable/bg_my_message_success"
@@ -24,6 +25,7 @@
                 android:id="@+id/blink"
                 android:text="Blink"
                 android:textSize="16sp"
+                android:padding="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
@@ -42,6 +44,7 @@
                 android:id="@+id/bounce"
                 android:text="Bounce"
                 android:textSize="16sp"
+                android:padding="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
@@ -60,6 +63,45 @@
                 android:id="@+id/shake"
                 android:text="Shake"
                 android:textSize="16sp"
+                android:padding="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:background="@drawable/bg_my_message_success"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_margin="4dp">
+
+            <TextView
+                android:gravity="center"
+                android:textColor="#000000"
+                android:id="@+id/rotationX"
+                android:text="Rotation vertical"
+                android:textSize="16sp"
+                android:padding="8dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </FrameLayout>
+
+        <FrameLayout
+            android:background="@drawable/bg_my_message_success"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
+            android:layout_margin="4dp">
+
+            <TextView
+                android:gravity="center"
+                android:textColor="#000000"
+                android:id="@+id/rotationY"
+                android:text="Rotation horizontal"
+                android:textSize="16sp"
+                android:padding="8dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
@@ -77,6 +119,7 @@
                 android:textColor="#000000"
                 android:id="@+id/none"
                 android:text="None"
+                android:padding="8dp"
                 android:textSize="16sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
@@ -89,4 +132,4 @@
 
 
 
-</LinearLayout>
+</ScrollView>

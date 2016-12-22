@@ -132,14 +132,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     private AudioService mService;
 
-    private AnimatorSet animation;
     private TextStyle textStyle;
-
-    /*private int selectedColor;
-    private float selectedSize;
-    private boolean isAnimated;
-    private AnimatorSet animation;
-    private String selectedFont;*/
 
     private VisualButton visualButton;
     private VisualsView visualsView;
@@ -188,7 +181,9 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         if (savedInstanceState == null) {
             textStyle = new TextStyle(getContext());
         } else {
+
             textStyle = (TextStyle) savedInstanceState.getSerializable(SAVE_STATE_TEXT_STYLE);
+            Log.e(TAG, "onCreate: " + textStyle);
         }
     }
 
@@ -203,6 +198,8 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         messageArrayList = new ArrayList<>();
+
+        Log.d(TAG, "onCreateView: " + textStyle);
 
         rootView = (ViewGroup) view.findViewById(R.id.root_view);
         visualsView = (VisualsView) rootView.findViewById(R.id.effectsView);
@@ -242,8 +239,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             });
             setUpEmojiPopup();
 
-            Log.e(TAG, "onCreateView: ");
-            setTextStyle(textStyle);
+            textStyle.setStyle(editText);
         }
 
 
@@ -310,7 +306,6 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private void setTextStyle(TextStyle textStyle) {
         this.textStyle.refresh(getContext(), editText);
         this.textStyle = textStyle;
-        Log.e(TAG, "setTextStyle: " + textStyle.getAnimationType());
         editText.setTextColor(textStyle.getColor());
         editText.setTextSize(textStyle.getSize());
         FontHelper.setCustomFont(getActivity(), editText, textStyle.getFont());
@@ -582,6 +577,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         intent.putExtra(VisualsFragment.EXTRA_EFFECT_ID, visualButton.getEffect());
         intent.putExtra(TextEffectsFragment.EXTRA_TEXT_STYLE, textStyle);
         startActivityForResult(intent, REQUEST_EFFECTS);
+
     }
 
     public static class PickMediaDialogFragment extends DialogFragment {

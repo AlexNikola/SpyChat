@@ -59,7 +59,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         View view = inflater.inflate(R.layout.fragment_text_effects, container, false);
 
         sampleTextView = (TextView) view.findViewById(R.id.sample);
-        setStyle();
+        textStyle.setStyle(sampleTextView);
 
 
         view.findViewById(R.id.defaultStyle).setOnClickListener(this);
@@ -71,18 +71,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
         return view;
     }
 
-    private void setStyle() {
-        sampleTextView.setTextColor(textStyle.getColor());
-        sampleTextView.setTextSize(textStyle.getSize());
-        FontHelper.setCustomFont(getActivity(), sampleTextView, textStyle.getFont());
 
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                textStyle.animate(sampleTextView);
-            }
-        }, 1);
-    }
 
     @Override
     public void onClick(View v) {
@@ -91,7 +80,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
                 int animation = textStyle.getAnimationType();
                 textStyle.refresh(getContext(), sampleTextView);
                 textStyle.setAnimationType(animation);
-                setStyle();
+                textStyle.setStyle(sampleTextView);
                 break;
             case R.id.change_color:
                 openColorPicker();
@@ -128,7 +117,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
             @Override
             public void onColorSelected(int color) {
                 textStyle.setColor(color);
-                setStyle();
+                textStyle.setStyle(sampleTextView);
             }
         });
 
@@ -155,18 +144,19 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
             if (resultCode == Activity.RESULT_OK) {
                 float size = data.getFloatExtra(ChatTextSizeDialog.EXTRA_TEXT_SIZE, 16);
                 textStyle.setSize(size);
-                setStyle();
+                textStyle.setStyle(sampleTextView);
             }
         } else if (requestCode == REQUEST_TEXT_FONT) {
             if (resultCode == Activity.RESULT_OK) {
                 String font = data.getStringExtra(ChatTextFontDialog.EXTRA_TEXT_FONT);
                 textStyle.setFont(font);
-                setStyle();
+                textStyle.setStyle(sampleTextView);
             }
         } else if (requestCode == REQUEST_ANIMATION) {
             if (resultCode == Activity.RESULT_OK) {
                 int animationType = data.getIntExtra(ChatTextAnimationDialog.EXTRA_ANIMATION_TYPE, TextStyle.ANIMATION_NONE);
-                textStyle.animate(sampleTextView, animationType);
+                textStyle.setAnimationType(animationType);
+                textStyle.setStyle(sampleTextView);
             }
         }
     }
