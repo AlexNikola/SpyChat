@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import com.incode_it.spychat.R;
 
@@ -104,6 +105,7 @@ public class VisualsFragment extends Fragment implements View.OnClickListener {
 
     @Override
     public void onClick(View v) {
+        //Toast.makeText(getContext(), "visuals", Toast.LENGTH_SHORT).show();
         for (View view: buttons) {
             view.setSelected(false);
         }

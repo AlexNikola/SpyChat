@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.incode_it.spychat.R;
 import com.incode_it.spychat.chat.ChatTextFontDialog;
@@ -75,6 +76,7 @@ public class TextEffectsFragment extends Fragment implements View.OnClickListene
 
     @Override
     public void onClick(View v) {
+        //Toast.makeText(getContext(), "text effects", Toast.LENGTH_SHORT).show();
         switch (v.getId()) {
             case R.id.defaultStyle:
                 int animation = textStyle.getAnimationType();

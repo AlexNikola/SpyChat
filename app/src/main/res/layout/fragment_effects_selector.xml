@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#e5f0ff"
     tools:context="com.incode_it.spychat.effects.VisualsFragment">
 
     <com.incode_it.spychat.effects.VisualsView
@@ -50,7 +51,6 @@
 
         <LinearLayout
             android:gravity="end"
-            android:id="@+id/radio"
             android:orientation="vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -119,55 +119,5 @@
         </LinearLayout>
 
     </ScrollView>
-
-
-
-    <!--<HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/balloons"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:padding="16dp"
-                android:text="Balloons" />
-
-            <Button
-                android:id="@+id/firework"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:padding="16dp"
-                android:text="Firework" />
-
-            <Button
-                android:id="@+id/love"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:padding="16dp"
-                android:text="Love" />
-
-            <Button
-                android:id="@+id/party"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:padding="16dp"
-                android:text="Party" />
-
-        </LinearLayout>
-
-    </HorizontalScrollView>-->
-
-
 
 </FrameLayout>
