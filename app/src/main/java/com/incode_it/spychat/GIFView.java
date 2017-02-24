@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import java.io.File;
 
 public class GIFView extends ImageView {
+    private static final String TAG = "ChatGif";
 
     private Movie movie;
     private long movieStart;
@@ -34,7 +35,7 @@ public class GIFView extends ImageView {
         if (movie != null && movie.duration() != 0) {
             long realTime = (now - movieStart) % movie.duration();
             movie.setTime((int) realTime);
-            float min = Math.min(movie.width(), movie.height());
+            //float min = Math.min(movie.width(), movie.height());
             //canvas.scale((float)this.getWidth() / min,(float)this.getHeight() / min);
             movie.draw(canvas, 0, 0);
             //canvas.restore();
@@ -49,27 +50,13 @@ public class GIFView extends ImageView {
 
     }
 
-    public void setBytes(byte[] bytes) {
-        movie = Movie.decodeByteArray(bytes, 0, bytes.length);
-        if (movie != null) {
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(movie.width(), movie.height());
-            setLayoutParams(lp);
-            Log.d("dfgdssg", "setBytes: " + lp.width + " " + lp.height);
-        }
-        Log.d("dfgdssg", "setBytes: " + movie + " " + bytes.length);
-    }
 
     public void setMovie(Movie movie) {
         this.movie = movie;
         if (movie != null) {
             FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(movie.width(), movie.height());
             setLayoutParams(lp);
-            Log.d("dfgdssg", "setBytes: " + lp.width + " " + lp.height);
         }
-    }
-
-    public void setPath(String path) {
-        movie = Movie.decodeFile(path);
-        Log.d("dfgdssg", "setBytes: " + movie + " " + path);
+        invalidate();
     }
 }

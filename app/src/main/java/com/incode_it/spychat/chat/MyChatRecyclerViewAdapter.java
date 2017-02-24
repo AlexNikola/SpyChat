@@ -21,6 +21,7 @@ import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.LruCache;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,11 +51,15 @@ import org.apache.commons.io.FileUtils;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Timer;
 
 import rx.Observable;
@@ -65,6 +70,7 @@ import rx.schedulers.Schedulers;
 
 public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecyclerViewAdapter.MessageViewHolder>
 {
+    private static final String TAG = "ChatGif";
     private ArrayList<Message> messages;
     private MyContacts.Contact contact;
     private Bitmap contactBitmap;
@@ -74,6 +80,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     private Bitmap noPhotoBitmap;
     private Context context;
     private LruCache<String, Bitmap> mMemoryCache;
+    private final SparseArray<SoftReference<byte[]>> gifCache = new SparseArray<>();
 
     public AudioService mService;
     private static final String DOWNLOAD_TAG = "amaz_download";
@@ -327,12 +334,55 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         }
     }
 
-    public class MessageImageViewHolder extends MessageViewHolder
-    {
+    public class MessageImageViewHolder extends MessageViewHolder {
         public GIFView imageMessage;
         public ImageView download;
-        private Subscription subscription;
         int imageWidth, imageHeight;
+        private GifTask gifTask;
+        private byte[] gifBytes = new byte[]{};
+        private String imagePath;
+
+        private class GifTask extends AsyncTask<Void, Void, Movie> {
+
+            @Override
+            protected Movie doInBackground(Void... params) {
+                Log.d(TAG, "doInBackground: " + getAdapterPosition());
+                try {
+                    SoftReference<byte[]> bytesRef = gifCache.get(imagePath.hashCode());
+                    if (bytesRef != null) {
+                        gifBytes = bytesRef.get();
+                        Log.d(TAG, "bytesRef.get(): " + gifBytes);
+
+                    } else {
+                        gifBytes = FileUtils.readFileToByteArray(new File(imagePath));
+                        if (gifBytes != null && gifBytes.length != 0) {
+                            gifCache.put(imagePath.hashCode(), new SoftReference<>(gifBytes));
+                        }
+                    }
+
+                    if (gifBytes != null && gifBytes.length != 0) {
+                        long time = System.currentTimeMillis();
+                        Movie movie = Movie.decodeByteArray(gifBytes, 0, gifBytes.length);
+                        Log.d(TAG, "decodeByteArray: " + (System.currentTimeMillis() - time));
+                        return movie;
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Movie movie) {
+                if (movie == null) {
+                    localLoadBitmap(imagePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
+                } else {
+                    imageMessage.setMovie(movie);
+                }
+            }
+        }
 
 
         public MessageImageViewHolder(View itemView) {
@@ -373,9 +423,13 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
         @Override
         public void bindViewHolder(Message message) {
+            if (gifTask != null) {
+                gifTask.cancel(true);
+            }
             timeText.setText(message.getDate());
             timerTextView.setText("");
             startTimer();
+            imagePath = message.getMessage();
 
             if (!message.getSenderPhoneNumber().equals(myPhoneNumber))
             {
@@ -438,38 +492,31 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 }
             }
 
-            if (subscription != null) {
-                subscription.unsubscribe();
-            }
 
-            final String filePath = message.getMessage();
-            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(imageWidth, imageHeight);
-            imageMessage.setLayoutParams(lp);
+
+
+
             imageMessage.setImageBitmap(null);
-            imageMessage.setPath("");
-            if (filePath.endsWith(".gif")) {
-                subscription = Observable.just(loadMovie(filePath))
-                        .subscribeOn(Schedulers.computation())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(new Action1<Movie>() {
-                            @Override
-                            public void call(Movie movie) {
-                                if (movie == null) {
-                                    localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
-                                } else {
-                                    imageMessage.setMovie(movie);
-                                }
+            imageMessage.setMovie(null);
+            if (imagePath.endsWith(".gif")) {
 
-                            }
-                        }, new Action1<Throwable>() {
-                            @Override
-                            public void call(Throwable throwable) {
-                                localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
-                            }
-                        });
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(imagePath, options);
+                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(options.outWidth, options.outHeight);
+                imageMessage.setLayoutParams(lp);
+
+                gifTask = new GifTask();
+                gifTask.execute();
+
             } else {
-                localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
+                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(imageWidth, imageHeight);
+                imageMessage.setLayoutParams(lp);
+                localLoadBitmap(imagePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
             }
+
+
+
 
 
             if (message.getEffect() != 0) {
@@ -497,15 +544,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             return null;
         }
 
-        private Movie loadMovie(String path) {
-            try {
-                byte[] bytes = FileUtils.readFileToByteArray(new File(path));
-                return Movie.decodeByteArray(bytes, 0, bytes.length);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
     }
 
 
