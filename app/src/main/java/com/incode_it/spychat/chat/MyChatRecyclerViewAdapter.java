@@ -62,6 +62,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Timer;
 
+import pl.droidsonroids.gif.GifImageView;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
@@ -335,7 +336,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     }
 
     public class MessageImageViewHolder extends MessageViewHolder {
-        public GIFView imageMessage;
+        public GifImageView imageMessage;
         public ImageView download;
         int imageWidth, imageHeight;
         private GifTask gifTask;
@@ -381,7 +382,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 if (movie == null) {
                     localLoadBitmap(imagePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
                 } else {
-                    imageMessage.setMovie(movie);
+                    //imageMessage.setMovie(movie);
                 }
             }
         }
@@ -393,7 +394,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             imageWidth = (int) context.getResources().getDimension(R.dimen.chat_image_size);
             imageHeight = imageWidth;
 
-            imageMessage = (GIFView) itemView.findViewById(R.id.image_message);
+            imageMessage = (GifImageView) itemView.findViewById(R.id.image_message);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -497,23 +498,21 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
 
 
-
-            imageMessage.setImageBitmap(null);
-            imageMessage.setMovie(null);
             if (imagePath.endsWith(".gif")) {
-
-                BitmapFactory.Options options = new BitmapFactory.Options();
+                /*BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inJustDecodeBounds = true;
                 BitmapFactory.decodeFile(imagePath, options);
-                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(options.outWidth, options.outHeight);
-                imageMessage.setLayoutParams(lp);
+                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams((imageWidth / options.outWidth) * options.outWidth,
+                        (imageWidth / options.outWidth) * options.outHeight);
+                imageMessage.setLayoutParams(lp);*/
 
-                gifTask = new GifTask();
-                gifTask.execute();
+                imageMessage.setImageURI(Uri.parse("file://" + imagePath));
+                /*gifTask = new GifTask();
+                gifTask.execute();*/
 
             } else {
-                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(imageWidth, imageHeight);
-                imageMessage.setLayoutParams(lp);
+                /*FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(imageWidth, imageHeight);
+                imageMessage.setLayoutParams(lp);*/
                 localLoadBitmap(imagePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
             }
 
