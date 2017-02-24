@@ -7,6 +7,7 @@ import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Movie;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
@@ -16,12 +17,14 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.LruCache;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.MediaController;
 import android.widget.TextView;
@@ -57,6 +60,7 @@ import java.util.Timer;
 import rx.Observable;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecyclerViewAdapter.MessageViewHolder>
@@ -328,9 +332,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         public GIFView imageMessage;
         public ImageView download;
         private Subscription subscription;
+        int imageWidth, imageHeight;
+
 
         public MessageImageViewHolder(View itemView) {
             super(itemView);
+
+            imageWidth = (int) context.getResources().getDimension(R.dimen.chat_image_size);
+            imageHeight = imageWidth;
 
             imageMessage = (GIFView) itemView.findViewById(R.id.image_message);
             itemView.setOnClickListener(new View.OnClickListener() {
@@ -429,45 +438,38 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 }
             }
 
-            String filePath = message.getMessage();
-
-            //localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
-            //imageMessage.setImageURI(Uri.parse("file://" + filePath));
-
-            try {
-                Bitmap bitmap;
-
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(filePath, options);
-                options.inJustDecodeBounds = false;
-                options.inSampleSize = calculateInSampleSize(options, 200, 200);
-                bitmap= BitmapFactory.decodeFile(filePath, options);
-
-                imageMessage.setImageBitmap(null);
-                imageMessage.setPath("");
-                if (filePath.endsWith(".gif")) {
-                    ByteBuffer byteBuffer = ByteBuffer.allocate(bitmap.getByteCount());
-                    bitmap.copyPixelsToBuffer(byteBuffer);
-                    //byte[] bytes = byteBuffer.array();
-                    byte[] bytes = FileUtils.readFileToByteArray(new File(filePath));
-
-                    try {
-                        imageMessage.setBytes(bytes);
-                        //imageMessage.setPath(filePath);
-                    } catch (Exception e) {
-                        imageMessage.setImageBitmap(bitmap);
-                    }
-                } else {
-                    imageMessage.setImageBitmap(bitmap);
-                }
-            } catch (Exception exc) {
-                Log.e("dfgdssg", "bindViewHolder: ", exc);
+            if (subscription != null) {
+                subscription.unsubscribe();
             }
 
+            final String filePath = message.getMessage();
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(imageWidth, imageHeight);
+            imageMessage.setLayoutParams(lp);
+            imageMessage.setImageBitmap(null);
+            imageMessage.setPath("");
+            if (filePath.endsWith(".gif")) {
+                subscription = Observable.just(loadMovie(filePath))
+                        .subscribeOn(Schedulers.computation())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(new Action1<Movie>() {
+                            @Override
+                            public void call(Movie movie) {
+                                if (movie == null) {
+                                    localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
+                                } else {
+                                    imageMessage.setMovie(movie);
+                                }
 
-
-
+                            }
+                        }, new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable throwable) {
+                                localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
+                            }
+                        });
+            } else {
+                localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
+            }
 
 
             if (message.getEffect() != 0) {
@@ -484,7 +486,29 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             file.delete();
             super.onDeleteMessage();
         }
+
+        private byte[] loadGif(String filePath) {
+            Log.d("fdsfsdff", "loadGif: " + Thread.currentThread());
+            try {
+                return FileUtils.readFileToByteArray(new File(filePath));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        private Movie loadMovie(String path) {
+            try {
+                byte[] bytes = FileUtils.readFileToByteArray(new File(path));
+                return Movie.decodeByteArray(bytes, 0, bytes.length);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
     }
+
+
 
     public class MessageTextViewHolder extends MessageViewHolder
     {
