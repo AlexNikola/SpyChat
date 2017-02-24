@@ -1,7 +1,5 @@
 package com.incode_it.spychat.chat;
 
-import android.animation.AnimatorInflater;
-import android.animation.AnimatorSet;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -25,9 +23,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.MediaController;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.incode_it.spychat.C;
+import com.incode_it.spychat.GIFView;
 import com.incode_it.spychat.Message;
 import com.incode_it.spychat.MyContacts;
 import com.incode_it.spychat.MyTimerTask;
@@ -41,12 +42,22 @@ import com.incode_it.spychat.utils.Cypher;
 import com.incode_it.spychat.utils.FontHelper;
 import com.vanniktech.emoji.EmojiTextView;
 
+import org.apache.commons.io.FileUtils;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Timer;
+
+import rx.Observable;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecyclerViewAdapter.MessageViewHolder>
 {
@@ -162,7 +173,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
     public class MessageVideoViewHolder extends MessageViewHolder
     {
-        public ImageView videoMessage;
+        public GIFView videoMessage;
         public ImageView download;
         public ImageView play;
 
@@ -170,7 +181,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
         public MessageVideoViewHolder(View itemView) {
             super(itemView);
-            videoMessage = (ImageView) itemView.findViewById(R.id.video_message);
+            videoMessage = (GIFView) itemView.findViewById(R.id.video_message);
             download = (ImageView) itemView.findViewById(R.id.download);
             download.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -314,13 +325,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
     public class MessageImageViewHolder extends MessageViewHolder
     {
-        public ImageView imageMessage;
+        public GIFView imageMessage;
         public ImageView download;
+        private Subscription subscription;
 
         public MessageImageViewHolder(View itemView) {
             super(itemView);
 
-            imageMessage = (ImageView) itemView.findViewById(R.id.image_message);
+            imageMessage = (GIFView) itemView.findViewById(R.id.image_message);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -419,7 +431,44 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
             String filePath = message.getMessage();
 
-            localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
+            //localLoadBitmap(filePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
+            //imageMessage.setImageURI(Uri.parse("file://" + filePath));
+
+            try {
+                Bitmap bitmap;
+
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(filePath, options);
+                options.inJustDecodeBounds = false;
+                options.inSampleSize = calculateInSampleSize(options, 200, 200);
+                bitmap= BitmapFactory.decodeFile(filePath, options);
+
+                imageMessage.setImageBitmap(null);
+                imageMessage.setPath("");
+                if (filePath.endsWith(".gif")) {
+                    ByteBuffer byteBuffer = ByteBuffer.allocate(bitmap.getByteCount());
+                    bitmap.copyPixelsToBuffer(byteBuffer);
+                    //byte[] bytes = byteBuffer.array();
+                    byte[] bytes = FileUtils.readFileToByteArray(new File(filePath));
+
+                    try {
+                        imageMessage.setBytes(bytes);
+                        //imageMessage.setPath(filePath);
+                    } catch (Exception e) {
+                        imageMessage.setImageBitmap(bitmap);
+                    }
+                } else {
+                    imageMessage.setImageBitmap(bitmap);
+                }
+            } catch (Exception exc) {
+                Log.e("dfgdssg", "bindViewHolder: ", exc);
+            }
+
+
+
+
+
 
             if (message.getEffect() != 0) {
                 replayEffectBtn.setVisibility(View.VISIBLE);
@@ -917,7 +966,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 final AsyncDrawable asyncDrawable =
                         new AsyncDrawable(context.getResources(), emptyImageMessageBitmap, task);
                 imageView.setImageDrawable(asyncDrawable);
-                //task.execute(uri);
                 task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, filePath, work);
             }
         }

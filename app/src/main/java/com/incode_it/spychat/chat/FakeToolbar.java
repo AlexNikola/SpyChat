@@ -33,6 +33,7 @@ public class FakeToolbar extends FrameLayout {
     private TextView title;
     private View backBtn;
     private View buttonPalette;
+    private View buttonCall;
 
     private View textEffectsBtnView, visualsBtnView;
 
@@ -86,6 +87,13 @@ public class FakeToolbar extends FrameLayout {
                     }
                     showPopup();
                 }
+            }
+        });
+        buttonCall = findViewById(R.id.call);
+        buttonCall.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callback.onStartCall();
             }
         });
 
@@ -224,5 +232,6 @@ public class FakeToolbar extends FrameLayout {
         /*void onOpenTextEffectsSelector();
         void onOpenVisualsSelector();*/
         void onOpenEffectsSelector();
+        void onStartCall();
     }
 }

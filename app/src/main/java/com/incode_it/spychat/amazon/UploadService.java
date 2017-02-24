@@ -201,6 +201,7 @@ public class UploadService extends IntentService {
         String response = MyConnection.post(url, sbParams.toString(), header);
 
         Log.d("mytest", "trySendMessage: " + sbParams.toString());
+        Log.d("mytest", "response: " + response);
         String result = null;
         if (response.equals("Access token is expired"))
         {

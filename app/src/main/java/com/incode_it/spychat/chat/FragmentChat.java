@@ -580,6 +580,13 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
     }
 
+    @Override
+    public void onStartCall() {
+        Intent callIntent = new Intent(Intent.ACTION_CALL);
+        callIntent.setData(Uri.parse("tel:" + opponentPhone));
+        startActivity(callIntent);
+    }
+
     public static class PickMediaDialogFragment extends DialogFragment {
 
         public static final String TAG = "PickMediaDialogFragment";

@@ -47,7 +47,7 @@ public class C
 
     public static final String BASE_URL = "http://radiant-brushlands-47862.herokuapp.com/";
     //public static final String BASE_URL = "http://incode-it.com:47777/";
-    //public static final String BASE_URL = "http://192.168.88.25:7777/";
+    //public static final String BASE_URL = "http://192.168.88.33:7777/";
 
     public static final String REMOVAL_GLOBAL_TIME = "removal_global_time";
     public static final String GLOBAL_TIMER = "added_global_time";

@@ -32,7 +32,7 @@
                     android:layout_width="200dp"
                     android:layout_height="200dp">
 
-                    <ImageView
+                    <com.incode_it.spychat.GIFView
                         android:scaleType="centerCrop"
                         android:id="@+id/video_message"
                         android:layout_width="200dp"

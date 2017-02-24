@@ -51,16 +51,17 @@ public class MyGcmListenerService extends GcmListenerService {
         String receiverPhoneNumber = null;
         int animationType = TextStyle.ANIMATION_NONE;
         int effect = 0;
-        /*if (data != null) {
+        if (data != null) {
             for (String key : data.keySet()) {
                 Object value = data.get(key);
                 Log.d("mytest", String.format("%s %s (%s)", key,
                         value.toString(), value.getClass().getName()));
             }
-        }*/
+        }
 
         try {
             JSONObject jsonObject = new JSONObject(data.getString("message"));
+            Log.d("mytest", "onMessageReceived: " + jsonObject.getString("type"));
             if (jsonObject.getString("type").equals("typeText")) {
                 receivedTextMessage = jsonObject.getString("textmessage");
                 receivedColor = jsonObject.getInt("color");
@@ -82,6 +83,7 @@ public class MyGcmListenerService extends GcmListenerService {
                 receivedTextMessage = jsonObject.getString("url");
                 //Log.d(TAG, "onMessageReceived: url: " + receivedTextMessage);
             } else if (jsonObject.getString("type").equals("typeNotification")) {
+                Log.e("mytest", "onMessageReceived: ");
                 resolveAdminNotification(jsonObject);
             }
             if (jsonObject.has("effect")) {
@@ -212,6 +214,8 @@ public class MyGcmListenerService extends GcmListenerService {
     private void resolveAdminNotification(JSONObject jsonObject) throws JSONException {
         String title = jsonObject.getString("title");
         String text = jsonObject.getString("text");
+
+        Log.d("mytest", "resolveAdminNotification: " + title + " " + text);
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this)
                 .setSmallIcon(R.drawable.ic_warning_white_24dp)
