@@ -7,5 +7,6 @@ public interface OnPickMediaListener {
 
     //void onResult(int requestCode, int resultCode, Intent data);
 
-    void onPickMedia(Intent intent, int requestCode);
+    void onPickImage();
+    void onPickVideo();
 }

@@ -6,7 +6,7 @@
         android:name="android.hardware.camera"
         android:required="true" />
 
-    <uses-permission android:name="android.permission.CALL_PHONE"/>
+    <uses-permission android:name="android.permission.CALL_PHONE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -184,6 +184,7 @@
             android:name=".effects.EffectsSelectorActivity"
             android:label="@string/title_activity_effects_selector"
             android:theme="@style/ChatTheme" />
+        <activity android:name=".chat.CaptionActivity"></activity>
     </application>
 
 </manifest>

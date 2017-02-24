@@ -1,8 +1,6 @@
 package com.incode_it.spychat.chat;
 
 
-import android.animation.AnimatorInflater;
-import android.animation.AnimatorSet;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -39,6 +37,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.incode_it.spychat.C;
 import com.incode_it.spychat.Message;
@@ -75,23 +74,16 @@ import com.wdullaer.materialdatetimepicker.time.TimePickerDialog;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.Callback,
         TimePickerDialog.OnTimeSetListener, OnPickMediaListener, RecordAudioDialog.Callback, FakeToolbar.Callback {
 
-    static final int REQUEST_IMAGE_CAPTURE = 11;
-    static final int REQUEST_VIDEO_CAPTURE = 12;
-    static final int REQUEST_PHOTO_PICK = 13;
-    static final int REQUEST_VIDEO_PICK = 14;
 
     private static final int SEND_MESSAGE_DELAY = 500;
     private static final String TAG = "chatm";
@@ -278,7 +270,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("qwerty", "onActivityResult");
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
+        /*if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == Activity.RESULT_OK) {
             String photoPath = sharedPreferences.getString(C.SHARED_NEW_PHOTO_PATH, "error");
             uploadImage(photoPath);
         } else if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == Activity.RESULT_OK) {
@@ -296,7 +288,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             Log.d("qwerty", data.getType()+" - "+path);
             String realPath = getRealPath(path);
             uploadVideo(realPath);
-        } else if (requestCode == REQUEST_EFFECTS && resultCode == Activity.RESULT_OK) {
+        } else*/ if (requestCode == REQUEST_EFFECTS && resultCode == Activity.RESULT_OK) {
             TextStyle textStyle = (TextStyle) data.getSerializableExtra(TextEffectsFragment.EXTRA_TEXT_STYLE);
             visualButton.setEffect(data.getIntExtra(VisualsFragment.EXTRA_EFFECT_ID, 0));
             setTextStyle(textStyle);
@@ -333,22 +325,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         super.onPause();
     }
 
-    private String getRealPath(String path) {
-        String yourRealPath = null;
 
-        String[] filePathColumn = {MediaStore.Images.Media.DATA};
-        Cursor cursor = getContext().getContentResolver().query(Uri.parse(path), filePathColumn, null, null, null);
-        if (cursor != null) {
-            if(cursor.moveToFirst()){
-                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-                yourRealPath = cursor.getString(columnIndex);
-            } else {
-                //boooo, cursor doesn't have rows ...
-            }
-            cursor.close();
-        }
-        return yourRealPath;
-    }
 
     private void uploadImage(String photoPath)
     {
@@ -421,62 +398,27 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         getContext().getApplicationContext().startService(serviceIntent);
     }
 
-    private void openVideoCamera()
-    {
-        Intent takeVideoIntent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-        if (takeVideoIntent.resolveActivity(getContext().getPackageManager()) != null) {
-            File videoFile = null;
-            try {
-                videoFile = createVideoFile();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-
-            if (videoFile != null) {
-                takeVideoIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                        Uri.fromFile(videoFile));
-                startActivityForResult(takeVideoIntent, REQUEST_VIDEO_CAPTURE);
-            }
-        }
+    private void takeVideo() {
+        Toast.makeText(getContext(), "Open video", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(getContext(), CaptionActivity.class);
+        startActivityForResult(intent, CaptionActivity.ACTION_OPEN_VIDEO_CAMERA);
     }
 
-    private void openPhotoCamera()
-    {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, true);
-        if (takePictureIntent.resolveActivity(getContext().getPackageManager()) != null) {
-
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-               ex.printStackTrace();
-            }
-
-            if (photoFile != null) {
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,
-                        Uri.fromFile(photoFile));
-                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
-            }
-        }
+    private void takePhoto() {
+        Intent intent = new Intent(getContext(), CaptionActivity.class);
+        startActivityForResult(intent, CaptionActivity.ACTION_OPEN_PHOTO_CAMERA);
     }
 
-    private File createImageFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getContext().getExternalFilesDir(null);
-        File image = File.createTempFile(imageFileName, ".jpg", storageDir);
-        sharedPreferences.edit().putString(C.SHARED_NEW_PHOTO_PATH, image.getAbsolutePath()).apply();
-        return image;
+    @Override
+    public void onPickImage() {
+        Intent intent = new Intent(getContext(), CaptionActivity.class);
+        startActivityForResult(intent, CaptionActivity.ACTION_PICK_IMAGE);
     }
 
-    private File createVideoFile() throws IOException {
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "MP4_" + timeStamp + "_";
-        File storageDir = getContext().getExternalFilesDir(null);
-        File video = File.createTempFile(imageFileName, ".mp4", storageDir);
-        sharedPreferences.edit().putString(C.SHARED_NEW_VIDEO_PATH, video.getAbsolutePath()).apply();
-        return video;
+    @Override
+    public void onPickVideo() {
+        Intent intent = new Intent(getContext(), CaptionActivity.class);
+        startActivityForResult(intent, CaptionActivity.ACTION_PICK_VIDEO);
     }
 
 
@@ -504,13 +446,13 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         fakeToolbar.setOnPhotoClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openPhotoCamera();
+                takePhoto();
             }
         });
         fakeToolbar.setOnVideoClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openVideoCamera();
+                takeVideo();
             }
         });
         fakeToolbar.setOnBackClickListener(new View.OnClickListener() {
@@ -552,10 +494,7 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
 
 
-    @Override
-    public void onPickMedia(Intent intent, int requestCode) {
-        startActivityForResult(intent, requestCode);
-    }
+
 
     /*@Override
     public void onOpenTextEffectsSelector() {
@@ -618,17 +557,13 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
             builder.setItems(arr, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
-                            Intent intent = new Intent(Intent.ACTION_PICK);
-                            switch (which)
-                            {
+                            switch (which) {
                                 case 0:
-                                    intent.setType("image/*");
-                                    listener.onPickMedia(intent, REQUEST_PHOTO_PICK);
+                                    listener.onPickImage();
                                     break;
 
                                 case 1:
-                                    intent.setType("video/*");
-                                    listener.onPickMedia(intent, REQUEST_VIDEO_PICK);
+                                    listener.onPickVideo();
                                     break;
                             }
                             dismiss();

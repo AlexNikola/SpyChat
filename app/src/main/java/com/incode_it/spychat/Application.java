@@ -1,9 +1,8 @@
 package com.incode_it.spychat;
 
-import android.support.multidex.MultiDexApplication;
 import com.appnext.appnextsdk.AppnextTrack;
 
-public class Application extends MultiDexApplication {
+public class Application extends android.app.Application {
 
     @Override
     public void onCreate() {
