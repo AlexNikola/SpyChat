@@ -348,7 +348,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             protected Movie doInBackground(Void... params) {
                 Log.d(TAG, "doInBackground: " + getAdapterPosition());
                 try {
-                    SoftReference<byte[]> bytesRef = gifCache.get(imagePath.hashCode());
+                    /*SoftReference<byte[]> bytesRef = gifCache.get(imagePath.hashCode());
                     if (bytesRef != null) {
                         gifBytes = bytesRef.get();
                         Log.d(TAG, "bytesRef.get(): " + gifBytes);
@@ -358,7 +358,9 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                         if (gifBytes != null && gifBytes.length != 0) {
                             gifCache.put(imagePath.hashCode(), new SoftReference<>(gifBytes));
                         }
-                    }
+                    }*/
+
+                    gifBytes = FileUtils.readFileToByteArray(new File(imagePath));
 
                     if (gifBytes != null && gifBytes.length != 0) {
                         long time = System.currentTimeMillis();

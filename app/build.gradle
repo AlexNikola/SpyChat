@@ -27,7 +27,7 @@ dependencies {
     compile project(':emoji')
     compile project(':confetti')
 
-    /*compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.5'*/
+    compile 'pl.droidsonroids.gif:android-gif-drawable:1.2.5'
     /*compile 'com.felipecsl:gifimageview:2.1.0'*/
 
 
