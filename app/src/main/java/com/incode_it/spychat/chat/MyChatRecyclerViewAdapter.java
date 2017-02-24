@@ -499,26 +499,10 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
 
             if (imagePath.endsWith(".gif")) {
-                /*BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inJustDecodeBounds = true;
-                BitmapFactory.decodeFile(imagePath, options);
-                FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams((imageWidth / options.outWidth) * options.outWidth,
-                        (imageWidth / options.outWidth) * options.outHeight);
-                imageMessage.setLayoutParams(lp);*/
-
                 imageMessage.setImageURI(Uri.parse("file://" + imagePath));
-                /*gifTask = new GifTask();
-                gifTask.execute();*/
-
             } else {
-                /*FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(imageWidth, imageHeight);
-                imageMessage.setLayoutParams(lp);*/
                 localLoadBitmap(imagePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
             }
-
-
-
-
 
             if (message.getEffect() != 0) {
                 replayEffectBtn.setVisibility(View.VISIBLE);
@@ -533,16 +517,6 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             File file = new File(message.getMessage());
             file.delete();
             super.onDeleteMessage();
-        }
-
-        private byte[] loadGif(String filePath) {
-            Log.d("fdsfsdff", "loadGif: " + Thread.currentThread());
-            try {
-                return FileUtils.readFileToByteArray(new File(filePath));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
         }
 
     }
