@@ -184,7 +184,9 @@
             android:name=".effects.EffectsSelectorActivity"
             android:label="@string/title_activity_effects_selector"
             android:theme="@style/ChatTheme" />
-        <activity android:name=".chat.CaptionActivity"></activity>
+        <activity
+            android:name=".chat.CaptionActivity"
+            android:theme="@style/CaptionTheme"/>
     </application>
 
 </manifest>

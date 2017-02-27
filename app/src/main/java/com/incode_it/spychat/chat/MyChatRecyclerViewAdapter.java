@@ -188,6 +188,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
         public GIFView videoMessage;
         public ImageView download;
         public ImageView play;
+        public TextView captionTextView;
 
         //public VideoView videoView;
 
@@ -223,12 +224,15 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                     context.startActivity(intent);
                 }
             });
+            captionTextView = (TextView) itemView.findViewById(R.id.captionTextView);
         }
 
         @Override
         public void bindViewHolder(Message message) {
             timeText.setText(message.getDate());
             timerTextView.setText("");
+            captionTextView.setText(message.getCaption());
+            captionTextView.setVisibility(View.GONE);
             startTimer();
 
             if (!message.getSenderPhoneNumber().equals(myPhoneNumber))
@@ -317,7 +321,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                 cursor.close();
             }
 
-            localLoadBitmap(yourRealPath, videoMessage, "frame", C.getEmptyVideoMessageBitmap(context));
+            localLoadBitmap(yourRealPath, videoMessage, "frame", C.getEmptyVideoMessageBitmap(context), captionTextView);
 
             if (message.getEffect() != 0) {
                 replayEffectBtn.setVisibility(View.VISIBLE);
@@ -338,61 +342,14 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     public class MessageImageViewHolder extends MessageViewHolder {
         public GifImageView imageMessage;
         public ImageView download;
-        int imageWidth, imageHeight;
-        private GifTask gifTask;
-        private byte[] gifBytes = new byte[]{};
         private String imagePath;
-
-        private class GifTask extends AsyncTask<Void, Void, Movie> {
-
-            @Override
-            protected Movie doInBackground(Void... params) {
-                Log.d(TAG, "doInBackground: " + getAdapterPosition());
-                try {
-                    /*SoftReference<byte[]> bytesRef = gifCache.get(imagePath.hashCode());
-                    if (bytesRef != null) {
-                        gifBytes = bytesRef.get();
-                        Log.d(TAG, "bytesRef.get(): " + gifBytes);
-
-                    } else {
-                        gifBytes = FileUtils.readFileToByteArray(new File(imagePath));
-                        if (gifBytes != null && gifBytes.length != 0) {
-                            gifCache.put(imagePath.hashCode(), new SoftReference<>(gifBytes));
-                        }
-                    }*/
-
-                    gifBytes = FileUtils.readFileToByteArray(new File(imagePath));
-
-                    if (gifBytes != null && gifBytes.length != 0) {
-                        long time = System.currentTimeMillis();
-                        Movie movie = Movie.decodeByteArray(gifBytes, 0, gifBytes.length);
-                        Log.d(TAG, "decodeByteArray: " + (System.currentTimeMillis() - time));
-                        return movie;
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(Movie movie) {
-                if (movie == null) {
-                    localLoadBitmap(imagePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
-                } else {
-                    //imageMessage.setMovie(movie);
-                }
-            }
-        }
-
+        public TextView captionTextView;
+        private int imageWigth;
 
         public MessageImageViewHolder(View itemView) {
             super(itemView);
 
-            imageWidth = (int) context.getResources().getDimension(R.dimen.chat_image_size);
-            imageHeight = imageWidth;
+            imageWigth = (int) context.getResources().getDimension(R.dimen.chat_image_size);
 
             imageMessage = (GifImageView) itemView.findViewById(R.id.image_message);
             itemView.setOnClickListener(new View.OnClickListener() {
@@ -422,15 +379,16 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
                     download.setVisibility(View.INVISIBLE);
                 }
             });
+
+            captionTextView = (TextView) itemView.findViewById(R.id.captionTextView);
         }
 
         @Override
         public void bindViewHolder(Message message) {
-            if (gifTask != null) {
-                gifTask.cancel(true);
-            }
             timeText.setText(message.getDate());
             timerTextView.setText("");
+            captionTextView.setText(message.getCaption());
+            Log.d(TAG, "bindViewHolder: " + message.getCaption());
             startTimer();
             imagePath = message.getMessage();
 
@@ -496,12 +454,23 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             }
 
 
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(imagePath, options);
 
+            float height = ((float) options.outHeight / (float) options.outWidth) * (float) imageWigth;
+
+            Log.d(TAG, "bindViewHolder: " + options.outWidth + " " + options.outHeight + " res: " + imageWigth + " " + height);
+
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(imageWigth, (int) height);
+            imageMessage.setLayoutParams(lp);
 
             if (imagePath.endsWith(".gif")) {
                 imageMessage.setImageURI(Uri.parse("file://" + imagePath));
+                captionTextView.setVisibility(View.VISIBLE);
             } else {
-                localLoadBitmap(imagePath, imageMessage, "", C.getEmptyImageMessageBitmap(context));
+                captionTextView.setVisibility(View.GONE);
+                localLoadBitmap(imagePath, imageMessage, "", C.getEmptyImageMessageBitmap(context), captionTextView);
             }
 
             if (message.getEffect() != 0) {
@@ -989,17 +958,18 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    public void localLoadBitmap(String filePath, ImageView imageView, String work, Bitmap emptyImageMessageBitmap) {
+    public void localLoadBitmap(String filePath, ImageView imageView, String work, Bitmap emptyImageMessageBitmap, TextView captionTextView) {
         if (cancelPotentialWork(filePath, imageView))
         {
             final Bitmap bitmap = getBitmapFromMemCache(filePath);
             if (bitmap != null)
             {
                 imageView.setImageBitmap(bitmap);
+                captionTextView.setVisibility(View.VISIBLE);
             }
             else
             {
-                final BitmapWorkerTask task = new BitmapWorkerTask(imageView);
+                final BitmapWorkerTask task = new BitmapWorkerTask(imageView, captionTextView);
                 final AsyncDrawable asyncDrawable =
                         new AsyncDrawable(context.getResources(), emptyImageMessageBitmap, task);
                 imageView.setImageDrawable(asyncDrawable);
@@ -1040,11 +1010,13 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
     class BitmapWorkerTask extends AsyncTask<String, Void, Bitmap>
     {
         private final WeakReference<ImageView> imageViewReference;
+        private final WeakReference<TextView> captionTextReference;
         private String imageFilePath;
 
-        public BitmapWorkerTask(ImageView imageView) {
+        public BitmapWorkerTask(ImageView imageView, TextView textView) {
             // Use a WeakReference to ensure the ImageView can be garbage collected
             imageViewReference = new WeakReference<>(imageView);
+            captionTextReference = new WeakReference<>(textView);
         }
 
         // Decode image in background.
@@ -1084,10 +1056,12 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
 
             if (imageViewReference != null && bitmap != null) {
                 final ImageView imageView = imageViewReference.get();
+                final TextView textView = captionTextReference.get();
                 final BitmapWorkerTask bitmapWorkerTask =
                         getBitmapWorkerTask(imageView);
-                if (this == bitmapWorkerTask && imageView != null) {
+                if (this == bitmapWorkerTask && imageView != null && textView != null) {
                     imageView.setImageBitmap(bitmap);
+                    textView.setVisibility(View.VISIBLE);
                 }
             }
         }

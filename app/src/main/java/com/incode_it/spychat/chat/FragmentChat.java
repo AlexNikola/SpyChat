@@ -288,10 +288,27 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
             Log.d("qwerty", data.getType()+" - "+path);
             String realPath = getRealPath(path);
             uploadVideo(realPath);
-        } else*/ if (requestCode == REQUEST_EFFECTS && resultCode == Activity.RESULT_OK) {
+        } else*/
+        if (requestCode == REQUEST_EFFECTS && resultCode == Activity.RESULT_OK) {
             TextStyle textStyle = (TextStyle) data.getSerializableExtra(TextEffectsFragment.EXTRA_TEXT_STYLE);
             visualButton.setEffect(data.getIntExtra(VisualsFragment.EXTRA_EFFECT_ID, 0));
             setTextStyle(textStyle);
+        } else if (requestCode == CaptionActivity.ACTION_OPEN_PHOTO_CAMERA && resultCode == Activity.RESULT_OK) {
+            String photoPath = data.getStringExtra(CaptionActivity.EXTRA_PATH);
+            String caption = data.getStringExtra(CaptionActivity.EXTRA_CAPTION);
+            uploadImage(photoPath, caption);
+        } else if (requestCode == CaptionActivity.ACTION_PICK_IMAGE && resultCode == Activity.RESULT_OK) {
+            String imagePath = data.getStringExtra(CaptionActivity.EXTRA_PATH);
+            String caption = data.getStringExtra(CaptionActivity.EXTRA_CAPTION);
+            uploadImage(imagePath, caption);
+        } else if (requestCode == CaptionActivity.ACTION_OPEN_VIDEO_CAMERA && resultCode == Activity.RESULT_OK) {
+            String videoPath = data.getStringExtra(CaptionActivity.EXTRA_PATH);
+            String caption = data.getStringExtra(CaptionActivity.EXTRA_CAPTION);
+            uploadVideo(videoPath, caption);
+        } else if (requestCode == CaptionActivity.ACTION_PICK_VIDEO && resultCode == Activity.RESULT_OK) {
+            String videoPath = data.getStringExtra(CaptionActivity.EXTRA_PATH);
+            String caption = data.getStringExtra(CaptionActivity.EXTRA_CAPTION);
+            uploadVideo(videoPath, caption);
         }
     }
 
@@ -327,9 +344,9 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
 
 
 
-    private void uploadImage(String photoPath)
-    {
+    private void uploadImage(String photoPath, String caption) {
         final Message message = new Message(photoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_IMAGE, myPhoneNumber);
+        message.setCaption(caption);
         message.isViewed = 1;
         message.setEffect(visualButton.getEffect());
         visualButton.setEffect(VisualsView.EFFECT_NONE);
@@ -347,9 +364,9 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
         getContext().getApplicationContext().startService(serviceIntent);
     }
 
-    private void uploadVideo(String videoPath)
-    {
+    private void uploadVideo(String videoPath, String caption) {
         final Message message = new Message(videoPath, myPhoneNumber, contact.phoneNumber, Message.STATE_ADDED, Message.MY_MESSAGE_VIDEO, myPhoneNumber);
+        message.setCaption(caption);
         message.isViewed = 1;
         message.setEffect(visualButton.getEffect());
         visualButton.setEffect(VisualsView.EFFECT_NONE);
@@ -401,23 +418,27 @@ public class FragmentChat extends Fragment implements MyChatRecyclerViewAdapter.
     private void takeVideo() {
         Toast.makeText(getContext(), "Open video", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(getContext(), CaptionActivity.class);
+        intent.putExtra(CaptionActivity.ACTION, CaptionActivity.ACTION_OPEN_VIDEO_CAMERA);
         startActivityForResult(intent, CaptionActivity.ACTION_OPEN_VIDEO_CAMERA);
     }
 
     private void takePhoto() {
         Intent intent = new Intent(getContext(), CaptionActivity.class);
+        intent.putExtra(CaptionActivity.ACTION, CaptionActivity.ACTION_OPEN_PHOTO_CAMERA);
         startActivityForResult(intent, CaptionActivity.ACTION_OPEN_PHOTO_CAMERA);
     }
 
     @Override
     public void onPickImage() {
         Intent intent = new Intent(getContext(), CaptionActivity.class);
+        intent.putExtra(CaptionActivity.ACTION, CaptionActivity.ACTION_PICK_IMAGE);
         startActivityForResult(intent, CaptionActivity.ACTION_PICK_IMAGE);
     }
 
     @Override
     public void onPickVideo() {
         Intent intent = new Intent(getContext(), CaptionActivity.class);
+        intent.putExtra(CaptionActivity.ACTION, CaptionActivity.ACTION_PICK_VIDEO);
         startActivityForResult(intent, CaptionActivity.ACTION_PICK_VIDEO);
     }
 

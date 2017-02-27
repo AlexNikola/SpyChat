@@ -143,6 +143,7 @@ public class UploadService extends IntentService {
                 object.put("effect", message.getEffect());
                 object.put("type", "typeMedia");
                 object.put("url", remoteMediaPath);
+                object.put("caption", message.getCaption());
                 object.put("receiverPhoneNumber", receiverPhoneNumber);
 
             } catch (JSONException e) {

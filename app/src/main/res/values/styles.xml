@@ -28,6 +28,15 @@
         <item name="colorControlActivated">@color/colorPrimary</item>-->
     </style>
 
+    <style name="CaptionTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimarySettings</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDarkSettings</item>
+        <item name="colorAccent">@color/colorAccentSettings</item>
+        <!--<item name="colorControlNormal">@color/colorPrimary</item>
+        <item name="colorControlActivated">@color/colorPrimary</item>-->
+    </style>
+
     <style name="ChangePassTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimarySettings</item>

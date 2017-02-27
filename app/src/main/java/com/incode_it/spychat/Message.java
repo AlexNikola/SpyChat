@@ -46,8 +46,15 @@ public class Message
     public String ownerPhoneNumber;
     private int effect;
     private int animationType;
+    private String caption = "";
 
-    public Message(String message, String senderPhoneNumber, String receiverPhoneNumber, int state, int messageType, String ownerPhoneNumber)
+    public Message(
+            String message,
+            String senderPhoneNumber,
+            String receiverPhoneNumber,
+            int state,
+            int messageType,
+            String ownerPhoneNumber)
     {
         this.message = message;
         this.senderPhoneNumber = senderPhoneNumber;
@@ -60,8 +67,7 @@ public class Message
         this.ownerPhoneNumber = ownerPhoneNumber;
     }
 
-    public Message(Cursor cursor)
-    {
+    public Message(Cursor cursor) {
         this.message = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.MESSAGE));
         this.senderPhoneNumber = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.SENDER_PHONE_NUMBER));
         this.receiverPhoneNumber = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.RECEIVER_PHONE_NUMBER));
@@ -78,6 +84,15 @@ public class Message
         this.font = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.FONT));
         this.effect = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.EFFECT));
         this.animationType = cursor.getInt(cursor.getColumnIndex(MReaderContract.Chat.ANIMATION_TYPE));
+        this.caption = cursor.getString(cursor.getColumnIndex(MReaderContract.Chat.CAPTION));
+    }
+
+    public String getCaption() {
+        return caption;
+    }
+
+    public void setCaption(String caption) {
+        this.caption = caption;
     }
 
     public void setMessageId(int messageId) {

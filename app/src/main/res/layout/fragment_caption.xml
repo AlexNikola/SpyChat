@@ -2,7 +2,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.incode_it.spychat.chat.CaptionFragment">
+    tools:showIn="@layout/activity_caption"
+    tools:context="com.incode_it.spychat.chat.CaptionActivity">
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -25,7 +26,12 @@
 
                 <TextView
                     android:textSize="30dp"
+                    android:layout_margin="8dp"
                     android:id="@+id/textView"
+                    android:textStyle="bold"
+                    android:layout_gravity="bottom"
+                    android:lines="1"
+                    android:textColor="#ffffff"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content" />
 
@@ -43,6 +49,7 @@
         android:layout_margin="8dp"
         android:id="@+id/editText"
         android:hint="Input caption"
+        android:lines="1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

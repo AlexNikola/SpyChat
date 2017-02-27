@@ -51,6 +51,7 @@ public class MyGcmListenerService extends GcmListenerService {
         String receiverPhoneNumber = null;
         int animationType = TextStyle.ANIMATION_NONE;
         int effect = 0;
+        String caption = "";
         if (data != null) {
             for (String key : data.keySet()) {
                 Object value = data.get(key);
@@ -88,6 +89,9 @@ public class MyGcmListenerService extends GcmListenerService {
             }
             if (jsonObject.has("effect")) {
                 effect = jsonObject.getInt("effect");
+            }
+            if (jsonObject.has("caption")) {
+                caption = jsonObject.getString("caption");
             }
 
         } catch (JSONException e) {
@@ -132,6 +136,7 @@ public class MyGcmListenerService extends GcmListenerService {
             }
         }
 
+        message.setCaption(caption);
         message.setEffect(effect);
 
         MyDbHelper.insertMessage(new MyDbHelper(this).getWritableDatabase(), message, MyGcmListenerService.this);

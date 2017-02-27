@@ -51,7 +51,8 @@ public class MyDbHelper extends SQLiteOpenHelper
                     Chat.FONT + TYPE_TEXT + COMMA_SEP +
                     Chat.OWNER + TYPE_TEXT + COMMA_SEP +
                     Chat.EFFECT + TYPE_INT + COMMA_SEP +
-                    Chat.ANIMATION_TYPE + TYPE_INT + " )";
+                    Chat.ANIMATION_TYPE + TYPE_INT + COMMA_SEP +
+                    Chat.CAPTION + TYPE_TEXT + " )";
 
     private static final String SQL_DELETE_CHAT_TABLE =
             "DROP TABLE IF EXISTS " + Chat.TABLE_NAME;
@@ -79,7 +80,7 @@ public class MyDbHelper extends SQLiteOpenHelper
     private static final String SQL_DELETE_COUNTRIES_TABLE =
             "DROP TABLE IF EXISTS " + Countries.TABLE_NAME;
 
-    public static final int DATABASE_VERSION = 21;
+    public static final int DATABASE_VERSION = 23;
     public static final String DATABASE_NAME = "SpyChat.db";
 
     public MyDbHelper(Context context) {
@@ -134,6 +135,7 @@ public class MyDbHelper extends SQLiteOpenHelper
             values.put(Chat.OWNER, message.ownerPhoneNumber);
             values.put(Chat.EFFECT, message.getEffect());
             values.put(Chat.ANIMATION_TYPE, message.getAnimationType());
+            values.put(Chat.CAPTION, message.getCaption());
 
             db.insert(Chat.TABLE_NAME, null, values);
         }
@@ -148,26 +150,106 @@ public class MyDbHelper extends SQLiteOpenHelper
         try {
             if (cursor.moveToFirst()) {
                 do {
-                    String messageText = cursor.getString(cursor.getColumnIndex(Chat.MESSAGE));
-                    String senderPhoneNumber = cursor.getString(cursor.getColumnIndex(Chat.SENDER_PHONE_NUMBER));
-                    String receiverPhoneNumber = cursor.getString(cursor.getColumnIndex(Chat.RECEIVER_PHONE_NUMBER));
-                    String date = cursor.getString(cursor.getColumnIndex(Chat.DATE));
-                    int state = cursor.getInt(cursor.getColumnIndex(Chat.STATE));
-                    int messageId = cursor.getInt(cursor.getColumnIndex(Chat.MESSAGE_ID));
-                    long removalTime = cursor.getLong(cursor.getColumnIndex(Chat.REMOVAL_TIME));
-                    int messageType = cursor.getInt(cursor.getColumnIndex(Chat.MESSAGE_TYPE));
-                    String ownerPhoneNumber = cursor.getString(cursor.getColumnIndex(Chat.OWNER));
-                    int isViewed = cursor.getInt(cursor.getColumnIndex(Chat.IS_VIEWED));
-                    int audioDuration = cursor.getInt(cursor.getColumnIndex(Chat.AUDIO_DURATION));
-                    int color = cursor.getInt(cursor.getColumnIndex(Chat.COLOR));
-                    float textSize = cursor.getFloat(cursor.getColumnIndex(Chat.SIZE));
-                    boolean isAnimated = cursor.getInt(cursor.getColumnIndex("animation")) == 1;
-                    String font = cursor.getString(cursor.getColumnIndex(Chat.FONT));
+                    int columnIndex = cursor.getColumnIndex(Chat.MESSAGE);
+                    String messageText = "";
+                    if (columnIndex != -1) {
+                        messageText = cursor.getString(columnIndex);
+                    }
 
-                    int columnIndex = cursor.getColumnIndex(Chat.EFFECT);
+                    columnIndex = cursor.getColumnIndex(Chat.SENDER_PHONE_NUMBER);
+                    String senderPhoneNumber = "";
+                    if (columnIndex != -1) {
+                        senderPhoneNumber = cursor.getString(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.RECEIVER_PHONE_NUMBER);
+                    String receiverPhoneNumber = "";
+                    if (columnIndex != -1) {
+                        receiverPhoneNumber = cursor.getString(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.DATE);
+                    String date = "";
+                    if (columnIndex != -1) {
+                        date = cursor.getString(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.STATE);
+                    int state = 0;
+                    if (columnIndex != -1) {
+                        state = cursor.getInt(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.MESSAGE_ID);
+                    int messageId = 0;
+                    if (columnIndex != -1) {
+                        messageId = cursor.getInt(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.REMOVAL_TIME);
+                    long removalTime = 0;
+                    if (columnIndex != -1) {
+                        removalTime = cursor.getLong(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.MESSAGE_TYPE);
+                    int messageType = 0;
+                    if (columnIndex != -1) {
+                        messageType = cursor.getInt(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.OWNER);
+                    String ownerPhoneNumber = "";
+                    if (columnIndex != -1) {
+                        ownerPhoneNumber = cursor.getString(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.IS_VIEWED);
+                    int isViewed = 0;
+                    if (columnIndex != -1) {
+                        isViewed = cursor.getInt(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.AUDIO_DURATION);
+                    int audioDuration = 0;
+                    if (columnIndex != -1) {
+                        audioDuration = cursor.getInt(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.COLOR);
+                    int color = 0;
+                    if (columnIndex != -1) {
+                        color = cursor.getInt(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.SIZE);
+                    float textSize = 0;
+                    if (columnIndex != -1) {
+                        textSize = cursor.getInt(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex("animation");
+                    boolean isAnimated = false;
+                    if (columnIndex != -1) {
+                        isAnimated = cursor.getInt(columnIndex) == 1;
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.FONT);
+                    String font = "";
+                    if (columnIndex != -1) {
+                        font = cursor.getString(columnIndex);
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.EFFECT);
                     int effect = VisualsView.EFFECT_NONE;
                     if (columnIndex != -1) {
                         effect = cursor.getInt(cursor.getColumnIndex(Chat.EFFECT));
+                    }
+
+                    columnIndex = cursor.getColumnIndex(Chat.CAPTION);
+                    String captionText = "";
+                    if (columnIndex != -1) {
+                        captionText = cursor.getString(cursor.getColumnIndex(Chat.CAPTION));
                     }
 
                     Message message = new Message(messageText, senderPhoneNumber, receiverPhoneNumber, state, messageType, ownerPhoneNumber);
@@ -181,6 +263,7 @@ public class MyDbHelper extends SQLiteOpenHelper
                     message.setAnimationType(isAnimated ? TextStyle.ANIMATION_BLINK : TextStyle.ANIMATION_NONE);
                     message.setFont(font);
                     message.setEffect(effect);
+                    message.setCaption(captionText);
                     messagesArr.add(message);
                 }
                 while (cursor.moveToNext());
@@ -222,6 +305,7 @@ public class MyDbHelper extends SQLiteOpenHelper
         values.put(Chat.OWNER, message.ownerPhoneNumber);
         values.put(Chat.EFFECT, message.getEffect());
         values.put(Chat.ANIMATION_TYPE, message.getAnimationType());
+        values.put(Chat.CAPTION, message.getCaption());
 
         db.insert(Chat.TABLE_NAME, null, values);
         db.close();

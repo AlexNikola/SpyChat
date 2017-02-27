@@ -25,6 +25,7 @@ public final class MReaderContract
         public static final String OWNER = "OWNER";
         public static final String EFFECT = "EFFECT";
         public static final String ANIMATION_TYPE = "ANIMATION_TYPE";
+        public static final String CAPTION = "CAPTION";
     }
 
     public static abstract class RegisteredContact implements BaseColumns {

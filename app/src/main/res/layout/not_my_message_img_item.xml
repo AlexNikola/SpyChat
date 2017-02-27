@@ -29,15 +29,14 @@
                 android:padding="8dp">
 
                 <FrameLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="@dimen/chat_image_size"
                     android:layout_height="wrap_content">
 
                     <pl.droidsonroids.gif.GifImageView
-                        android:scaleType="centerCrop"
                         android:adjustViewBounds="true"
                         android:id="@+id/image_message"
-                        android:layout_width="@dimen/chat_image_size"
-                        android:layout_height="@dimen/chat_image_size"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
                         android:layout_gravity="end"/>
 
                     <ProgressBar
@@ -53,6 +52,16 @@
                         android:src="@drawable/file_download"
                         android:layout_width="75dp"
                         android:layout_height="75dp" />
+
+                    <TextView
+                        android:id="@+id/captionTextView"
+                        android:layout_margin="8dp"
+                        android:textColor="#ffffff"
+                        android:textSize="20dp"
+                        android:layout_gravity="bottom"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
 
                 </FrameLayout>
 
