@@ -45,6 +45,7 @@ import java.util.Date;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import pl.droidsonroids.gif.GifImageView;
 
 public class CaptionActivity extends AppCompatActivity {
 
@@ -82,13 +83,14 @@ public class CaptionActivity extends AppCompatActivity {
         static final int REQUEST_VIDEO_CAPTURE = 12;
         static final int REQUEST_PHOTO_PICK = 13;
         static final int REQUEST_VIDEO_PICK = 14;
+        private static final String TAG = "CaptionFragment";
 
         private SharedPreferences sharedPreferences;
 
         private String path = "";
         private String caption = "";
 
-        private ImageView imageView;
+        private GifImageView imageView;
         private TextView textView;
         private EditText editText;
 
@@ -170,12 +172,17 @@ public class CaptionActivity extends AppCompatActivity {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    Display display = getActivity().getWindowManager().getDefaultDisplay();
-                    Point size = new Point();
-                    display.getSize(size);
-                    int width = size.x/2;
-                    int height = size.y/2;
-                    Picasso.with(getContext()).load("file://" + path).resize(width, height).centerInside().onlyScaleDown().into(imageView);
+                    Log.d(TAG, "setupImage: " + path);
+                    if (path.endsWith(".gif")) {
+                        imageView.setImageURI(Uri.parse("file://" + path));
+                    } else {
+                        Display display = getActivity().getWindowManager().getDefaultDisplay();
+                        Point size = new Point();
+                        display.getSize(size);
+                        int width = size.x/2;
+                        int height = size.y/2;
+                        Picasso.with(getContext()).load("file://" + path).resize(width, height).centerInside().onlyScaleDown().into(imageView);
+                    }
                 }
             }, 1);
         }
@@ -185,7 +192,7 @@ public class CaptionActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
             // Inflate the layout for this fragment
             View view = inflater.inflate(R.layout.fragment_caption, container, false);
-            imageView = (ImageView) view.findViewById(R.id.imageView);
+            imageView = (GifImageView) view.findViewById(R.id.imageView);
             textView = (TextView) view.findViewById(R.id.textView);
             editText = (EditText) view.findViewById(R.id.editText);
             editText.addTextChangedListener(new TextWatcher() {

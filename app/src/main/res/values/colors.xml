@@ -64,4 +64,6 @@
     <color name="firework_4">#FBC02D</color>
 
     <color name="chat_effects_btn">#2196F3</color>
+
+    <color name="caption_text_color">#ff0822ae</color>
 </resources>

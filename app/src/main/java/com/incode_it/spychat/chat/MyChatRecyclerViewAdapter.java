@@ -50,6 +50,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
@@ -388,6 +389,7 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             timeText.setText(message.getDate());
             timerTextView.setText("");
             captionTextView.setText(message.getCaption());
+            captionTextView.setVisibility(View.GONE);
             Log.d(TAG, "bindViewHolder: " + message.getCaption());
             startTimer();
             imagePath = message.getMessage();
@@ -465,12 +467,21 @@ public class MyChatRecyclerViewAdapter extends RecyclerView.Adapter<MyChatRecycl
             FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(imageWigth, (int) height);
             imageMessage.setLayoutParams(lp);
 
-            if (imagePath.endsWith(".gif")) {
-                imageMessage.setImageURI(Uri.parse("file://" + imagePath));
-                captionTextView.setVisibility(View.VISIBLE);
-            } else {
-                captionTextView.setVisibility(View.GONE);
-                localLoadBitmap(imagePath, imageMessage, "", C.getEmptyImageMessageBitmap(context), captionTextView);
+            Log.e(TAG, "bindViewHolder: " + imagePath);
+            if (imagePath.startsWith("/storage/emulated/0")) {
+                if (imagePath.endsWith(".gif")) {
+                    /*images/+380661111111/tumblr_nltc6y6pau1rx5rfmo1_1280.gif*/
+
+                    /*/storage/emulated/0/Android/data/com.incode_it.spychat/files/tumblr_nltc6y6pau1rx5rfmo1_1280.gif*/
+                    /*/storage/emulated/0/Android/data/com.incode_it.spychat/files/1484903810071.png*/
+
+                    imageMessage.setImageURI(Uri.parse("file://" + imagePath));
+                    captionTextView.setVisibility(View.VISIBLE);
+
+                } else {
+                    captionTextView.setVisibility(View.GONE);
+                    localLoadBitmap(imagePath, imageMessage, "", C.getEmptyImageMessageBitmap(context), captionTextView);
+                }
             }
 
             if (message.getEffect() != 0) {
